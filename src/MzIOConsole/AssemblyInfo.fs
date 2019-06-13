@@ -2,7 +2,7 @@
 namespace System
 open System.Reflection
 
-[<assembly: AssemblyTitleAttribute("MzIO")>]
+[<assembly: AssemblyTitleAttribute("MzIOConsole")>]
 [<assembly: AssemblyProductAttribute("MzIO")>]
 [<assembly: AssemblyDescriptionAttribute("Generic data model to unify various reader and writer for different formats used in protein mass spectrometry")>]
 [<assembly: AssemblyVersionAttribute("0.0.1")>]
@@ -11,7 +11,7 @@ open System.Reflection
 do ()
 
 module internal AssemblyVersionInformation =
-    let [<Literal>] AssemblyTitle = "MzIO"
+    let [<Literal>] AssemblyTitle = "MzIOConsole"
     let [<Literal>] AssemblyProduct = "MzIO"
     let [<Literal>] AssemblyDescription = "Generic data model to unify various reader and writer for different formats used in protein mass spectrometry"
     let [<Literal>] AssemblyVersion = "0.0.1"

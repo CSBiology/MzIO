@@ -1,9 +1,19 @@
+version 5.198.0
 framework: auto-detect
 
 source https://nuget.org/api/v2
 
-nuget FSharp.Core
+nuget FSharp.Core = 4.5.2
 nuget Argu
+
+nuget EntityFramework
+nuget Newtonsoft.Json
+nuget System.Data.SQLite
+nuget System.Data.SQLite.Core
+nuget System.Data.SQLite.EF6
+nuget System.Data.SQLite.Linq
+nuget System.Xml.Linq
+
 
 nuget Expecto
 nuget Expecto.BenchmarkDotNet
