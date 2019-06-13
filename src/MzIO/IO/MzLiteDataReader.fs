@@ -1,10 +1,10 @@
-﻿namespace MzLiteFSharp.IO
+﻿namespace MzIO.IO
 
 
 open System.Collections.Generic
-open MzLiteFSharp.IO
-open MzLiteFSharp.Binary
-open MzLiteFSharp.Model
+open MzIO.IO
+open MzIO.Binary
+open MzIO.Model
 
 
 //potential error source: replaced Task<'T> with Async<'T>

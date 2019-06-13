@@ -1,4 +1,4 @@
-﻿namespace MzLiteFSharp.Json
+﻿namespace MzIO.Json
 
 
 open System
@@ -6,8 +6,8 @@ open System.IO
 open System.Globalization
 open Newtonsoft.Json
 open Newtonsoft.Json.Serialization
-open MzLiteFSharp.IO
-open MzLiteFSharp.Model
+open MzIO.IO
+open MzIO.Model
 
 
 type MzLiteJson =

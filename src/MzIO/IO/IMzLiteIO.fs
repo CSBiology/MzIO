@@ -1,8 +1,8 @@
-﻿namespace MzLiteFSharp.IO
+﻿namespace MzIO.IO
 
 
 open System
-open MzLiteFSharp.Model
+open MzIO.Model
 
 
 type IMzLiteIO =

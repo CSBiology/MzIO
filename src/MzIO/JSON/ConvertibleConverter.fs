@@ -1,4 +1,4 @@
-﻿namespace MzLiteFSharp.Json
+﻿namespace MzIO.Json
 
 
 open System

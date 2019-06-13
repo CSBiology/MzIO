@@ -1,11 +1,11 @@
-﻿namespace MzLiteFSharp.Binary
+﻿namespace MzIO.Binary
 
 
 open System
 open System.IO
 open System.IO.Compression
 open NumpressHelper
-open MzLiteFSharp.Binary
+open MzIO.Binary
 
 
 type BinaryDataEncoder() =

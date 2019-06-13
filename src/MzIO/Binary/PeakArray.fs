@@ -1,9 +1,9 @@
-﻿namespace MzLiteFSharp.Binary
+﻿namespace MzIO.Binary
 
 open System
-open MzLiteFSharp.Commons.Arrays
+open MzIO.Commons.Arrays
 open Newtonsoft.Json
-open MzLiteFSharp.Model.CvParam
+open MzIO.Model.CvParam
 
 [<AbstractClass>]
 type Peak(intensity:float) =

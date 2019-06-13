@@ -1,8 +1,8 @@
-﻿namespace MzLiteFSharp.MetaData.UO
+﻿namespace MzIO.MetaData.UO
 
 
-open MzLiteFSharp.Model.CvParam
-open MzLiteFSharp.MetaData.ParamEditExtension
+open MzIO.Model.CvParam
+open MzIO.MetaData.ParamEditExtension
 
 
 module UO =

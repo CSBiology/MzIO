@@ -1,10 +1,10 @@
-﻿namespace MzLiteFSharp.Model
+﻿namespace MzIO.Model
 
 
 open System
 open System.ComponentModel
 open System.Linq.Expressions
-open MzLiteFSharp.Model.CvParam
+open MzIO.Model.CvParam
 open Newtonsoft.Json
 
 

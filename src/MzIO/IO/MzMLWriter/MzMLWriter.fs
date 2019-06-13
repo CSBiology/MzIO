@@ -1,18 +1,18 @@
-﻿namespace MzLite.IO.MzML
+﻿namespace MzIO.IO.MzML
 
 open System
 open System.Globalization
 open System.Xml
-open MzLiteFSharp.Model
-open MzLiteFSharp.Model.CvParam
+open MzIO.Model
+open MzIO.Model.CvParam
 open System.Linq
-open MzLiteFSharp.MetaData
-open MzLiteFSharp.MetaData.ParamEditExtension
-open MzLiteFSharp.MetaData.PSIMSExtension
+open MzIO.MetaData
+open MzIO.MetaData.ParamEditExtension
+open MzIO.MetaData.PSIMSExtension
 open System.Collections.Generic
-open MzLiteFSharp.Binary
-open MzLiteFSharp.IO
-open MzLiteFSharp.Model.CvParam
+open MzIO.Binary
+open MzIO.IO
+open MzIO.Model.CvParam
 
 
 type private MzMLWriteState =

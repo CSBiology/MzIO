@@ -1,9 +1,9 @@
-﻿namespace MzLiteFSharp.Model
+﻿namespace MzIO.Model
 
 
 open System
 open System.Linq.Expressions
-open MzLiteFSharp.Model
+open MzIO.Model
 open Newtonsoft.Json
 
 

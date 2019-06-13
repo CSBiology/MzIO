@@ -1,4 +1,4 @@
-﻿namespace MzLiteFSharp.Commons.Arrays
+﻿namespace MzIO.Commons.Arrays
 
 
 open System.Linq

@@ -1,4 +1,4 @@
-namespace MzLiteFSharp.Model
+namespace MzIO.Model
 
 
 open System

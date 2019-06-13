@@ -1,4 +1,4 @@
-﻿namespace MzLiteFSharp.IO
+﻿namespace MzIO.IO
 
 open System
 

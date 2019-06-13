@@ -1,9 +1,9 @@
-﻿namespace MzLiteFSharp.Model
+﻿namespace MzIO.Model
 
 
 open System.ComponentModel
-open MzLiteFSharp.Model
-open MzLiteFSharp.Model.CvParam
+open MzIO.Model
+open MzIO.Model.CvParam
 open Newtonsoft.Json
 
 

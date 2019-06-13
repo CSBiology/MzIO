@@ -1,12 +1,12 @@
-﻿namespace MzLiteFSharp.MetaData
+﻿namespace MzIO.MetaData
 
 open System
 open System.Collections.ObjectModel
-open MzLiteFSharp.Model
-open MzLiteFSharp.Model.CvParam
-open MzLiteFSharp.MetaData.ParamEditExtension
-open MzLiteFSharp.MetaData.UO.UO
-open MzLiteFSharp.Binary
+open MzIO.Model
+open MzIO.Model.CvParam
+open MzIO.MetaData.ParamEditExtension
+open MzIO.MetaData.UO.UO
+open MzIO.Binary
 
 module PSIMSExtension =
 

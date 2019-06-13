@@ -1,10 +1,10 @@
-﻿namespace MzLiteFSharp.Json
+﻿namespace MzIO.Json
 
 
 open System
 open Newtonsoft.Json
 open Newtonsoft.Json.Linq
-open MzLiteFSharp.Model.CvParam
+open MzIO.Model.CvParam
 
 
 type ParamBaseConverter =

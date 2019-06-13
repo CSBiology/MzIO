@@ -1,9 +1,9 @@
-﻿namespace MzLiteFSharp.MetaData
+﻿namespace MzIO.MetaData
 
 
 open System
 open System.Globalization
-open MzLiteFSharp.Model.CvParam
+open MzIO.Model.CvParam
 
 
 module ParamEditExtension =

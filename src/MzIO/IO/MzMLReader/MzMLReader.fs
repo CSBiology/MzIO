@@ -1,15 +1,15 @@
-﻿namespace MzLite.IO.MzML
+﻿namespace MzIO.IO.MzML
 
 open System
 open System.IO
 open System.IO.Compression
 open System.Xml
 open FSharp.Core
-open MzLiteFSharp.Model
-open MzLiteFSharp.Model.Helper
-open MzLiteFSharp.Model.CvParam
-open MzLiteFSharp.Commons.Arrays
-open MzLiteFSharp.Binary
+open MzIO.Model
+open MzIO.Model.Helper
+open MzIO.Model.CvParam
+open MzIO.Commons.Arrays
+open MzIO.Binary
 
 module MzML =
 

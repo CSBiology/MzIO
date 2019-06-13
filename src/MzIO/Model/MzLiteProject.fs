@@ -1,7 +1,7 @@
-﻿namespace MzLiteFSharp.Model
+﻿namespace MzIO.Model
 
 
-open MzLiteFSharp.Model
+open MzIO.Model
 open Newtonsoft.Json
 
 
