@@ -134,14 +134,14 @@ let testAssemblies = "tests/**/bin" </> configuration </> "**" </> "*Tests.exe"
 
 // Git configuration (used for publishing documentation in gh-pages branch)
 // The profile where the project is posted
-let gitOwner = "Computational Systems Biology"
+let gitOwner = "CSBiology"
 let gitHome = sprintf "%s/%s" "https://github.com" gitOwner
 
 // The name of the project on GitHub
 let gitName = "MzIO"
 
 // The url for the raw files hosted
-let gitRaw = Environment.environVarOrDefault "gitRaw" "https://raw.githubusercontent.com/Computational Systems Biology"
+let gitRaw = Environment.environVarOrDefault "gitRaw" "https://raw.githubusercontent.com/CSBiology"
 
 let website = "/MzIO"
 
