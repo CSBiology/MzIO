@@ -14,10 +14,22 @@
     <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Library.fs" />
-    <None Include="Scripts\Script.fsx" />
-    <None Include="paket.references" />
-    <None Include="paket.template" />
+    <EmbeddedResource Remove="Scripts\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Binary\BinaryDataDecoder.fs" />
+    <Compile Include="Binary\BinaryDataEncoder.fs" />
+    <Compile Include="Binary\MSNumpress.fs" />
+    <Compile Include="Binary\NumpressHelper.fs" />
+    <Compile Include="Binary\PeakArray.fs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Commons\Arrays\" />
+    <Folder Include="IO\MzMLReader\" />
+    <Folder Include="IO\MzMLWriter\" />
+    <Folder Include="Model\" />
+    <Folder Include="MetaData\" />
+    <Folder Include="JSON\" />
   </ItemGroup>
   <Import Project="..\..\.paket\Paket.Restore.targets" />
 </Project>
