@@ -8,8 +8,8 @@ open System.Dynamic
 open System.Collections.Generic
 open System.Collections.Specialized
 open System.Collections.ObjectModel
-open Newtonsoft.Json
 open Newtonsoft.Json.Linq
+open Newtonsoft.Json.Serialization
 //open System.Reflection
 // System.Collections.ICollection //in ICollection
 
@@ -118,6 +118,18 @@ module ReflectionHelper =
 
 module CvParam =
 
+    //type private MzLiteJson =
+    //    static member jsonSettings = 
+    //        let tmp = new JsonSerializerSettings()
+    //        //new method to preserve paramcontainer fields when serealizing type
+    //        tmp.ReferenceLoopHandling       <- Newtonsoft.Json.ReferenceLoopHandling.Serialize
+    //        tmp.PreserveReferencesHandling  <- Newtonsoft.Json.PreserveReferencesHandling.Objects
+    //        //end of new method
+    //        //tmp.ReferenceLoopHandling       <- Newtonsoft.Json.ReferenceLoopHandling.Ignore
+    //        tmp.ContractResolver            <- new DefaultContractResolver()
+    //        tmp.Culture <- new CultureInfo("en-US")    
+    //        tmp
+
     // ########################################
     // ########################################
     // ########################################
@@ -125,22 +137,23 @@ module CvParam =
 
 
     [<Struct>]
-    //[<JsonConverter(typeof<ConvertibleConverter>)>]
+    //[<JsonConverter(typeof<ParamBaseConverter>)>]
     type ParamValue<'T when 'T :> IConvertible> =
-        | CvValue of 'T
-        | WithCvUnitAccession of 'T * string
+    | CvValue of 'T
+    | WithCvUnitAccession of 'T * string
 
     //[<StructuralEquality;StructuralComparison>]
-    type IParamBase<'T when 'T :> IConvertible> =        
+    and IParamBase<'T when 'T :> IConvertible> =        
         abstract member ID       : string    
         [<JsonProperty(NullValueHandling = NullValueHandling.Ignore)>]
         abstract member Value    : ParamValue<'T> option
 
-    type 
+    and 
         [<JsonObject(MemberSerialization.OptIn)>]
-        //[<JsonConverter(typeof<ParamBaseConverter>)>]
-        CvParam<'T when 'T :> IConvertible>[<JsonConstructor>](cvAccession:string, ?paramValue:ParamValue<'T>) =
+        [<JsonConverter(typeof<ParamBaseConverter>)>]
+        CvParam<'T when 'T :> IConvertible>(*[<JsonConstructor>]*)(cvAccession:string, ?paramValue:ParamValue<'T>) =
             
+            [<JsonConstructor>]
             new(cvAccession) = new CvParam<'T>(cvAccession)
             new() = new CvParam<'T>("CvAccession")
 
@@ -151,20 +164,21 @@ module CvParam =
                 [<JsonProperty(Required = Required.Always)>]
                 member this.ID    = cvAccession
                 [<JsonProperty(NullValueHandling = NullValueHandling.Ignore)>]
-                member this.Value = paramValue
+                member this.Value = if paramValue.IsSome then paramValue else None
 
             [<JsonProperty(Required = Required.Always)>]
             member this.CvAccession = cvAccession
 
             [<JsonProperty(NullValueHandling = NullValueHandling.Ignore)>]
-            member this.Value = paramValue
+            member this.Value = if paramValue.IsSome then paramValue else None
 
     
-    type 
+    and 
         [<JsonObject(MemberSerialization.OptIn)>]
-        //[<JsonConverter(typeof<ParamBaseConverter>)>]
-        UserParam<'T when 'T :> IConvertible>[<JsonConstructor>](name:string, ?paramValue:ParamValue<'T>) =
-         
+        [<JsonConverter(typeof<ParamBaseConverter>)>]
+        UserParam<'T when 'T :> IConvertible>(*[<JsonConstructor>]*)(name:string, ?paramValue:ParamValue<'T>) =
+            
+            [<JsonConstructor>]
             new(name) = new UserParam<'T>(name)
             new() = new UserParam<'T>("Name")
 
@@ -175,50 +189,147 @@ module CvParam =
                 [<JsonProperty(Required = Required.Always)>]
                 member this.ID    = name
                 [<JsonProperty(NullValueHandling = NullValueHandling.Ignore)>]
-                member this.Value = paramValue
+                member this.Value = if paramValue.IsSome then paramValue else None
 
             [<JsonProperty(Required = Required.Always)>]
             member this.Name = name
 
             [<JsonProperty(NullValueHandling = NullValueHandling.Ignore)>]
-            member this.Value = paramValue
+            member this.Value = if paramValue.IsSome then paramValue else None
 
-    //and ParamBaseConverter() =  
+    and ParamBaseConverter() =  
 
-    //    inherit JsonConverter()
+        inherit JsonConverter()
 
-    //    override this.CanConvert(objectType:Type) =
+        static member private createJsonValue(item:string) =
+            //printfn "create Jsonvalue"
+            if item.StartsWith("WithCvUnitAccession") then
+                let tmp = item.Substring(0, 19), item.Substring(20)
+                let tmpID = "\"Type\":\"" + (fst tmp) + "\""
+                let tmpValues = ",\"Values\":[" + (((snd tmp).Remove(0, 1)).Remove((snd tmp).Length-2)) + "]"
+                sprintf "%s}" (tmpID + tmpValues)
+            else
+                if item.StartsWith("CvValue") then
+                    let tmp = item.Substring(0, 7), item.Substring(8)
+                    let tmpID = "\"Type\":\"" + (fst tmp) + "\""
+                    let tmpValues = ",\"Values\":[" + snd tmp + "]"
+                    sprintf "%s}" (tmpID + tmpValues)
+                else
+                    let tmpID = "\"Type\":\"" + "CvValue" + "\""
+                    let tmpValues = ",\"Values\":[null]"
+                    sprintf "%s}" (tmpID + tmpValues)
 
-    //        failwith ((new NotSupportedException("JsonConverter.CanConvert()")).ToString())
+        static member private createParamValue(item:JObject) =
+            //printfn "create paramValue"
+            match item.["Type"].ToString() with
+            | "WithCvUnitAccession" -> 
+                let tmp = item.["Values"] :?> JArray
+                match tmp.First.ToString() with
+                | ""    -> 
+                    ParamValue.WithCvUnitAccession(
+                        Unchecked.defaultof<IConvertible>, item.["Values"].Last.ToString()
+                                                  )
+                | null  ->
+                    ParamValue.WithCvUnitAccession(
+                        Unchecked.defaultof<IConvertible>, item.["Values"].Last.ToString()
+                                                  )
+                | _     ->
+                    ParamValue.WithCvUnitAccession(
+                        item.["Values"].First.ToString() :> IConvertible, 
+                        item.["Values"].Last.ToString()
+                                                  )
+            | "CvValue" ->
+                let tmp = item.["Values"] :?> JArray
+                match tmp.First.ToString() with                
+                | ""    -> ParamValue.CvValue(Unchecked.defaultof<IConvertible>)
+                | null  -> ParamValue.CvValue(Unchecked.defaultof<IConvertible>)
+                | _     -> ParamValue.CvValue(item.["Values"].First.ToString() :> IConvertible)
+                
+            | _     -> failwith ((new JsonSerializationException("Could not determine concrete param type.")).ToString())
 
-    //    override this.ReadJson(reader:JsonReader, objectType:Type, existingValue:Object, serializer:JsonSerializer) =
+        static member private createJsonParam<'T when 'T :> IConvertible>(param:IParamBase<'T>) =
+            match param with
+            | :? CvParam<'T>    as item ->                
+                let tmpID = sprintf "{\"%s\":\"%s\",\"CvAccession\":\"%s\"," "$id" "1" item.CvAccession
+                let tmpValue = ParamBaseConverter.createJsonValue(if item.Value.IsSome then item.Value.Value.ToString() else "None")
+                JObject.Parse(tmpID + tmpValue)
+            | :? UserParam<'T>  as item -> 
+                let tmpID = sprintf "{\"%s\":\"%s\",\"Name\":\"%s\"," "$id" "1" item.Name
+                let tmpValue = ParamBaseConverter.createJsonValue(if item.Value.IsSome then item.Value.Value.ToString() else "None")
+                JObject.Parse(tmpID + tmpValue)
+            | _     -> failwith ((new JsonSerializationException("Could not determine concrete param type.")).ToString())
+        
+        override this.CanConvert(objectType:Type) =
 
-    //        let jt = JToken.Load(reader)
+            failwith ((new NotSupportedException("JsonConverter.CanConvert()")).ToString())
 
-    //        if jt.Type = JTokenType.Null then null
-    //            else
-    //                if jt.Type = JTokenType.Object then
-    //                    let jo = JObject(jt)
-    //                    let mutable jtval = JToken.FromObject(jo)            
-    //                    if jo.TryGetValue("Name", & jtval) then
-    //                        jo.ToObject<UserParam<string>>(serializer) :> Object
-    //                    else 
-    //                        if jo.TryGetValue("CvAccession", & jtval) then
-    //                            jo.ToObject<CvParam<string>>(serializer) :> Object
-    //                        else 
-    //                            failwith ((new JsonSerializationException("Could not determine concrete param type.")).ToString())
-    //                else 
-    //                    failwith ((new JsonSerializationException("Object token expected.")).ToString())
+        override this.ReadJson(reader:JsonReader, objectType:Type, existingValue:Object, serializer:JsonSerializer) =
+            //printfn "read Json"
+            let jt = JToken.Load(reader)
+            if jt.Type = JTokenType.Null then null
+                else
+                    if jt.Type = JTokenType.Object then
+                        let jo = jt.ToObject<JObject>()
+                        if jo.["CvAccession"] = null then
+                            if jo.["Name"] = null then
+                                failwith ((new JsonSerializationException("Could not determine concrete param type.")).ToString())
+                            else
+                                let values = ParamBaseConverter.createParamValue jo
+                                new UserParam<IConvertible>(jo.["Name"].ToString(), values) :> Object
+                        else
+                            let values = ParamBaseConverter.createParamValue jo
+                            new CvParam<IConvertible>(jo.["CvAccession"].ToString(), values) :> Object
+                    else 
+                        failwith ((new JsonSerializationException("Object token expected.")).ToString())
 
-    //    override this.WriteJson(writer: JsonWriter, value: Object, serializer: JsonSerializer) =
+        override this.WriteJson(writer: JsonWriter, value: Object, serializer: JsonSerializer) =
 
-    //        if value = null then
-    //            writer.WriteNull()
-    //        else
-    //            match value with
-    //            | :? CvParam<'T>    as value -> serializer.Serialize(writer, value)
-    //            | :? UserParam<'T>  as value -> serializer.Serialize(writer, value)
-    //            | _     -> failwith ((new JsonSerializationException("Type not supported: " + value.GetType().FullName)).ToString())
+            if value = null then
+                writer.WriteNull()
+            else
+                //printfn "%s" "write Json"
+                match value with
+                | :? CvParam<bool>      as value -> serializer.Serialize(writer, ParamBaseConverter.createJsonParam value)
+                | :? CvParam<byte>      as value -> serializer.Serialize(writer, ParamBaseConverter.createJsonParam value)
+                | :? CvParam<char>      as value -> serializer.Serialize(writer, ParamBaseConverter.createJsonParam value)
+                | :? CvParam<DateTime>  as value -> serializer.Serialize(writer, ParamBaseConverter.createJsonParam value)
+                | :? CvParam<DBNull>    as value -> serializer.Serialize(writer, ParamBaseConverter.createJsonParam value)
+                | :? CvParam<decimal>   as value -> serializer.Serialize(writer, ParamBaseConverter.createJsonParam value)
+                | :? CvParam<double>    as value -> serializer.Serialize(writer, ParamBaseConverter.createJsonParam value)
+                //| :? CvParam<e<Empty> as value -> serializer.Serialize(writer, value)
+                | :? CvParam<Int16>     as value -> serializer.Serialize(writer, ParamBaseConverter.createJsonParam value)
+                | :? CvParam<Int32>     as value -> serializer.Serialize(writer, ParamBaseConverter.createJsonParam value)
+                | :? CvParam<Int64>     as value -> serializer.Serialize(writer, ParamBaseConverter.createJsonParam value)
+                //| :? CvParam<Object>    as value -> serializer.Serialize(writer, value)
+                | :? CvParam<sbyte>     as value -> serializer.Serialize(writer, ParamBaseConverter.createJsonParam value)
+                //| :? CvParam<e<float>   as value -> serializer.Serialize(writer, value)
+                | :? CvParam<string>    as value -> serializer.Serialize(writer, ParamBaseConverter.createJsonParam value)
+                | :? CvParam<UInt16>    as value -> serializer.Serialize(writer, ParamBaseConverter.createJsonParam value)
+                | :? CvParam<UInt32>    as value -> serializer.Serialize(writer, ParamBaseConverter.createJsonParam value)
+                | :? CvParam<UInt64>    as value -> serializer.Serialize(writer, ParamBaseConverter.createJsonParam value)
+                | :? CvParam<IConvertible>    as value -> serializer.Serialize(writer, ParamBaseConverter.createJsonParam value)
+
+                | :? UserParam<bool>    as value -> serializer.Serialize(writer, ParamBaseConverter.createJsonParam value)
+                | :? UserParam<byte>    as value -> serializer.Serialize(writer, ParamBaseConverter.createJsonParam value)
+                | :? UserParam<char>    as value -> serializer.Serialize(writer, ParamBaseConverter.createJsonParam value)
+                | :? UserParam<DateTime>as value -> serializer.Serialize(writer, ParamBaseConverter.createJsonParam value)
+                | :? UserParam<DBNull>  as value -> serializer.Serialize(writer, ParamBaseConverter.createJsonParam value)
+                | :? UserParam<decimal> as value -> serializer.Serialize(writer, ParamBaseConverter.createJsonParam value)
+                | :? UserParam<double>  as value -> serializer.Serialize(writer, ParamBaseConverter.createJsonParam value)
+                //| :UserParam<e<Empty> as value -> serializer.Serialize(writer, value)
+                | :? UserParam<Int16>   as value -> serializer.Serialize(writer, ParamBaseConverter.createJsonParam value)
+                | :? UserParam<Int32>   as value -> serializer.Serialize(writer, ParamBaseConverter.createJsonParam value)
+                | :? UserParam<Int64>   as value -> serializer.Serialize(writer, ParamBaseConverter.createJsonParam value)
+                //| :UserParam<Object>    as value -> serializer.Serialize(writer, value)
+                | :? UserParam<sbyte>   as value -> serializer.Serialize(writer, ParamBaseConverter.createJsonParam value)
+                //| :UserParam<e<float>   as value -> serializer.Serialize(writer, value)
+                | :? UserParam<string>  as value -> serializer.Serialize(writer, ParamBaseConverter.createJsonParam value)
+                | :? UserParam<UInt16>  as value -> serializer.Serialize(writer, ParamBaseConverter.createJsonParam value)
+                | :? UserParam<UInt32>  as value -> serializer.Serialize(writer, ParamBaseConverter.createJsonParam value)
+                | :? UserParam<UInt64>  as value -> serializer.Serialize(writer, ParamBaseConverter.createJsonParam value)
+                | :? UserParam<IConvertible>  as value -> serializer.Serialize(writer, ParamBaseConverter.createJsonParam value)
+                | _     -> failwith ((new JsonSerializationException("Type not supported: " + value.GetType().FullName)).ToString())
+
 
     let getCvAccessionOrName (param:#IParamBase<_>) =
         param.ID
@@ -252,7 +363,6 @@ module CvParam =
     // Cv Param
 
     [<JsonObject(MemberSerialization.OptIn)>]
-    //[<JsonConverter(typeof<ParamBaseConverter>)>]
     type DynamicObj [<JsonConstructor>] internal (dict:Dictionary<string, obj>) = 
     
         inherit DynamicObject () 
@@ -330,12 +440,12 @@ module CvParam =
         /// Returns and the properties of
         member this.GetProperties includeInstanceProperties =        
             seq [
-                if includeInstanceProperties then                
-                    for prop in ReflectionHelper.getPublicProperties (this.GetType()) -> 
-                        new KeyValuePair<string, obj>(prop.Name, prop.GetValue(this, null))
-                for key in properties.Keys ->
-                    new KeyValuePair<string, obj>(key, properties.[key]);
-            ]
+                    if includeInstanceProperties then                
+                        for prop in ReflectionHelper.getPublicProperties (this.GetType()) -> 
+                            new KeyValuePair<string, obj>(prop.Name, prop.GetValue(this, null))
+                    for key in properties.Keys ->
+                        new KeyValuePair<string, obj>(key, properties.[key])
+                ]
 
         /// Return both instance and dynamic names.
         /// Important to return both so JSON serialization with Json.NET works.
@@ -356,6 +466,7 @@ module CvParam =
             let param' = new CvParam<IConvertible>(param.CvAccession, paramBase)
             this.SetValue(getPropertyNameOf param', param')
 
+        /// Adds a CvParam with ID as property name and CvParam as value (ID is converted to fit property naming convention)
         member this.AddUserParam(param:UserParam<'T>) =
             let value =
                 match tryGetValue param with
@@ -433,6 +544,11 @@ module CvParam =
 
         member this.Add(key:string, item:'T) =
             properties.Add(key, item)
+
+        member this.Add(item:'T) =
+            if this.TryGetItemByKey(item.ToString(), item) then ()
+            else
+                this.SetValue(item.ToString(), item)
 
 
     
