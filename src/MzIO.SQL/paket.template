@@ -1,0 +1,30 @@
+type project
+id MzLiteFSharp.SQL
+title
+    MzLiteFSharp.SQL
+owners
+    Patrick Blume, Jonathan Ott
+authors 
+    Patrick Blume, Jonathan Ott
+projectUrl
+    https://github.com/Etschbeijer/MzLiteFSharp
+iconUrl
+    https://raw.githubusercontent.com/Etschbeijer/MzLiteFSharp/master/docs/files/img/logo.png
+licenseUrl
+    https://github.com/Etschbeijer/MzLiteFSharp/blob/master/LICENSE.txt
+requireLicenseAcceptance
+    false
+language
+    F#
+copyright
+    Copyright 2017
+tags
+    F# MassSpectrometry FSharp MzLite MzMl BigData
+summary
+    F# port of MzLite
+description
+    F# port of MzLite
+include-referenced-projects 
+    true
+files
+	../../bin/MzLiteFSharp.SQL ==> lib
