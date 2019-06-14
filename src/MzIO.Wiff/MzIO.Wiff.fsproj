@@ -16,8 +16,8 @@
   <ItemGroup>
     <EmbeddedResource Remove="Scripts\**" />
   </ItemGroup>
-  <ItemGroup />
   <ItemGroup>
+    <None Include="Test.fsx" />
     <Compile Include="WiffFileReader.fs" />
     <None Include="paket.references" />
     <None Include="paket.template" />
