@@ -152,8 +152,9 @@ type MzMLWriter(path:string) =
         else
             writer.WriteAttributeString(name, value)
 
-    member private this.WriteList<'TItem>(elementName:string, list:DynamicObj, writeItem:Action<'TItem>, skipEmpty:bool) =
+    member private this.WriteList<'TItem>(elementName:string, list:DynamicObj, writeItem:Action<'TItem>, ?skipEmpty:bool) =
 
+        let skipEmpty = defaultArg skipEmpty true
         let count = list.GetProperties false |> Seq.length
         if skipEmpty= true && count = 0 then ()
         else
@@ -164,8 +165,9 @@ type MzMLWriter(path:string) =
 
             writer.WriteEndElement()
 
-    member private this.WriteList<'TItem>(elementName:string, list:DynamicObj, writeItem:Action<'TItem, int>, skipEmpty:bool) =
-
+    member private this.WriteList<'TItem>(elementName:string, list:DynamicObj, writeItem:Action<'TItem, int>, ?skipEmpty:bool) =
+        
+        let skipEmpty = defaultArg skipEmpty true
         let count = list.GetProperties false |> Seq.length
         if skipEmpty= true && count = 0 then ()
         else
@@ -269,6 +271,17 @@ type MzMLWriter(path:string) =
 
     //#region model writing
 
+    member this.WriteSourceFile(sf: SourceFile) =
+        
+        writer.WriteStartElement("sourceFile")
+        this.WriteXmlAttribute("id", sf.ID, true)
+        this.WriteXmlAttribute("name", sf.Name, true)
+        this.WriteXmlAttribute("location", sf.Location, true)
+
+        this.WriteParamGroup(sf)
+
+        writer.WriteEndElement()
+
     member this.WriteFileDescription(fdesc:FileDescription) =
 
         writer.WriteStartElement("fileDescription");
@@ -285,6 +298,7 @@ type MzMLWriter(path:string) =
         //    writer.WriteEndElement()
             
             writer.WriteEndElement()
+
 
     member this.WriteDataProcessing(dp:DataProcessing) =
         
