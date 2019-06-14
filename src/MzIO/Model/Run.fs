@@ -1,6 +1,7 @@
 ﻿namespace MzIO.Model
 
 
+open System.Collections.Generic
 open MzIO.Model
 open Newtonsoft.Json
 
@@ -121,15 +122,19 @@ type ProjectRun [<JsonConstructor>] ( [<JsonProperty("ID")>] id:string, sample:S
 /// The model item container for ms runs.
 /// </summary>
 [<Sealed>]
-type RunList [<JsonConstructor>] () =
+type RunList [<JsonConstructor>] internal (dict:Dictionary<string, obj>) =
 
     inherit ObservableModelItemCollection<Run>()
+
+    new() = new RunList(new Dictionary<string, obj>())
 
 
 /// <summary>
 /// The project item container for ms runs.
 /// </summary>
 [<Sealed>]
-type ProjectRunList [<JsonConstructor>] () =
+type ProjectRunList [<JsonConstructor>] internal (dict:Dictionary<string, obj>) =
 
-    inherit ObservableModelItemCollection<ProjectRun>()
+    inherit ObservableModelItemCollection<ProjectRun>(dict)
+
+    new() = new ProjectRunList(new Dictionary<string, obj>())

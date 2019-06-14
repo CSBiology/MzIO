@@ -2,6 +2,7 @@
 
 
 open System
+open System.Collections.Generic
 open MzIO.Model
 open Newtonsoft.Json
 
@@ -40,6 +41,8 @@ type SourceFile [<JsonConstructor>] ( [<JsonProperty("ID")>] id:string, [<JsonPr
 
 [<Sealed>]
 [<JsonObject(MemberSerialization.OptIn)>]
-type SourceFileList [<JsonConstructor>] () =
+type SourceFileList [<JsonConstructor>] internal (dict:Dictionary<string, obj>) =
 
-    inherit ObservableModelItemCollection<SourceFile>()
+    inherit ObservableModelItemCollection<SourceFile>(dict)
+
+    new() = new SourceFileList(new Dictionary<string, obj>())

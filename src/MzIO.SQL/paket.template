@@ -1,17 +1,17 @@
 type project
-id MzLiteFSharp.SQL
+id MzIO.SQL
 title
-    MzLiteFSharp.SQL
+    MzIO.SQL
 owners
-    Patrick Blume, Jonathan Ott
+    Timo Mühlhaus
 authors 
     Patrick Blume, Jonathan Ott
 projectUrl
-    https://github.com/Etschbeijer/MzLiteFSharp
+    https://github.com/Etschbeijer/MzIO
 iconUrl
-    https://raw.githubusercontent.com/Etschbeijer/MzLiteFSharp/master/docs/files/img/logo.png
+    https://raw.githubusercontent.com/Etschbeijer/MzIO/master/docs/files/img/logo.png
 licenseUrl
-    https://github.com/Etschbeijer/MzLiteFSharp/blob/master/LICENSE.txt
+    https://github.com/Etschbeijer/MzIO/blob/master/LICENSE.txt
 requireLicenseAcceptance
     false
 language
@@ -27,4 +27,4 @@ description
 include-referenced-projects 
     true
 files
-	../../bin/MzLiteFSharp.SQL ==> lib
+	../../bin/MzIO.SQL ==> lib

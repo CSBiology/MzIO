@@ -21,7 +21,7 @@ open MzIO.MetaData.PSIMSExtension
 open MzIO.Model
 open MzIO.Model.CvParam
 open MzIO.MetaData.UO.UO
-open MzIO.Processing.MzLiteFSharpLinq
+open MzIO.Processing.MzIOLinq
 open MzIO.Json
 open Newtonsoft.Json
 open Newtonsoft.Json.Linq
@@ -60,7 +60,7 @@ let uniTestPath         = @"C:\Users\Student\source\repos\wiffTestFiles\20171129
 let mzLiteFSharpDBPath  = @"C:\Users\Student\source\repos\wiffTestFiles\Databases\MzLiteFSHarpLWagg001.mzlite"
 
 
-//let wiffFileReader = new WiffFileReader(wiffTestFileStudent, licensePath)
+//let wiffFileReader = new WiffFileReader(wiffTestUni, licensePath)
 //let massSpectra = 
 //    wiffFileReader.Model.Runs.GetProperties false
 //    |> Seq.map (fun run -> wiffFileReader.ReadMassSpectra run.Key)
@@ -155,7 +155,7 @@ let getMzLiteHelper (path:string) (compressionType:BinaryDataCompressionType) =
 let insertWholeFileIntoDB (helper:MzLiteHelper) =
     let mzLiteSQL = new MzLiteSQL(helper.Path + ".mzlite")
     let bn = mzLiteSQL.BeginTransaction()
-    Seq.map2 (fun (spectrum:MzLiteFSharp.Model.MassSpectrum) (peak:Peak1DArray) -> mzLiteSQL.Insert(helper.RunID, spectrum, peak)) helper.MassSpectrum helper.Peaks
+    Seq.map2 (fun (spectrum:MzIO.Model.MassSpectrum) (peak:Peak1DArray) -> mzLiteSQL.Insert(helper.RunID, spectrum, peak)) helper.MassSpectrum helper.Peaks
     |> Seq.length |> ignore
     bn.Commit()
     bn.Dispose()
@@ -163,7 +163,7 @@ let insertWholeFileIntoDB (helper:MzLiteHelper) =
 let insertIntoDB (amount:int) (helper:MzLiteHelper) =
     let mzLiteSQL = new MzLiteSQL(helper.Path + ".mzlite")
     let bn = mzLiteSQL.BeginTransaction()
-    Seq.map2 (fun (spectrum:MzLiteFSharp.Model.MassSpectrum) (peak:Peak1DArray) -> mzLiteSQL.Insert(helper.RunID, spectrum, peak)) (Seq.take amount helper.MassSpectrum) (Seq.take amount helper.Peaks)
+    Seq.map2 (fun (spectrum:MzIO.Model.MassSpectrum) (peak:Peak1DArray) -> mzLiteSQL.Insert(helper.RunID, spectrum, peak)) (Seq.take amount helper.MassSpectrum) (Seq.take amount helper.Peaks)
     |> Seq.length |> ignore
     bn.Commit()
     bn.Dispose()
@@ -211,7 +211,7 @@ let helper = getMzLiteHelper wiffTestUni BinaryDataCompressionType.NoCompression
 
 //let spectra =
 //    getMzLiteHelper wiffTestUni BinaryDataCompressionType.ZLib
-//    |> getSpectra mzLiteFileStudent 
+//    |> getSpectra uniTestPath 
 
 //let peaks =
 //    //spectra
@@ -236,172 +236,99 @@ let helper = getMzLiteHelper wiffTestUni BinaryDataCompressionType.NoCompression
 //tmp.TryGetValue(PSIMS_Spectrum.MsLevel).Value
 
 
-let y = new CvParam<int>("test", ParamValue.WithCvUnitAccession(5, "SOME TEST"))
-let yIII = new CvParam<int>("testI")
-let text = MzIOJson.ToJson(y)
-MzIOJson.ToJson(yIII)
-MzIOJson.FromJson(text) :> CvParam<IConvertible>
-//MzLiteJson.ToJson(yIII)
+//let y = new CvParam<int>("test", ParamValue.WithCvUnitAccession(5, "SOME TEST"))
+//let yIII = new CvParam<int>("testI")
+//let text = MzIOJson.ToJson(y)
+//MzIOJson.ToJson(yIII)
+//MzIOJson.FromJson(text) :> CvParam<IConvertible>
+////MzLiteJson.ToJson(yIII)
 
-MzIOJson.ToJson(ParamValue.WithCvUnitAccession(5, "SOME TEST").ToString())
-JsonConvert.SerializeObject(ParamValue.WithCvUnitAccession(5, "SOME TEST").ToString())
+//MzIOJson.ToJson(ParamValue.WithCvUnitAccession(5, "SOME TEST").ToString())
+//JsonConvert.SerializeObject(ParamValue.WithCvUnitAccession(5, "SOME TEST").ToString())
 
-"WithCvUnitAccession (5,\"SOME TEST\")"
+//"WithCvUnitAccession (5,\"SOME TEST\")"
 
-let cvTest = sprintf "{\"%s\":\"%s\",%s}" "$id" "1" "\"Type\":\"WithCvUnitAccession\",\"Values\":[5,\"SOME TEST\"]"
-let jsonX = JsonConvert.DeserializeObject<JObject>(cvTest)
-jsonX.ToString()
-jsonX.["Type"]
-jsonX.["Values"] :?> JArray
-
-
-
-"WithCvUnitAccession".Length
-"CvValue".Length
-let tmp = new MassSpectrum()
-
-tmp.AddCvParam(y)
-tmp.AddCvParam(yIII)
-tmp.AddCvParam(new CvParam<string>("testII", ParamValue.WithCvUnitAccession(null, "SOME TEST")))
-tmp.AddCvParam(new CvParam<string>("testIII", ParamValue.CvValue("SOME VAlue")))
-tmp.TryGetValue("test")
-tmp.TryGetValue("testI")
-tmp.TryGetValue("testII")
-tmp.TryGetValue("testIII")
-
-let tmpIII = MzIOJson.FromJson(MzIOJson.ToJson(tmp)) :> MassSpectrum
-
-for i in tmpIII.GetDynamicMemberNames() do
-    printfn "%s" i
-
-tmpIII.TryGetValue("test")
-tmpIII.TryGetValue("testI")
-tmpIII.TryGetValue("testII")
-tmpIII.TryGetValue("testIII")
-
-//let text2 = MzLiteJson.ToJson(tmp)
-//let tmp2 = MzLiteJson.FromJson(text2) :> DynamicObj
-
-//MzLiteJson.ToJson(y)
-//|> (fun item -> MzLiteJson.FromJson(item)) :> CvParam<int>
-
-//let x = ((Seq.head (tmp2.GetProperties false)).Value.ToString())
-//MzLiteJson.FromJson(x) :> CvParam<int64>
-
-//let jObj = tmp2.TryGetValue("test").Value :?> JObject
-
-//MzLiteJson.FromJson(jObj.ToString()) :> CvParam<int>
-//jObj.First.ToString()
-////MzLiteJson.FromJson(jObj.First.Next.ToString())
-
-//jObj.ToString()
-
-//let xI = jObj.["Value"] :?> JObject
-
-//xI.["Case"].ToString()
-//let yI = xI.["Fields"]
-
-//y.ToString()
-
-//xI.Count
-//xI.First.ToString()
-//yI.First.["Case"].ToString()
-//yI.First.["Fields"].First.ToString()
-//yI.First.["Fields"].Last.ToString()
-//xI.Last.ToString()
-
-//let deSerializeCvParam (jObj:JObject) =
-
-//    let id = jObj.["CvAccession"].ToString()
-
-//    if jObj.["Value"] <> null then
-
-//        let tmp = 
-//            jObj.["Value"] :?> JObject
-//            |> (fun item -> item.["Fields"].First :?> JObject)
-
-//        let values = (tmp.["Fields"] :?> JArray)
-
-//        match values.First.ToString() with
-//        | "" -> 
-//            match tmp.["Case"].ToString() with
-//            | "CvValue"             -> new CvParam<IConvertible>(id)
-//            | "WithCvUnitAccession" -> new CvParam<IConvertible>(id, ParamValue.WithCvUnitAccession(Unchecked.defaultof<IConvertible>, values.First.ToString()))
-//            |   _                   -> new CvParam<IConvertible>(id, ParamValue.CvValue(values.First.ToString() :> IConvertible))
-//        | null  ->
-//            match tmp.["Case"].ToString() with
-//            | "CvValue"             -> new CvParam<IConvertible>(id)
-//            | "WithCvUnitAccession" -> new CvParam<IConvertible>(id, ParamValue.WithCvUnitAccession(Unchecked.defaultof<IConvertible>, values.First.ToString()))
-//            |   _                   -> new CvParam<IConvertible>(id)
-//        | _     ->
-//            match tmp.["Case"].ToString() with
-//            | "CvValue"             -> new CvParam<IConvertible>(id, ParamValue.CvValue(values.First.ToString() :> IConvertible))
-//            | "WithCvUnitAccession" -> new CvParam<IConvertible>(id, ParamValue.WithCvUnitAccession(values.First.ToString() :> IConvertible, values.First.ToString()))
-//            |   _                   -> new CvParam<IConvertible>(id, ParamValue.CvValue(values.First.ToString() :> IConvertible))
-//    else new CvParam<IConvertible>(id)
-
-//let deSerializeUserParam (jObj:JObject) =
-
-//    let id = jObj.["CvAccession"].ToString()
-
-//    if jObj.["Value"] <> null then
-
-//        let tmp = 
-//            jObj.["Value"] :?> JObject
-//            |> (fun item -> item.["Fields"].First :?> JObject)
-
-//        let values = (tmp.["Fields"] :?> JArray)
-    
-//        match values.First.ToString() with
-//        | ""    -> 
-//            match tmp.["Case"].ToString() with
-//            | "CvValue"             -> new UserParam<IConvertible>(id)
-//            | "WithCvUnitAccession" -> new UserParam<IConvertible>(id, ParamValue.WithCvUnitAccession(Unchecked.defaultof<IConvertible>, values.First.ToString()))
-//            |   _                   -> new UserParam<IConvertible>(id, ParamValue.CvValue(values.First.ToString() :> IConvertible))
-//        | null  ->
-//            match tmp.["Case"].ToString() with
-//            | "CvValue"             -> new UserParam<IConvertible>(id)
-//            | "WithCvUnitAccession" -> new UserParam<IConvertible>(id, ParamValue.WithCvUnitAccession(Unchecked.defaultof<IConvertible>, values.First.ToString()))
-//            |   _                   -> new UserParam<IConvertible>(id)
-//        | _     ->
-//            match tmp.["Case"].ToString() with
-//            | "CvValue"             -> new UserParam<IConvertible>(id, ParamValue.CvValue(values.First.ToString() :> IConvertible))
-//            | "WithCvUnitAccession" -> new UserParam<IConvertible>(id, ParamValue.WithCvUnitAccession(values.First.ToString() :> IConvertible, values.First.ToString()))
-//            |   _                   -> new UserParam<IConvertible>(id, ParamValue.CvValue(values.First.ToString() :> IConvertible))
-//    else new UserParam<IConvertible>(id)
-
-//let deSerializeInPlaceParamValues<'T when 'T :> DynamicObj> (item:'T) =
-    
-//    item.GetProperties false
-//    |> Seq.iter (fun kvPair -> 
-//        MzLiteJson.ToJson ((kvPair.Value (*:?> CvParam<IConvertible>)*)))
-//        |> (fun value -> JsonConvert.DeserializeObject<JObject>(value))
-//        |> (fun jObj ->
-//            match jObj.["CvAccession"] with
-//            | null -> item.SetValue(jObj.["Name"].ToString(), deSerializeUserParam jObj)
-//            | _    -> item.SetValue(jObj.["CvAccession"].ToString(), deSerializeCvParam jObj)        
-//            ))
+//let cvTest = sprintf "{\"%s\":\"%s\",%s}" "$id" "1" "\"Type\":\"WithCvUnitAccession\",\"Values\":[5,\"SOME TEST\"]"
+//let jsonX = JsonConvert.DeserializeObject<JObject>(cvTest)
+//jsonX.ToString()
+//jsonX.["Type"]
+//jsonX.["Values"] :?> JArray
 
 
-//deSerializeInPlaceParamValues tmp2
 
-//tmp2.TryGetValue("test")
-//tmp2.TryGetValue("testI")
-//tmp2.TryGetValue("testII")
-//tmp2.TryGetValue("testIII")
+//"WithCvUnitAccession".Length
+//"CvValue".Length
+//let tmp = new MassSpectrum()
+
+//tmp.AddCvParam(y)
+//tmp.AddCvParam(yIII)
+//tmp.AddCvParam(new CvParam<string>("testII", ParamValue.WithCvUnitAccession(null, "SOME TEST")))
+//tmp.AddCvParam(new CvParam<string>("testIII", ParamValue.CvValue("SOME VAlue")))
+//tmp.TryGetValue("test")
+//tmp.TryGetValue("testI")
+//tmp.TryGetValue("testII")
+//tmp.TryGetValue("testIII")
+
+//let tmpIII = MzIOJson.FromJson(MzIOJson.ToJson(tmp)) :> MassSpectrum
+
+//for i in tmpIII.GetDynamicMemberNames() do
+//    printfn "%s" i
+
+//tmpIII.TryGetValue("test")
+//tmpIII.TryGetValue("testI")
+//tmpIII.TryGetValue("testII")
+//tmpIII.TryGetValue("testIII")
+
+////let text2 = MzLiteJson.ToJson(tmp)
+////let tmp2 = MzLiteJson.FromJson(text2) :> DynamicObj
+
+////MzLiteJson.ToJson(y)
+////|> (fun item -> MzLiteJson.FromJson(item)) :> CvParam<int>
+
+////let x = ((Seq.head (tmp2.GetProperties false)).Value.ToString())
+////MzLiteJson.FromJson(x) :> CvParam<int64>
+
+////let jObj = tmp2.TryGetValue("test").Value :?> JObject
+
+////MzLiteJson.FromJson(jObj.ToString()) :> CvParam<int>
+////jObj.First.ToString()
+//////MzLiteJson.FromJson(jObj.First.Next.ToString())
+
+////jObj.ToString()
+
+////let xI = jObj.["Value"] :?> JObject
+
+////xI.["Case"].ToString()
+////let yI = xI.["Fields"]
+
+////y.ToString()
+
+////xI.Count
+////xI.First.ToString()
+////yI.First.["Case"].ToString()
+////yI.First.["Fields"].First.ToString()
+////yI.First.["Fields"].Last.ToString()
+////xI.Last.ToString()
+
+////deSerializeInPlaceParamValues tmp2
+
+////tmp2.TryGetValue("test")
+////tmp2.TryGetValue("testI")
+////tmp2.TryGetValue("testII")
+////tmp2.TryGetValue("testIII")
 
 
-//tmp.AddCvParam y
-//tmp.SetCvParam("test").UO_Liter()
-//let zy = tryGetCvUnitAccession (tmp.TryGetTypedValue<CvParam<IConvertible>>("test").Value)
-//zy
+////tmp.AddCvParam y
+////tmp.SetCvParam("test").UO_Liter()
+////let zy = tryGetCvUnitAccession (tmp.TryGetTypedValue<CvParam<IConvertible>>("test").Value)
+////zy
 
 
-//JObject.Parse(text).First.Next.ToString()
-//JObject.Parse(text).First.Next.Next.ToString()
+////JObject.Parse(text).First.Next.ToString()
+////JObject.Parse(text).First.Next.Next.ToString()
 
 
-////let dbPath = @"C:\Users\Student\OneDrive\MP_Biotech\VP_Timo\MassSpecFiles\wiffTestFiles\20171129 FW LWagg001_testMzIO.mzlite"
+//////let dbPath = @"C:\Users\Student\OneDrive\MP_Biotech\VP_Timo\MassSpecFiles\wiffTestFiles\20171129 FW LWagg001_testMzIO.mzlite"
 
 let mzsqlreader = new MzLiteSQL(uniTestPath)
 
@@ -419,37 +346,33 @@ tmpX.TryGetTypedValue<CvParam<IConvertible>>(PSIMS_Spectrum.MsLevel)
 
 tmpX.Scans.GetProperties true
 
-
-let mrm = tmpX.Scans
-mrm.GetProperties false
-
 let rtIndexEntry = mzsqlreader.BuildRtIndex("sample=0")
 
-////let rtProfile = mzsqlreader.RtProfile (rtIndexEntry, (new MzLiteFSharp.Processing.RangeQuery(1., 300., 600.)), (new MzLiteFSharp.Processing.RangeQuery(1., 300., 600.)))
+let rtProfile = mzsqlreader.RtProfile (rtIndexEntry, (new MzIO.Processing.RangeQuery(1., 300., 600.)), (new MzIO.Processing.RangeQuery(1., 300., 600.)))
 
-let tmpXY = (new Scan())
-tmpXY.AddCvParam(new CvParam<string>("Test)"))
+//let tmpXY = (new Scan())
+//tmpXY.AddCvParam(new CvParam<string>("Test)"))
 
-let scan = Seq.head (tmpX.Scans.GetProperties false)
-MzIOJson.FromJson(scan.Value.ToString()) :> Scan
+//let scan = Seq.head (tmpX.Scans.GetProperties false)
+//MzIOJson.FromJson(scan.Value.ToString()) :> Scan
 
 
-//let test = new MassSpectrum()
-//let scanList = (new ScanList())
-//scanList.Add(new Scan())
-//test.Scans.Add(new Scan())
-//test.Scans.Count
-//let testJson = MzLiteJson.ToJson(test)
-//let testUnJson = MzLiteJson.FromJson(testJson) :> MassSpectrum
-////MzLiteJson.ToJson(testUnJson)
-//testUnJson.GetProperties false
-//testUnJson.Scans.Count
-////let testJsonTextArray = (Seq.head (testUnJson.GetProperties false)).ToString()
-////JArray.Parse(testJsonTextArray)
+////let test = new MassSpectrum()
+////let scanList = (new ScanList())
+////scanList.Add(new Scan())
+////test.Scans.Add(new Scan())
+////test.Scans.Count
+////let testJson = MzLiteJson.ToJson(test)
+////let testUnJson = MzLiteJson.FromJson(testJson) :> MassSpectrum
+//////MzLiteJson.ToJson(testUnJson)
+////testUnJson.GetProperties false
+////testUnJson.Scans.Count
+//////let testJsonTextArray = (Seq.head (testUnJson.GetProperties false)).ToString()
+//////JArray.Parse(testJsonTextArray)
  
 
-////let xI =
-////    JsonConvert.SerializeObject(test, MzLiteJson.jsonSettings)
-////    |> (fun item -> JsonConvert.DeserializeObject<MassSpectrum>(item))
+//////let xI =
+//////    JsonConvert.SerializeObject(test, MzLiteJson.jsonSettings)
+//////    |> (fun item -> JsonConvert.DeserializeObject<MassSpectrum>(item))
 
-////xI.Scans.Count
+//////xI.Scans.Count

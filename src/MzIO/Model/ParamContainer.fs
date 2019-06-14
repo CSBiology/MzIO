@@ -202,7 +202,6 @@ module CvParam =
         inherit JsonConverter()
 
         static member private createJsonValue(item:string) =
-            //printfn "create Jsonvalue"
             if item.StartsWith("WithCvUnitAccession") then
                 let tmp = item.Substring(0, 19), item.Substring(20)
                 let tmpID = "\"Type\":\"" + (fst tmp) + "\""
@@ -220,7 +219,6 @@ module CvParam =
                     sprintf "%s}" (tmpID + tmpValues)
 
         static member private createParamValue(item:JObject) =
-            //printfn "create paramValue"
             match item.["Type"].ToString() with
             | "WithCvUnitAccession" -> 
                 let tmp = item.["Values"] :?> JArray
@@ -264,7 +262,6 @@ module CvParam =
             failwith ((new NotSupportedException("JsonConverter.CanConvert()")).ToString())
 
         override this.ReadJson(reader:JsonReader, objectType:Type, existingValue:Object, serializer:JsonSerializer) =
-            //printfn "read Json"
             let jt = JToken.Load(reader)
             if jt.Type = JTokenType.Null then null
                 else
@@ -287,7 +284,6 @@ module CvParam =
             if value = null then
                 writer.WriteNull()
             else
-                //printfn "%s" "write Json"
                 match value with
                 | :? CvParam<bool>      as value -> serializer.Serialize(writer, ParamBaseConverter.createJsonParam value)
                 | :? CvParam<byte>      as value -> serializer.Serialize(writer, ParamBaseConverter.createJsonParam value)
@@ -363,6 +359,7 @@ module CvParam =
     // Cv Param
 
     [<JsonObject(MemberSerialization.OptIn)>]
+    //[<JsonConverter(typeof<DynamicObjectConverter>)>]
     type DynamicObj [<JsonConstructor>] internal (dict:Dictionary<string, obj>) = 
     
         inherit DynamicObject () 
@@ -550,7 +547,50 @@ module CvParam =
             else
                 this.SetValue(item.ToString(), item)
 
+        member this.Count =
+            this.GetProperties false
+            |> Seq.length
 
+    and DynamicObjectConverter() =  
+
+        inherit JsonConverter()
+
+        override this.CanConvert(objectType:Type) =
+
+            failwith ((new NotSupportedException("JsonConverter.CanConvert()")).ToString())
+
+        override this.ReadJson(reader:JsonReader, objectType:Type, existingValue:Object, serializer:JsonSerializer) =            
+            let jt = JToken.Load(reader)
+            if jt.Type = JTokenType.Null then null
+                else
+                    if jt.Type = JTokenType.Object then
+                        let jo = jt.ToObject<JObject>()
+                        let mutable jtval = JToken.FromObject(jo) 
+                        if jo.TryGetValue("id",& jtval) && jo.TryGetValue("Precursors",& jtval) then
+                            jo.ToObject<DynamicObj>(serializer) :> Object
+                    //    if jo.["CvAccession"] = null then
+                    //        if jo.["Name"] = null then
+                    //            failwith ((new JsonSerializationException("Could not determine concrete param type.")).ToString())
+                    //        else
+                    //            let values = ParamBaseConverter.createParamValue jo
+                    //            new UserParam<IConvertible>(jo.["Name"].ToString(), values) :> Object
+                    //    else
+                    //        let values = ParamBaseConverter.createParamValue jo
+                    //        new CvParam<IConvertible>(jo.["CvAccession"].ToString(), values) :> Object
+                        else 
+                            failwith ((new JsonSerializationException("Object token expected.")).ToString())
+                    else 
+                        failwith ((new JsonSerializationException("Object token expected.")).ToString())
+
+        override this.WriteJson(writer: JsonWriter, value: Object, serializer: JsonSerializer) =
+            if value = null then
+                writer.WriteNull()
+            else
+                match value with
+                | :? DynamicObj -> serializer.Serialize(writer, value.ToString())
+                //| :? CvParam<byte>  as value -> serializer.Serialize(writer, ParamBaseConverter.createJsonParam value)
+                //| _     -> failwith ((new JsonSerializationException("Type not supported: " + value.GetType().FullName)).ToString())
+                | _ -> serializer.Serialize(writer, value.ToString())
     
 
 

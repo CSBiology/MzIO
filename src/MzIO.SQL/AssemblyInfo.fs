@@ -2,18 +2,18 @@
 namespace System
 open System.Reflection
 
-[<assembly: AssemblyTitleAttribute("MzLiteFSharp.SQL")>]
-[<assembly: AssemblyProductAttribute("MzLiteFSharp")>]
-[<assembly: AssemblyDescriptionAttribute("F# port of MzLite")>]
+[<assembly: AssemblyTitleAttribute("MzIO.SQL")>]
+[<assembly: AssemblyProductAttribute("MzIO")>]
+[<assembly: AssemblyDescriptionAttribute("Generic data model to unify various reader and writer for different formats used in protein mass spectrometry")>]
 [<assembly: AssemblyVersionAttribute("0.0.1")>]
 [<assembly: AssemblyFileVersionAttribute("0.0.1")>]
 [<assembly: AssemblyConfigurationAttribute("Release")>]
 do ()
 
 module internal AssemblyVersionInformation =
-    let [<Literal>] AssemblyTitle = "MzLiteFSharp.SQL"
-    let [<Literal>] AssemblyProduct = "MzLiteFSharp"
-    let [<Literal>] AssemblyDescription = "F# port of MzLite"
+    let [<Literal>] AssemblyTitle = "MzIO.SQL"
+    let [<Literal>] AssemblyProduct = "MzIO"
+    let [<Literal>] AssemblyDescription = "Generic data model to unify various reader and writer for different formats used in protein mass spectrometry"
     let [<Literal>] AssemblyVersion = "0.0.1"
     let [<Literal>] AssemblyFileVersion = "0.0.1"
     let [<Literal>] AssemblyConfiguration = "Release"

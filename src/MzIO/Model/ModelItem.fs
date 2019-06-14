@@ -3,6 +3,7 @@
 
 open System
 open System.ComponentModel
+open System.Collections.Generic
 open System.Linq.Expressions
 open MzIO.Model
 open MzIO.Model.CvParam
@@ -97,14 +98,21 @@ type NamedModelItem(id:string, name:string) =
 /// <summary>
 /// Base class of an observable collection of model items that can be accessed by their embedded ids.     
 /// </summary>
-type ObservableModelItemCollection<'T when 'T :> ModelItem> [<JsonConstructor>] () =
+type ObservableModelItemCollection<'T when 'T :> ModelItem> [<JsonConstructor>] internal (dict:Dictionary<string, obj>) =
 
-    inherit DynamicObj()
+    inherit DynamicObj(dict)
+
+    new() =  ObservableModelItemCollection<'T>(new Dictionary<string, obj>())
 
     member this.GetKeyForItem(item:'T) =
         item.ID
 
-type ObservableCollection<'T when 'T :> DynamicObj> [<JsonConstructor>] () =
+type ObservableCollection<'T when 'T :> DynamicObj> [<JsonConstructor>] internal (dict:Dictionary<string, obj>) =
 
-    inherit DynamicObj()
+    inherit DynamicObj(dict)
 
+    new() = new ObservableCollection<'T>(new Dictionary<string, obj>())
+
+    member this.Count =
+        this.GetProperties false
+        |> Seq.length

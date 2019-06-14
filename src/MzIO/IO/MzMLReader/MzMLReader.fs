@@ -529,35 +529,33 @@ module MzML =
                     else scanWindowList
             loop () ()
 
-        member this.getScan (?xmlReader: XmlReader) =
+        member this.getScan (?xmlReader:XmlReader) =
             let xmlReader = defaultArg xmlReader reader
-            let readSubtree =
+            let readSubtree = 
                 let rec loop acc =
                     if xmlReader.NodeType=XmlNodeType.Element && xmlReader.Name="scan" then
                         xmlReader.ReadSubtree()
-                    else loop (xmlReader.Read())
+                    else loop (reader.Read())
                 loop false
             let readOp = readSubtree.Read
             let rec loop spectrumID sourceFileID scanWindows cvParams userParams read =
                 if readSubtree.NodeType=XmlNodeType.Element then
                     match readSubtree.Name with
-                    | "scan"            ->  loop (this.tryGetAttribute ("spectrumRef", readSubtree)) (this.tryGetAttribute ("sourceFileRef", readSubtree)) scanWindows cvParams userParams (readOp() |> ignore)
+                    | "scan"            ->  loop (this.tryGetAttribute ("spectrumRef", readSubtree)) (this.tryGetAttribute("sourceFileRef", readSubtree)) scanWindows cvParams userParams (readOp() |> ignore)
                     | "cvParam"         ->  loop spectrumID sourceFileID scanWindows ((this.getCVParam readSubtree)::cvParams) userParams (readOp() |> ignore)
                     | "userParam"       ->  loop spectrumID sourceFileID scanWindows cvParams ((this.getUserParam readSubtree)::userParams) (readOp() |> ignore)
-                    | "scanWindowList"  ->  loop spectrumID sourceFileID (this.getScanWindowList xmlReader) cvParams userParams (readOp() |> ignore)
+                    | "scanWindowList"  ->  loop spectrumID sourceFileID (this.getScanWindowList reader) cvParams userParams (readOp() |> ignore)
                     |   _               ->  loop spectrumID sourceFileID scanWindows cvParams userParams (readOp() |> ignore)
-                else
+                else 
                     if readOp()=true then loop spectrumID sourceFileID scanWindows cvParams userParams read
                     else
                         let scan =
                             new Scan(
                                     new SpectrumReference(
-                                        (if sourceFileID.IsNone then null else sourceFileID.Value),
+                                        (if sourceFileID.IsNone then null else sourceFileID.Value), 
                                         (if spectrumID.IsNone then null else spectrumID.Value)
-                                                            )
+                                                            ), scanWindows
                                     )
-                        scanWindows
-                        |> Seq.iter (fun scanWindow -> scan.ScanWindows.Add(scanWindow))
                         cvParams
                         |> Seq.iter (fun cvParam -> scan.AddCvParam cvParam)
                         userParams

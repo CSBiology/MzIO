@@ -20,7 +20,6 @@
     <None Include="paket.references" />
     <None Include="paket.template" />
     <Compile Include="MzIOSQL.fs" />
-    <Compile Include="AssemblyInfo.fs" />
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>

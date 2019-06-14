@@ -110,22 +110,19 @@ type MzIOJson =
         | null  -> failwith (ArgumentNullException("json").ToString())      
         | ""    -> failwith (ArgumentNullException("json").ToString())      
         | " "   -> failwith (ArgumentNullException("json").ToString())      
-        |   _   -> 
+        |   _   -> (*JsonConvert.DeserializeObject<'T>(json)*)
             let tmp = JsonConvert.DeserializeObject<'T>(json)
             match tmp :> Object with
             | :? DynamicObj as item -> MzIOJson.deserializeJObject(item, tmp :> Object)
             | _                     -> ()
             tmp
 
-    static member private deserializeJObject(baseObj:DynamicObj, jsonObj:Object) =
-        printfn "Start JsonCheck"
+    static member deserializeJObject(baseObj:DynamicObj, jsonObj:Object) =
         match jsonObj with
         | :? DynamicObj as value ->
             value.GetProperties true
-            |> Seq.iter (fun item ->
-                MzIOJson.deserializeJObject(value, item.Value))
+            |> Seq.iter (fun item -> MzIOJson.deserializeJObject(value, item.Value))
         | _ -> 
-            printfn "after null check"
             if (jsonObj :? JObject) = true then
                 if
                     (jsonObj :?> JObject).["CvAccession"] <> null && 
@@ -139,7 +136,21 @@ type MzIOJson =
                             let tmp = JsonConvert.DeserializeObject<UserParam<IConvertible>>(jsonObj.ToString())
                             baseObj.SetValue(tmp.Name, tmp)
                     else 
-                        ()
+                        let jString = jsonObj.ToString()
+                        match baseObj.ToString() with
+                        | "MzIO.Model.ScanList" -> 
+                            let tmp = JsonConvert.DeserializeObject<Scan>(jString)
+                            baseObj.SetValue(tmp.ToString(), tmp)
+                            MzIOJson.deserializeJObject(tmp, tmp)
+                        | "MzIO.Model.ProductList" -> 
+                            let tmp = JsonConvert.DeserializeObject<Product>(jString)
+                            baseObj.SetValue(tmp.ToString(), tmp)
+                            MzIOJson.deserializeJObject(tmp, tmp)
+                        | "MzIO.Model.PrecursorList" -> 
+                            let tmp = JsonConvert.DeserializeObject<Precursor>(jString)
+                            baseObj.SetValue(tmp.ToString(), tmp)
+                            MzIOJson.deserializeJObject(tmp, tmp)
+                        | _ -> ()
             else ()
 
     static member ToJson(obj:Object) =

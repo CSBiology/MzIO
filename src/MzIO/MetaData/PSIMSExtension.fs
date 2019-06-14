@@ -88,7 +88,7 @@ module PSIMSExtension =
         member this.TryGetMsLevel(msLevel: byref<int>) =
             if this.TryGetParam(PSIMS_Spectrum.MsLevel) then
                 let tmp =
-                    this.TryGetTypedValue<IParamBase<IConvertible>>(PSIMS_Spectrum.MsLevel).Value
+                    this.TryGetTypedValue<CvParam<IConvertible>>(PSIMS_Spectrum.MsLevel).Value
                     |> tryGetValue
                 msLevel <- Convert.ToInt32 (tmp.Value)
                 true
