@@ -50,7 +50,7 @@
     <Compile Include="IO\MzLiteDataReader.fs" />
     <Compile Include="IO\IMzLiteDataWriter.fs" />
     <Compile Include="JSON\ParamBaseConverter.fs" />
-    <Compile Include="JSON\MzLiteJson.fs" />
+    <Compile Include="JSON\MzIOJson.fs" />
     <Compile Include="JSON\ConvertibleConverter.fs" />
     <Compile Include="AssemblyInfo.fs" />
     <None Include="paket.references" />

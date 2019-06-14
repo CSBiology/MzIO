@@ -352,7 +352,7 @@ type WiffFileReader(dataProvider:AnalystWiffDataProvider, disposed:Boolean, wiff
         //Function for Json to save seralzed information
         member this.SaveModel() =
 
-            MzLiteJson.SaveJsonFile(this.Model, WiffFileReader.GetModelFilePath(wiffFilePath))
+            MzIOJson.SaveJsonFile(this.Model, WiffFileReader.GetModelFilePath(wiffFilePath))
 
         member this.Model =
             this.RaiseDisposed()
@@ -371,7 +371,7 @@ type WiffFileReader(dataProvider:AnalystWiffDataProvider, disposed:Boolean, wiff
         (this :> IMzLiteIO).SaveModel()
 
     member this.Model =
-        let model = MzLiteJson.HandleExternalModelFile(this, WiffFileReader.GetModelFilePath(wiffFilePath))
+        let model = MzIOJson.HandleExternalModelFile(this, WiffFileReader.GetModelFilePath(wiffFilePath))
         model
 
     //potentiel failure due to exception
