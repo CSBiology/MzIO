@@ -53,7 +53,9 @@ type FileDescription [<JsonConstructor>] (contact:Contact, fileContent:FileConte
         member this.PropertyChanging = propertyChanging.Publish
 
     [<JsonProperty>]
-    member this.SourceFiles = sourceFiles'
+    member this.SourceFiles
+        with get() = sourceFiles'
+        and private set(value) = sourceFiles' <- value
 
     [<JsonProperty(Required = Required.Always, ObjectCreationHandling = ObjectCreationHandling.Reuse)>]
     member this.FileContent = fileContent'
