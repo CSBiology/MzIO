@@ -79,7 +79,7 @@ type MzMLWriter(path:string) =
             failwith (((new MzLiteIOException(String.Format("Can't reentering write state: '{0}'.", newWs))).ToString()))
         this.EnsureWriteState(expectedWs)
         currentWriteState <- newWs
-        consumedWriteStates.Add(newWs)
+        consumedWriteStates.Add(newWs) |> ignore
 
     member private this.LeaveWriteState(expectedWs: MzMLWriteState, newWs: MzMLWriteState) =
 
@@ -109,31 +109,20 @@ type MzMLWriter(path:string) =
                     failwith ((new MzLiteIOException("Error closing mzml output file.", ex)).ToString())
         else ()
 
-    //#region xml writing helper
-    member this.WriteXmlAttribute(name:string, value:string, required:bool) =
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////#region xml writing helper/////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-        if required = true then
-            match path with
-            | null  -> failwith ((new MzLiteIOException("Value required for xml attribute: " + name)).ToString())
-            | ""    -> failwith ((new MzLiteIOException("Value required for xml attribute: " + name)).ToString())
-            | " "   -> failwith ((new MzLiteIOException("Value required for xml attribute: " + name)).ToString())
-            |   _   -> writer.WriteAttributeString(name, value)
-        else
-            writer.WriteAttributeString(name, value)
+    member private this.WriteXmlAttribute(name:string, value:string, ?required: bool) =
 
-    //#region xml writing helper
-    member this.WriteXmlAttribute(name:string, value:string) =
+        let required = defaultArg required false
 
-        let required = false
-
-        if required = true then
-            match path with
-            | null  -> failwith ((new MzLiteIOException("Value required for xml attribute: " + name)).ToString())
-            | ""    -> failwith ((new MzLiteIOException("Value required for xml attribute: " + name)).ToString())
-            | " "   -> failwith ((new MzLiteIOException("Value required for xml attribute: " + name)).ToString())
-            |   _   -> writer.WriteAttributeString(name, value)
-        else
-            writer.WriteAttributeString(name, value)
+        if String.IsNullOrWhiteSpace(value) then
+            if required then
+                failwith ((new MzLiteIOException("Value required for xml attribute: " + name)).ToString())
+            else
+                ()
+        writer.WriteAttributeString(name, value)
 
     member private this.WriteList<'TItem>(elementName:string, list:DynamicObj, writeItem:Action<'TItem>, ?skipEmpty:bool) =
 
@@ -163,6 +152,10 @@ type MzMLWriter(path:string) =
             |> ignore
 
             writer.WriteEndElement()
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     member this.BeginMzML(model:MzLiteModel) =
 
