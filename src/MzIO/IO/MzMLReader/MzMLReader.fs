@@ -798,6 +798,45 @@ module MzML =
                     else spectrum
             loop null None [] [] (new ScanList()) (new PrecursorList()) (new ProductList()) Seq.empty ()
 
+        member this.getSpectrum(spectrumID: string) =
+            let readSubtree =
+                let rec loop acc =
+                    if reader.NodeType=XmlNodeType.Element && reader.Name="spectrum" then
+                        reader.ReadSubtree()
+                    else loop (reader.Read())
+                loop false
+            let readOp = readSubtree.Read
+            let mutable spectrum = new MassSpectrum()
+            let rec loop id sourceRef cvParams userParams scans precs products peaks read =
+                if readSubtree.NodeType=XmlNodeType.Element then
+                    match readSubtree.Name with
+                    | "spectrum"                    -> if (this.getAttribute ("id", readSubtree)) = spectrumID then
+                                                            loop
+                                                                (this.getAttribute ("id", readSubtree))
+                                                                (this.tryGetAttribute ("sourceFileRef", readSubtree))
+                                                                cvParams userParams scans precs products peaks
+                                                                (readOp() |> ignore)
+                                                       else 
+                                                            None
+                    | "referenceableParamGroupRef"  -> loop id sourceRef cvParams userParams scans precs products peaks (readOp() |> ignore)
+                    | "cvParam"                     -> loop id sourceRef ((this.getCVParam readSubtree)::cvParams) userParams scans precs products peaks (readOp() |> ignore)
+                    | "userParam"                   -> loop id sourceRef cvParams ((this.getUserParam readSubtree)::userParams) scans precs products peaks   (readOp() |> ignore)
+                    | "scanList"                    -> loop id sourceRef cvParams userParams (this.getScanList readSubtree) precs products peaks read
+                    | "precursorList"               -> loop id sourceRef cvParams userParams scans (this.getPrecursorList readSubtree) products peaks read
+                    | "productList"                 -> loop id sourceRef cvParams userParams scans precs (this.getProductList readSubtree) peaks read
+                    | "binaryDataArrayList"         -> spectrum <- new MassSpectrum(id, precs, scans, products, if sourceRef.IsSome then sourceRef.Value else null)
+                                                       (this.getDataProcessingReference (spectrum, readSubtree))
+                                                       cvParams
+                                                       |> List.iter(fun cvParam -> spectrum.AddCvParam cvParam)
+                                                       userParams
+                                                       |> List.iter(fun userParam -> spectrum.AddUserParam userParam)
+                                                       Some spectrum
+                    |   _                           -> Some spectrum
+                else
+                    if readOp()=true then loop id sourceRef cvParams userParams scans precs products peaks read
+                    else Some spectrum
+            loop null None [] [] (new ScanList()) (new PrecursorList()) (new ProductList()) Seq.empty ()
+
         member this.getSpectra() =
             let rec outerLoop acc =
                 if reader.Name = "spectrumList" then
@@ -821,6 +860,30 @@ module MzML =
                 else
                     outerLoop (reader.Read())
             outerLoop false
+
+        //member this.getSpectra() =
+        //    let rec outerLoop acc =
+        //        if reader.Name = "spectrumList" then
+        //            let readSubtree = reader.ReadSubtree()
+        //            let readOp = readSubtree.Read
+        //            let rec loop (acc:seq<MassSpectrum>) =
+        //                seq
+        //                    {
+        //                        if readSubtree.NodeType=XmlNodeType.Element then
+        //                            match readSubtree.Name with
+        //                            | "spectrum"    ->  yield this.getSpectrum readSubtree
+        //                                                (readOp()) |> ignore
+        //                                                yield! loop acc
+        //                            |   _           ->  (readOp()) |> ignore
+        //                                                yield! loop acc
+        //                        else
+        //                            if readOp()=true then yield! loop acc
+        //                            else yield! acc
+        //                    }
+        //            loop Seq.empty
+        //        else
+        //            outerLoop (reader.Read())
+        //    outerLoop false
 
         //let readSpectra (reader:XmlReader) =
         //    let readOp = reader.Read
@@ -1382,16 +1445,18 @@ module MzML =
                     outerLoop (reader.Read())
             outerLoop false
 
-        //interface IMzLiteDataReader with
+        interface IMzLiteDataReader with
     
-        //    member this.ReadMassSpectra(runID: string) = 
-        //        this.getSpectra()
+            member this.ReadMassSpectra(runID: string) = 
+                this.getSpectra()
 
-        //    member this. ReadMassSpectrum(spectrumID: string) =
-        //        this.getSpectrum()
+            member this. ReadMassSpectrum(spectrumID: string) =
+                match this.getSpectrum(spectrumID) with
+                | Some x -> x
+                | None   -> failwith "%s is not a valid SpectrumID" spectrumID
 
-        //    member this.ReadMassSPectrumAsync(spectrumID: string) =
-        //        Task<MzIO.Model.MassSpectrum>.Run(fun () -> this.ReadMassSpectrum())
+            //member this.ReadMassSPectrumAsync(spectrumID: string) =
+            //    Task<MzIO.Model.MassSpectrum>.Run(fun () -> this.ReadMassSpectrum())
             
-        //    member this.ReadSpectrumPeaks(spectrumID: string) =
-        //        this.translatePeak1DArray()
+            member this.ReadSpectrumPeaks(spectrumID: string) =
+                this.translatePeak1DArray()
