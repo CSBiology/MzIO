@@ -1,6 +1,7 @@
 ﻿namespace MzIO.IO
 
 
+open System.Threading.Tasks
 open System.Collections.Generic
 open MzIO.IO
 open MzIO.Binary
@@ -16,8 +17,8 @@ type IMzLiteDataReader =
     abstract member ReadMassSpectrum    : string -> MassSpectrum
     abstract member ReadSpectrumPeaks   : string -> Peak1DArray
 
-    abstract member ReadMassSpectrumAsync   : string -> Async<MassSpectrum>
-    abstract member ReadSpectrumPeaksAsync  : string -> Async<Peak1DArray>
+    abstract member ReadMassSpectrumAsync   : string -> Task<MassSpectrum>  (*Async<MassSpectrum>*)
+    abstract member ReadSpectrumPeaksAsync  : string -> Task<Peak1DArray>   (*Async<Peak1DArray>*)
 
     abstract member ReadChromatograms       : string -> IEnumerable<Chromatogram>
     abstract member ReadChromatogram        : string -> Chromatogram
