@@ -10,6 +10,7 @@ open MzIO.Model.Helper
 open MzIO.Model.CvParam
 open MzIO.Commons.Arrays
 open MzIO.Binary
+open MzIO.IO
 
 module MzML =
 
@@ -1380,3 +1381,17 @@ module MzML =
                 else
                     outerLoop (reader.Read())
             outerLoop false
+
+        //interface IMzLiteDataReader with
+    
+        //    member this.ReadMassSpectra(runID: string) = 
+        //        this.getSpectra()
+
+        //    member this. ReadMassSpectrum(spectrumID: string) =
+        //        this.getSpectrum()
+
+        //    member this.ReadMassSPectrumAsync(spectrumID: string) =
+        //        Task<MzIO.Model.MassSpectrum>.Run(fun () -> this.ReadMassSpectrum())
+            
+        //    member this.ReadSpectrumPeaks(spectrumID: string) =
+        //        this.translatePeak1DArray()
