@@ -7,11 +7,11 @@ owners
 authors 
     Patrick Blume, Jonathan Ott
 projectUrl
-    https://github.com/Etschbeijer/MzLiteFSharp
+    https://github.com/CSBiology/MzIO
 iconUrl
-    https://raw.githubusercontent.com/Etschbeijer/MzLiteFSharp/master/docs/files/img/logo.png
+    https://github.com/CSBiology/MzIO/blob/master/docsrc/files/img/logo.png
 licenseUrl
-    https://github.com/Etschbeijer/MzLiteFSharp/blob/master/LICENSE.txt
+    https://github.com/CSBiology/MzIO/blob/master/LICENSE.txt
 requireLicenseAcceptance
     false
 language
