@@ -1,566 +1,538 @@
 ﻿namespace MzIO.Bruker
 
-//open System
-//open System.Collections.Generic
-//open System.IO
-//open System.Threading.Tasks
-//open MzIO.Binary
-//open MzIO.IO
-//open MzIO.Json
-//open MzIO.Model
-//open System.Linq;
-//open MzIO.MetaData.PSIMSExtension
-//open MzIO.MetaData.UO
-//open MzIO.MetaData
-//open MzIO.Commons.Arrays
-//open System.Collections.ObjectModel
-//open MzIO.Bruker
-//open MzIO.Bruker.Baf2SqlWrapper
-//open MzIO.Bruker.Linq2BafSql
+open System
+open System.Collections.Generic
+open System.IO
+open System.Threading.Tasks
+open MzIO.Binary
+open MzIO.IO
+open MzIO.Json
+open MzIO.Model
+open System.Linq
+open MzIO.MetaData
+open MzIO.MetaData.ParamEditExtension
+open MzIO.MetaData.PSIMSExtension
+open MzIO.MetaData.UO
+open MzIO.MetaData.UO.UO
+open MzIO.Commons.Arrays
+open System.Collections.ObjectModel
+open MzIO.Bruker
+open MzIO.Bruker.Baf2SqlWrapper
+open MzIO.Bruker.Linq2BafSql
 
 
-//type private SupportedVariablesCollection() =
+type private SupportedVariablesCollection() =
 
-//    inherit KeyedCollection<string, BafSqlSupportedVariable>()
+    inherit KeyedCollection<string, BafSqlSupportedVariable>()
 
-//    static member ReadSupportedVariables(linq2BafSql:Linq2BafSql) =
+    static member ReadSupportedVariables(linq2BafSql:Linq2BafSql) =
         
-//        let tmp = linq2BafSql
-//        let variables = tmp.SupportedVariables.ToArray().Where(fun x -> x.Variable.HasValue && String.IsNullOrWhiteSpace(x.PermanentName) = false)
-//        let col = new SupportedVariablesCollection()
-//        variables
-//        |> Seq.iter (fun item -> col.Add(item))
-//        col
+        let tmp = linq2BafSql
+        let variables = tmp.SupportedVariables.ToArray().Where(fun x -> x.Variable.IsSome && String.IsNullOrWhiteSpace(x.PermanentName) = false)
+        let col = new SupportedVariablesCollection()
+        variables
+        |> Seq.iter (fun item -> col.Add(item))
+        col
 
-//    member this.TryGetItem(variablePermanentName:string, variable:byref<BafSqlSupportedVariable>) =
-//        if this.Contains(variablePermanentName) then
-//            variable <- this.[variablePermanentName]
-//            true
-//        else
-//            variable <- Unchecked.defaultof<BafSqlSupportedVariable>
-//            false
+    member this.TryGetItem(variablePermanentName:string, variable:byref<BafSqlSupportedVariable>) =
+        if this.Contains(variablePermanentName) then
+            variable <- this.[variablePermanentName]
+            true
+        else
+            variable <- Unchecked.defaultof<BafSqlSupportedVariable>
+            false
 
-//    override this.GetKeyForItem(item:BafSqlSupportedVariable) =
-//        item.PermanentName
+    override this.GetKeyForItem(item:BafSqlSupportedVariable) =
+        item.PermanentName
 
-//type private BafFileTransactionScope() =
+type private BafFileTransactionScope() =
 
-//    interface ITransactionScope with
+    interface ITransactionScope with
 
-//        member this.Commit() =
-//            ()
+        member this.Commit() =
+            ()
 
-//        member this.Rollback() =
-//            ()
+        member this.Rollback() =
+            ()
 
-//    interface IDisposable with
+    interface IDisposable with
         
-//        member this.Dispose() =
-//            ()
+        member this.Dispose() =
+            ()
 
-//[<Sealed>]
-//type BafFileReader(bafFilePath:string) =
+type private SpectrumVariableCollection() =
 
-//    let mutable bafFilePath =
-//        match bafFilePath with
-//        | null  -> failwith (ArgumentNullException("bafFilePath").ToString())
-//        | ""    -> failwith (ArgumentNullException("bafFilePath").ToString())
-//        | " "   -> failwith (ArgumentNullException("bafFilePath").ToString())
-//        |   _   -> 
-//            if File.Exists(bafFilePath) = false then 
-//                failwith (FileNotFoundException("Baf file not exists.").ToString())
-//            else 
-//                bafFilePath
+    inherit KeyedCollection<uint64, BafSqlPerSpectrumVariable>()
 
-//    let mutable disposed = false
+    static member ReadSpectrumVariables(linq2BafSql:Linq2BafSql, ?spectrumId:UInt64) =
+        let variables = linq2BafSql.GetPerSpectrumVariables(linq2BafSql.Core, spectrumId).Target :?> IEnumerable<BafSqlPerSpectrumVariable>
+        let col = new SpectrumVariableCollection()
+        variables
+        |> Seq.iter (fun item -> col.Add(item))
+        col
 
-//    //member this.Test =  
-//    //    try
-//    let sqlFilePath = Baf2SqlWrapper.GetSQLiteCacheFilename(bafFilePath)
-//    // First argument = 1, ignore contents of Calibrator.ami (if it exists)
+    override this.GetKeyForItem(item:BafSqlPerSpectrumVariable) =
 
-//    let baf2SqlHandle = Baf2SqlWrapper.baf2sql_array_open_storage(1, bafFilePath)
+        item.Variable.Value
 
-//    let baf2SqlHandle =
-//        if baf2SqlHandle = Convert.ToUInt64 0 then Baf2SqlWrapper.ThrowLastBaf2SqlError()
-//        else baf2SqlHandle
-//    let linq2BafSql = new Linq2BafSql(sqlFilePath)
+    member this.TryGetValue(variablePermanentName:string, supportedVariables:SupportedVariablesCollection,value:byref<decimal>) =
 
-//    let supportedVariables = SupportedVariablesCollection.ReadSupportedVariables(linq2BafSql)
+        let mutable variable = new BafSqlSupportedVariable()
 
-//    interface IMzLiteIO with
-
-//        member this.CreateDefaultModel() =
-
-//            this.RaiseDisposed()
-
-//            let modelName = Path.GetFileNameWithoutExtension(bafFilePath)
-//            let model = new MzLiteModel(modelName)
-
-//            let sampleName = Path.GetFileNameWithoutExtension(bafFilePath)
-//            let sample = new Sample("sample_1", sampleName);
-//            model.Samples.Add(sample)
-
-//            let run = new Run("run_1")
-//            run.Sample <- sample
-//            model.Runs.Add(run)
-//            model
-
-//        member this.Model =
-//            this.RaiseDisposed()
-//            this.model
-
-//        member this.SaveModel() =
-
-//            this.RaiseDisposed()
-
-//            try
-//                MzLiteJson.SaveJsonFile(this.model, this.GetModelFilePath())
-//            with
-//                | :? Exception as ex ->
-//                    failwith ((new MzLiteIOException(ex.Message, ex)).ToString())
-
-//        member this.BeginTransaction() =
+        if supportedVariables.TryGetItem(variablePermanentName, & variable) then
             
-//            this.RaiseDisposed()
+            if this.Contains(variable.Variable.Value) then
 
-//            new BafFileTransactionScope() :> ITransactionScope
+                value <- this.[variable.Variable.Value].Value.Value
+                true
+            else
+                value <- Unchecked.defaultof<Decimal>
+                false
+        else
+            value <- Unchecked.defaultof<Decimal>
+            false
 
-//    interface IDisposable with
+type private BafPeaksArray(masses:double[], intensities:UInt32[]) =
 
-//        member this.Dispose() =
+    interface IMzLiteArray<Peak1D> with
 
-//            this.RaiseDisposed()
-
-//            if disposed = true then 
-//                failwith ((new ObjectDisposedException(this.GetType().Name)).ToString())
-//            else ()
- 
-//            if disposed = true then ()
-//            else
-//                if 
-//                    baf2SqlHandle <> Convert.ToUInt64 0 then Baf2SqlWrapper.baf2sql_array_close_storage(baf2SqlHandle)
-//                else
-//                    //if
-//                    //    linq2BafSql <> null then (linq2BafSql :> IDisposable).Dispose()
-//                    //else
-//                        disposed <- true
-
-
-//    member this.model = MzLiteJson.HandleExternalModelFile(this, this.GetModelFilePath())
-//        //let model = MzLiteJson.HandleExternalModelFile(this, this.GetModelFilePath())
-
-//    //let supportedVariables = SupportedVariablesCollection.ReadSupportedVariables(linq2BafSql)
-
-//        //with
-//        //    | :? Exception as ex ->
-//        //        failwith ((new MzLiteIOException(ex.Message, ex)).ToString())
-
-//    member this.BafFilePath = bafFilePath
-
-//    member private this.GetModelFilePath() =
+        member this.Length =
         
-//        bafFilePath + ".mzlitemodel"
+            Math.Min(masses.Length, intensities.Length)
 
-//    member private this.RaiseDisposed() =
-
-//        if disposed = true then
-
-//            failwith (ObjectDisposedException(this.GetType().Name).ToString())
-//        else
-//            ()
-
-//    member private this.YieldMassSpectra() =
-
-//        let mutable ids = linq2BafSql.Spectra.Where(fun x -> x.Id <> System.Nullable()).OrderBy(fun x -> x.Rt).Select(fun x -> x.Id).ToArray()
-
-//        ids
-//        |> Array.map (fun id -> this.ReadMassSpectrum(id.Value))
-//        |> (fun item -> item :> IEnumerable<MassSpectrum>)
-            
-
-//    interface IMzLiteDataReader with
-
-//        member this.ReadMassSpectra(runID:string) =
-
-//            this.RaiseDisposed()
-
-//            try
-//                this.YieldMassSpectra()
-
-//            with
-
-//                | :? MzLiteIOException as ex ->
-
-//                    failwith (ex.ToString())
-
-//                | :? Exception as ex ->
-                
-//                    failwith ((new MzLiteIOException("Error reading spectrum.", ex)).ToString())
+        member this.Item 
         
-//        member this.ReadMassSpectrum(spectrumID:string) =
+            with get idx =
 
-//            this.RaiseDisposed()
+                if idx < 0 || idx > this.Length then 
+                    failwith ((new IndexOutOfRangeException()).ToString())
+                else
+                    new Peak1D(float intensities.[idx], masses.[idx])
 
-//            try 
-//                let id = UInt64.Parse(spectrumID)
-//                this.ReadMassSpectrum(id)
+    interface IEnumerable<Peak1D> with
 
-//            with
-//                | :? MzLiteIOException as ex ->
-
-//                    failwith (ex.ToString())
-
-//                | :? Exception as ex ->
-                    
-//                    failwith ((new MzLiteIOException("Error reading spectrum: " + spectrumID, ex)).ToString())
-
-//        member this.ReadSpectrumPeaks(spectrumID:string, getCentroids:bool) =
-
-//            this.RaiseDisposed()
-
-//            try
-//                let id = UInt64.Parse(spectrumID)
-//                this.ReadSpectrumPeaks(id, getCentroids)
-
-//            with
-//                | :? MzLiteIOException as ex ->
-//                    failwith (ex.ToString())
-
-//                | :? Exception as ex ->
-//                    failwith ((new MzLiteIOException("Error reading spectrum peaks: " + spectrumID, ex)).ToString())
-
-//        member this.ReadSpectrumPeaks(spectrumID:string) =
-
-//            this.RaiseDisposed()
-
-//            try
-//                let id = UInt64.Parse(spectrumID)
-//                this.ReadSpectrumPeaks(id, false)
-
-//            with
-//                | :? MzLiteIOException as ex ->
-//                    failwith (ex.ToString())
-
-//                | :? Exception as ex ->
-//                    failwith ((new MzLiteIOException("Error reading spectrum peaks: " + spectrumID, ex)).ToString())
-
-//        member this.ReadMassSpectrumAsync(spectrumID:string) =
-
-//            Task<MzIO.Model.MassSpectrum>.Run(fun () -> this.ReadMassSoectrum(spectrumID))
-
-//        member this.ReadSpectrumPeaksAsync(spectrumID:string) =
-
-//            Task<Peak1DArray>.Run(fun () -> this.ReadSpectrumPeaks(spectrumID))
-
-//        member this.ReadChromatograms(runID:string) =
+        member this.GetEnumerator() =
             
-//            try
-//                failwith ((new NotSupportedException()).ToString())
+            this.Yield().GetEnumerator()
 
-//            with
-//                | :? Exception as ex ->
-//                    failwith ((new MzLiteIOException(ex.Message, ex)).ToString())
+    interface System.Collections.IEnumerable with
+        member this.GetEnumerator() =
+            this.Yield().GetEnumerator() :> Collections.IEnumerator
 
-//        member this.ReadChromatogram(runID:string) =
-            
-//            try
-//                failwith ((new NotSupportedException()).ToString())
-
-//            with
-//                | :? Exception as ex ->
-//                    failwith ((new MzLiteIOException(ex.Message, ex)).ToString())
-
-//        member this.ReadChromatogramPeaks(runID:string) =
-            
-//            try
-//                failwith ((new NotSupportedException()).ToString())
-
-//            with
-//                | :? Exception as ex ->
-//                    failwith ((new MzLiteIOException(ex.Message, ex)).ToString())
     
-//        member this.ReadChromatogramAsync(runID:string) =
+    member this.Yield() =
+    
+        [0..this.Length-1]
+        |> Seq.ofList
+        |> Seq.map (fun i -> this.[i])
+        |> (fun item -> item :> IEnumerable<'T>)
+
+    member this.GetEnumerator() =
+
+        this.Yield().GetEnumerator()
+
+    member this.Length =
+        (this :> IMzLiteArray<Peak1D>).Length
+
+    member this.Item 
+    
+        with get idx =
+
+            (this :> IMzLiteArray<Peak1D>).[idx]
+
+[<Sealed>]
+type BafFileReader(bafFilePath:string) =
+
+    let mutable bafFilePath =
+        match bafFilePath with
+        | null  -> failwith (ArgumentNullException("bafFilePath").ToString())
+        | ""    -> failwith (ArgumentNullException("bafFilePath").ToString())
+        | " "   -> failwith (ArgumentNullException("bafFilePath").ToString())
+        |   _   -> 
+            if File.Exists(bafFilePath) = false then 
+                failwith (FileNotFoundException("Baf file not exists.").ToString())
+            else 
+                bafFilePath
+
+    let mutable disposed = false
+
+    //member this.Test =  
+    //    try
+    let sqlFilePath = Baf2SqlWrapper.GetSQLiteCacheFilename(bafFilePath)
+    // First argument = 1, ignore contents of Calibrator.ami (if it exists)
+
+    let baf2SqlHandle = Baf2SqlWrapper.baf2sql_array_open_storage(1, bafFilePath)
+
+    let baf2SqlHandle =
+        if baf2SqlHandle = Convert.ToUInt64 0 then Baf2SqlWrapper.ThrowLastBaf2SqlError()
+        else baf2SqlHandle
+    let mutable linq2BafSql = new Linq2BafSql(sqlFilePath)
+
+    let supportedVariables = SupportedVariablesCollection.ReadSupportedVariables(linq2BafSql)
+
+    interface IMzLiteIO with
+
+        member this.CreateDefaultModel() =
+
+            this.RaiseDisposed()
+
+            let modelName = Path.GetFileNameWithoutExtension(bafFilePath)
+            let model = new MzLiteModel(modelName)
+
+            let sampleName = Path.GetFileNameWithoutExtension(bafFilePath)
+            let sample = new Sample("sample_1", sampleName);
+            model.Samples.Add(sample)
+
+            let run = new Run("run_1")
+            run.Sample <- sample
+            model.Runs.Add(run)
+            model
+
+        member this.Model =
+            this.RaiseDisposed()
+            this.model
+
+        member this.SaveModel() =
+
+            this.RaiseDisposed()
+
+            try
+                MzIOJson.SaveJsonFile(this.model, this.GetModelFilePath())
+            with
+                | :? Exception as ex ->
+                    failwith ((new MzLiteIOException(ex.Message, ex)).ToString())
+
+        member this.BeginTransaction() =
             
-//            try
-//                failwith ((new NotSupportedException()).ToString())
+            this.RaiseDisposed()
 
-//            with
-//                | :? Exception as ex ->
-//                    failwith ((new MzLiteIOException(ex.Message, ex)).ToString())
+            new BafFileTransactionScope() :> ITransactionScope
 
-//        member this.ReadChromatogramPeaksAsync(runID:string) =
-            
-//            try
-//                failwith ((new NotSupportedException()).ToString())
+    interface IDisposable with
 
-//            with
-//                | :? Exception as ex ->
-//                    failwith ((new MzLiteIOException(ex.Message, ex)).ToString())
+        member this.Dispose() =
+
+            this.RaiseDisposed()
+
+            if disposed = true then 
+                failwith ((new ObjectDisposedException(this.GetType().Name)).ToString())
+            else ()
+ 
+            if disposed = true then ()
+            else
+                if 
+                    baf2SqlHandle <> Convert.ToUInt64 0 then Baf2SqlWrapper.baf2sql_array_close_storage(baf2SqlHandle)
+                else
+                    //if
+                    //    linq2BafSql <> null then (linq2BafSql :> IDisposable).Dispose()
+                    //else
+                        disposed <- true
+
+
+    member private this.model = MzIOJson.HandleExternalModelFile(this, this.GetModelFilePath())
+        //let model = MzLiteJson.HandleExternalModelFile(this, this.GetModelFilePath())
+
+    //let supportedVariables = SupportedVariablesCollection.ReadSupportedVariables(linq2BafSql)
+
+        //with
+        //    | :? Exception as ex ->
+        //        failwith ((new MzLiteIOException(ex.Message, ex)).ToString())
+
+    member private this.linq2BafSql = linq2BafSql
+
+    member this.BafFilePath = bafFilePath
+
+    member private this.GetModelFilePath() =
         
-////        #region BafFileReader Members     
+        bafFilePath + ".mzlitemodel"
 
-////        private MassSpectrum ReadMassSpectrum(UInt64 spectrumId)
-////        {
+    member private this.RaiseDisposed() =
 
-////            BafSqlSpectrum bafSpec = linq2BafSql.GetBafSqlSpectrum(this.linq2BafSql.Core, spectrumId);
+        if disposed = true then
 
-////            if (bafSpec == null)
-////                throw new MzLiteIOException("No spectrum found for id: " + spectrumId);
+            failwith (ObjectDisposedException(this.GetType().Name).ToString())
+        else
+            ()
 
-////            MassSpectrum ms = new MassSpectrum(spectrumId.ToString());
+    member private this.YieldMassSpectra() =
 
-////            // determine ms level
-////            BafSqlAcquisitionKey aqKey = linq2BafSql.GetBafSqlAcquisitionKey(this.linq2BafSql.Core, bafSpec.AcquisitionKey);
-////            Nullable<int> msLevel = null;
+        let mutable ids = linq2BafSql.Spectra.Where(fun x -> x.Id.IsSome).OrderBy(fun x -> x.Rt).Select(fun x -> x.Id).ToArray()
 
-////            if (aqKey != null && aqKey.MsLevel.HasValue)
-////            {
-////                // bruker starts ms level by 0, must be added by 1
-////                msLevel = aqKey.MsLevel.Value + 1;
-////                ms.SetMsLevel(msLevel.Value);
-////            }
+        ids
+        |> Array.map (fun id -> this.ReadMassSpectrum(id.Value))
+        |> (fun item -> item :> IEnumerable<MassSpectrum>)
+            
 
-////            // determine type of spectrum and read peak data
-////            // if profile data available we prefer to get profile data otherwise centroided data (line spectra)
-////            if (bafSpec.ProfileMzId.HasValue && bafSpec.ProfileIntensityId.HasValue)
-////            {
-////                ms.SetProfileSpectrum();
-////            }
-////            else if (bafSpec.LineMzId.HasValue && bafSpec.LineIntensityId.HasValue)
-////            {
-////                ms.SetCentroidSpectrum();
-////            }
+    interface IMzLiteDataReader with
 
-////            if (msLevel == 1)
-////            {
-////                ms.SetMS1Spectrum();
-////            }
-////            else if (msLevel > 1)
-////            {
-////                ms.SetMSnSpectrum();
-////            }
+        member this.ReadMassSpectra(runID:string) =
 
-////            // scan
-////            if (bafSpec.Rt.HasValue)
-////            {
-////                Scan scan = new Scan();
-////                scan.SetScanStartTime(bafSpec.Rt.Value).UO_Second();
-////                ms.Scans.Add(scan);
-////            }
+            this.RaiseDisposed()
 
-////            // precursor
-////            if (msLevel > 1)
-////            {
+            try
+                this.YieldMassSpectra()
 
-////                SpectrumVariableCollection spectrumVariables = SpectrumVariableCollection.ReadSpectrumVariables(linq2BafSql, bafSpec.Id);
+            with
 
-////                Precursor precursor = new Precursor();
+                | :? MzLiteIOException as ex ->
 
-////                decimal value;
+                    failwith (ex.ToString())
 
-////                if (spectrumVariables.TryGetValue("Collision_Energy_Act", supportedVariables, out value))
-////                {
-////                    precursor.Activation.SetCollisionEnergy(Decimal.ToDouble(value));
-////                }
-////                if (spectrumVariables.TryGetValue("MSMS_IsolationMass_Act", supportedVariables, out value))
-////                {
-////                    precursor.IsolationWindow.SetIsolationWindowTargetMz(Decimal.ToDouble(value));
-////                }
-////                if (spectrumVariables.TryGetValue("Quadrupole_IsolationResolution_Act", supportedVariables, out value))
-////                {
-////                    double width = Decimal.ToDouble(value) * 0.5d;
-////                    precursor.IsolationWindow.SetIsolationWindowUpperOffset(width);
-////                    precursor.IsolationWindow.SetIsolationWindowLowerOffset(width);
-////                }
+                | :? Exception as ex ->
+                
+                    failwith ((new MzLiteIOException("Error reading spectrum.", ex)).ToString())
+        
+        member this.ReadMassSpectrum(spectrumID:string) =
 
-////                Nullable<int> charge = null;
+            this.RaiseDisposed()
 
-////                if (spectrumVariables.TryGetValue("MSMS_PreCursorChargeState", supportedVariables, out value))
-////                {
-////                    charge = Decimal.ToInt32(value);
-////                }
+            try 
+                let id = UInt64.Parse(spectrumID)
+                this.ReadMassSpectrum(id)
 
-////                IEnumerable<BafSqlStep> ions = linq2BafSql.GetBafSqlSteps(this.linq2BafSql.Core,bafSpec.Id);
+            with
+                | :? MzLiteIOException as ex ->
 
-////                foreach (BafSqlStep ion in ions)
-////                {
-////                    if (ion.Mass.HasValue)
-////                    {
-////                        SelectedIon selectedIon = new SelectedIon();
-////                        precursor.SelectedIons.Add(selectedIon);
-////                        selectedIon.SetSelectedIonMz(ion.Mass.Value);
+                    failwith (ex.ToString())
 
-////                        selectedIon.SetUserParam("Number", ion.Number.Value);
-////                        selectedIon.SetUserParam("IsolationType", ion.IsolationType.Value);
-////                        selectedIon.SetUserParam("ReactionType", ion.ReactionType.Value);
-////                        selectedIon.SetUserParam("MsLevel", ion.MsLevel.Value);
+                | :? Exception as ex ->
+                    
+                    failwith ((new MzLiteIOException("Error reading spectrum: " + spectrumID, ex)).ToString())
 
-////                        if (charge.HasValue)
-////                        {
-////                            selectedIon.SetChargeState(charge.Value);
-////                        }
-////                    }
+        //member this.ReadSpectrumPeaks(spectrumID:string, getCentroids:bool) =
 
-////                }
+        //    this.RaiseDisposed()
 
-////                // set parent spectrum as reference
-////                if (bafSpec.Parent.HasValue)
-////                {
-////                    precursor.SpectrumReference = new SpectrumReference(bafSpec.Parent.ToString());
-////                }
+        //    try
+        //        let id = UInt64.Parse(spectrumID)
+        //        this.ReadSpectrumPeaks(id, getCentroids)
 
-////                ms.Precursors.Add(precursor);
-////            }
+        //    with
+        //        | :? MzLiteIOException as ex ->
+        //            failwith (ex.ToString())
 
-////            return ms;
-////        }
+        //        | :? Exception as ex ->
+        //            failwith ((new MzLiteIOException("Error reading spectrum peaks: " + spectrumID, ex)).ToString())
 
-////        public Peak1DArray ReadSpectrumPeaks(UInt64 spectrumId, bool getCentroids)
-////        {
+        member this.ReadSpectrumPeaks(spectrumID:string) =
 
-////            BafSqlSpectrum bafSpec = linq2BafSql.GetBafSqlSpectrum(this.linq2BafSql.Core,spectrumId);
+            this.RaiseDisposed()
 
-////            if (bafSpec == null)
-////                throw new MzLiteIOException("No spectrum found for id: " + spectrumId);
+            try
+                let id = UInt64.Parse(spectrumID)
 
-////            Peak1DArray pa = new Peak1DArray(
-////                        BinaryDataCompressionType.NoCompression,
-////                        BinaryDataType.Float32,
-////                        BinaryDataType.Float32);
+                this.ReadSpectrumPeaks(id, false)
 
-////            double[] masses;
-////            UInt32[] intensities;
+            with
+                | :? MzLiteIOException as ex ->
+                    failwith (ex.ToString())
 
-////            // if profile data available we prefer to get profile data otherwise centroided data (line spectra)
-////            if (getCentroids && bafSpec.LineMzId.HasValue && bafSpec.LineIntensityId.HasValue)
-////            {
-////                masses = Baf2SqlWrapper.GetBafDoubleArray(baf2SqlHandle, bafSpec.LineMzId.Value);
-////                intensities = Baf2SqlWrapper.GetBafUInt32Array(baf2SqlHandle, bafSpec.LineIntensityId.Value);
-////            }
-////            else if (getCentroids == false && bafSpec.ProfileMzId.HasValue && bafSpec.ProfileIntensityId.HasValue)
-////            {
-////                masses = Baf2SqlWrapper.GetBafDoubleArray(baf2SqlHandle, bafSpec.ProfileMzId.Value);
-////                intensities = Baf2SqlWrapper.GetBafUInt32Array(baf2SqlHandle, bafSpec.ProfileIntensityId.Value);
-////            }
-////            else
-////            {
-////                masses = new double[0];
-////                intensities = new UInt32[0];
-////            }
+                | :? Exception as ex ->
+                    failwith ((new MzLiteIOException("Error reading spectrum peaks: " + spectrumID, ex)).ToString())
 
-////            pa.Peaks = new BafPeaksArray(masses, intensities);
+        member this.ReadMassSpectrumAsync(spectrumID:string) =
 
-////            return pa;
-////        }        
+            Task<MzIO.Model.MassSpectrum>.Run(fun () -> (this :> IMzLiteDataReader).ReadMassSpectrum(spectrumID))
 
-////        #endregion
+        member this.ReadSpectrumPeaksAsync(spectrumID:string) =
 
-////        private class BafPeaksArray : IMzLiteArray<Peak1D>
-////        {
+            Task<Peak1DArray>.Run(fun () -> (this :> IMzLiteDataReader).ReadSpectrumPeaks(spectrumID))
 
-////            private readonly double[] masses;
-////            private readonly UInt32[] intensities;
+        member this.ReadChromatograms(runID:string) =
+            
+            try
+                failwith ((new NotSupportedException()).ToString())
 
-////            public BafPeaksArray(double[] masses, UInt32[] intensities)
-////            {
-////                this.masses = masses;
-////                this.intensities = intensities;
-////            }
+            with
+                | :? Exception as ex ->
+                    failwith ((new MzLiteIOException(ex.Message, ex)).ToString())
 
-////            #region IMzLiteArray<Peak1D> Members
+        member this.ReadChromatogram(runID:string) =
+            
+            try
+                failwith ((new NotSupportedException()).ToString())
 
-////            public int Length
-////            {
-////                get { return Math.Min(masses.Length, intensities.Length); }
-////            }
+            with
+                | :? Exception as ex ->
+                    failwith ((new MzLiteIOException(ex.Message, ex)).ToString())
 
-////            public Peak1D this[int idx]
-////            {
-////                get
-////                {
-////                    if (idx < 0 || idx >= Length)
-////                        throw new IndexOutOfRangeException();
-////                    return new Peak1D(
-////                        intensities[idx],
-////                        masses[idx]);
-////                }
-////            }
+        member this.ReadChromatogramPeaks(runID:string) =
+            
+            try
+                failwith ((new NotSupportedException()).ToString())
 
-////            #endregion
+            with
+                | :? Exception as ex ->
+                    failwith ((new MzLiteIOException(ex.Message, ex)).ToString())
+    
+        member this.ReadChromatogramAsync(runID:string) =
+            
+            try
+                failwith ((new NotSupportedException()).ToString())
 
-////            #region IEnumerable<Peak1D> Members
+            with
+                | :? Exception as ex ->
+                    failwith ((new MzLiteIOException(ex.Message, ex)).ToString())
 
-////            private IEnumerable<Peak1D> Yield()
-////            {
-////                for (int i = 0; i < Length; i++)
-////                    yield return this[i];
-////            }
+        member this.ReadChromatogramPeaksAsync(runID:string) =
+            
+            try
+                failwith ((new NotSupportedException()).ToString())
 
-////            public IEnumerator<Peak1D> GetEnumerator()
-////            {
-////                return Yield().GetEnumerator();
-////            }
+            with
+                | :? Exception as ex ->
+                    failwith ((new MzLiteIOException(ex.Message, ex)).ToString())
+        
+    member private this.ReadMassSpectrum(spectrumId:UInt64) =
 
-////            #endregion
+        let bafSpec = linq2BafSql.GetBafSqlSpectrum(this.linq2BafSql.Core, spectrumId).Target :?> BafSqlSpectrum
 
-////            #region IEnumerable Members
+        //if bafSpec = null then
+            
+        //    failwith ((new MzLiteIOException("No spectrum found for id: " + spectrumId.ToString())).ToString())
 
-////            System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
-////            {
-////                return Yield().GetEnumerator();
-////            }
+        let ms = new MassSpectrum(spectrumId.ToString())
 
-////            #endregion
-////        }
+        // determine ms level
+        let aqKey = linq2BafSql.GetBafSqlAcquisitionKey(this.linq2BafSql.Core, bafSpec.AcquisitionKey).Target :?> BafSqlAcquisitionKey
+        let mutable msLevel = Unchecked.defaultof<int option>
+        
+        if (*aqKey <> null && *)aqKey.MsLevel.IsSome then
+            // bruker starts ms level by 0, must be added by 1
+            msLevel <- Some (aqKey.MsLevel.Value + 1)
+            ms.SetMsLevel(msLevel.Value) |> ignore
 
-////        private class SpectrumVariableCollection : KeyedCollection<ulong, BafSqlPerSpectrumVariable>
-////        {
+        // determine type of spectrum and read peak data
+        // if profile data available we prefer to get profile data otherwise centroided data (line spectra)
+        if bafSpec.ProfileMzId.IsSome && bafSpec.ProfileIntensityId.IsSome = true then
+            
+            ms.SetProfileSpectrum() |> ignore
 
-////            private SpectrumVariableCollection()
-////            {
-////            }
+        else
+            if bafSpec.LineMzId.IsSome && bafSpec.LineIntensityId.IsSome then
+                    
+                    ms.SetCentroidSpectrum() |> ignore
+            else
+                ms |> ignore
 
-////            public static SpectrumVariableCollection ReadSpectrumVariables(Linq2BafSql linq2BafSql, UInt64? spectrumId)
-////            {
-////                IEnumerable<BafSqlPerSpectrumVariable> variables = linq2BafSql.GetPerSpectrumVariables(linq2BafSql.Core, spectrumId);
-////                var col = new SpectrumVariableCollection();
-////                foreach (var v in variables)
-////                    col.Add(v);
+        if msLevel.IsSome then
+            if msLevel.Value = 1 then
 
-////                return col;
-////            }
+                ms.SetMS1Spectrum() |> ignore
+            else
+                if msLevel.Value > 1 then
 
-////            protected override ulong GetKeyForItem(BafSqlPerSpectrumVariable item)
-////            {
-////                return item.Variable.Value;
-////            }
+                    ms.SetMSnSpectrum() |> ignore
+                else
+                    ms.SetMSnSpectrum() |> ignore
 
-////            public bool TryGetValue(string variablePermanentName, SupportedVariablesCollection supportedVariables, out decimal value)
-////            {
-////                BafSqlSupportedVariable variable;
+        // scan
+        if bafSpec.Rt.IsSome then
+            let scan = new Scan()
+            scan.SetScanStartTime(bafSpec.Rt.Value).UO_Second() |> ignore
+            ms.Scans.Add(scan)
+        else 
+            ()
 
-////                if (supportedVariables.TryGetItem(variablePermanentName, out variable))
-////                {
-////                    if (Contains(variable.Variable.Value))
-////                    {
-////                        value = this[variable.Variable.Value].Value.Value;
-////                        return true;
-////                    }
-////                    else
-////                    {
-////                        value = default(decimal);
-////                        return false;
-////                    }
-////                }
-////                else
-////                {
-////                    value = default(decimal);
-////                    return false;
-////                }
-////            }
-////        }
-////    }
+        // precursor
+        if msLevel.IsSome then
+
+            if msLevel.Value > 1 then
+            
+                let spectrumVariables = 
+                    match bafSpec.Id with
+                    | Some id   -> SpectrumVariableCollection.ReadSpectrumVariables(linq2BafSql, id)
+                    | None      -> SpectrumVariableCollection.ReadSpectrumVariables(linq2BafSql)
+
+                let precursor = new Precursor()
+                let mutable value = decimal(0)
+
+                if spectrumVariables.TryGetValue("Collision_Energy_Act", supportedVariables, & value) then
+
+                    precursor.Activation.SetCollisionEnergy(Decimal.ToDouble(value)) |> ignore
+                else
+                    ()
+
+                if spectrumVariables.TryGetValue("MSMS_IsolationMass_Act", supportedVariables, & value) then
+
+                    precursor.IsolationWindow.SetIsolationWindowTargetMz(Decimal.ToDouble(value)) |> ignore
+
+                else
+                    ()
+
+                if spectrumVariables.TryGetValue("Quadrupole_IsolationResolution_Act", supportedVariables, & value) then
+
+                    let width = Decimal.ToDouble(value) * 0.5
+                    precursor.IsolationWindow.SetIsolationWindowUpperOffset(width) |> ignore
+                    precursor.IsolationWindow.SetIsolationWindowLowerOffset(width) |> ignore
+
+                else ()
+
+                let mutable charge = None
+
+                if spectrumVariables.TryGetValue("MSMS_PreCursorChargeState", supportedVariables, & value) then
+
+                    charge <- Some(Decimal.ToInt32(value))
+
+                else ()
+
+                let ions = linq2BafSql.GetBafSqlSteps(this.linq2BafSql.Core,bafSpec.Id).Target :?> IEnumerable<BafSqlStep>
+                ions
+                |> Seq.map (fun ion ->
+                                if ion.Mass.IsSome then
+                                    let selectedIon = new SelectedIon()
+                                    precursor.SelectedIons.Add(selectedIon)
+                                    selectedIon.SetSelectedIonMz(ion.Mass.Value) |> ignore
+
+                                    selectedIon.SetValue("Number", ion.Number.Value)
+                                    selectedIon.SetUserParam("IsolationType", ion.IsolationType.Value)  |> ignore
+                                    selectedIon.SetUserParam("ReactionType", ion.ReactionType.Value)    |> ignore
+                                    selectedIon.SetUserParam("MsLevel", ion.MsLevel.Value)              |> ignore
+
+                                    if charge.IsSome then
+
+                                        selectedIon.SetChargeState(charge.Value) |> ignore
+                                    else
+                                        ()
+                            ) |> ignore
+
+                // set parent spectrum as reference
+                if bafSpec.Parent.IsSome then
+                    
+                    precursor.SpectrumReference <- new SpectrumReference(bafSpec.Parent.ToString())
+
+                else 
+                    () 
+                ms.Precursors.Add(precursor) |> ignore 
+            else ()
+        else ()
+        ms
+
+    member this.ReadSpectrumPeaks(spectrumId:UInt64, getCentroids:bool) =
+        
+        let bafSpec = linq2BafSql.GetBafSqlSpectrum(this.linq2BafSql.Core,spectrumId).Target :?> BafSqlSpectrum
+
+        let pa = new Peak1DArray(BinaryDataCompressionType.NoCompression, BinaryDataType.Float32, BinaryDataType.Float32)
 
 
-////}
+        let mutable masses      = Array.zeroCreate<float> 0
+        let mutable intensities = Array.zeroCreate<UInt32> 0
+
+        // if profile data available we prefer to get profile data otherwise centroided data (line spectra)
+        if getCentroids && bafSpec.LineMzId.IsSome && bafSpec.LineIntensityId.IsSome then
+            
+            masses      <- Baf2SqlWrapper.GetBafDoubleArray(baf2SqlHandle, bafSpec.LineMzId.Value)
+            intensities <- Baf2SqlWrapper.GetBafUInt32Array(baf2SqlHandle, bafSpec.LineIntensityId.Value)
+
+        else
+            if getCentroids = false && bafSpec.ProfileMzId.IsSome && bafSpec.ProfileIntensityId.IsSome then
+                
+                masses      <- Baf2SqlWrapper.GetBafDoubleArray(baf2SqlHandle, bafSpec.ProfileMzId.Value);
+                intensities <- Baf2SqlWrapper.GetBafUInt32Array(baf2SqlHandle, bafSpec.ProfileIntensityId.Value);
+
+            else
+                masses      <- Array.zeroCreate<float> 0
+                intensities <- Array.zeroCreate<UInt32> 0
+
+        pa.Peaks <- new BafPeaksArray(masses, intensities)
+        pa

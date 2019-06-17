@@ -11,23 +11,31 @@ type SpectrumReference [<JsonConstructor>] (sourceFileID: string , spectrumID: s
     
     let mutable sourceFileID' = sourceFileID
     let mutable spectrumID' = spectrumID
-    new() = SpectrumReference ("sourceFileID", "spectrumID")
+
+    new(spectrumID) = new SpectrumReference ("sourceFileID", spectrumID)
+    new()           = new SpectrumReference ("sourceFileID", "spectrumID")
+
     //spectrumReference with new variables or take type variables?
     member this.SpectrumReference (sourceFileID: string, spectrumID: string) =
         if spectrumID = null then
              raise (new System.ArgumentNullException ("spectrumID"))
         else sourceFileID' <- sourceFileID
              spectrumID' <- spectrumID
+
     member this.SpectrumReference (spectrumID: string) = this.SpectrumReference (null, spectrumID)
+
     [<JsonProperty(NullValueHandling = NullValueHandling.Ignore)>]
     member this.SourceFileID  
         with get()              = sourceFileID'
         and private set(value)  = sourceFileID' <- value
+
     [<JsonProperty(Required = Required.Always)>]
     member this.SpectrumID
         with get()              = spectrumID'
         and private set(value)  = spectrumID' <- value
+
     member this.IsExternal = this.SourceFileID <> null
+
     override this.Equals (obj: System.Object) =
         if Object.ReferenceEquals (this, obj) then true
         else

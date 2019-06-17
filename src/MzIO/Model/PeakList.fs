@@ -97,7 +97,7 @@ type Precursor (spectrumReference:SpectrumReference, isolationWindow:IsolationWi
     [<JsonProperty(NullValueHandling = NullValueHandling.Ignore)>]
     member this.SpectrumReference
         with get() = spectrumReference'
-        and private set(value) = spectrumReference' <- value
+        and set(value) = spectrumReference' <- value
 
 [<Sealed>]
 type PrecursorList [<JsonConstructor>] internal (dict:Dictionary<string, obj>) =
