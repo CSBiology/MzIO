@@ -8,9 +8,11 @@ open NumpressHelper
 open MzIO.Binary
 
 
-type BinaryDataEncoder() =
+type BinaryDataEncoder(?initialBufferSize: int) =
+
+    let bufferSize = defaultArg initialBufferSize 1048576
     
-    let mutable memoryStream' = new MemoryStream(1048576)
+    let mutable memoryStream' = new MemoryStream(bufferSize)
 
     interface IDisposable with
         member this.Dispose() =
