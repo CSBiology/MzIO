@@ -4,6 +4,7 @@
 open System
 open System.Data
 open System.IO
+open System.Threading.Tasks
 open System.Collections.Generic
 open System.Data.SQLite
 open MzIO.Model
@@ -529,11 +530,23 @@ and MzLiteSQL(encoder:BinaryDataEncoder,decoder:BinaryDataDecoder, model:MzLiteM
             if this.SqlTrySelect(spectrumID, & peaks) then peaks
             else failwith (String.Format("Spectrum with id '{0}' not found.", spectrumID))
 
-        member this.ReadMassSpectrumAsync(spectrumID:string) =
-            async {return this.ReadMassSpectrum(spectrumID)}
+        member this.ReadMassSpectrumAsync(spectrumID:string) =        
+            //let tmp = this :> IMzLiteDataReader
+            //async
+            //    {
+            //        return tmp.ReadMassSpectrum(spectrumID)
+            //    }
 
-        member this.ReadSpectrumPeaksAsync(spectrumID: string) =
-            async {return this.ReadSpectrumPeaks(spectrumID)}
+            Task<MzIO.Model.MassSpectrum>.Run(fun () -> this.ReadMassSpectrum(spectrumID))
+
+        member this.ReadSpectrumPeaksAsync(spectrumID:string) =            
+            //let tmp = this :> IMzLiteDataReader
+            //async
+            //    {
+            //        return tmp.ReadSpectrumPeaks(spectrumID)
+            //    }
+
+            Task<Peak1DArray>.Run(fun () -> this.ReadSpectrumPeaks(spectrumID))
 
         member this.ReadChromatograms(runID: string) =
             this.RaiseDisposed()

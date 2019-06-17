@@ -1,8 +1,10 @@
 ﻿namespace MzIO.Wiff
 
+
 open System
 open System.IO
 open System.Linq
+open System.Threading.Tasks
 open System.Collections.Generic
 open System.Text.RegularExpressions
 open Clearcore2.Data.AnalystDataProvider
@@ -14,6 +16,7 @@ open MzIO.Model
 open MzIO.MetaData.UO.UO
 open MzIO.MetaData.PSIMSExtension
 open MzIO.Commons.Arrays
+
 
 //regular expression to check for repeated occurrences of words in a string
 //retrieves sample, experiment and scan ID
@@ -110,7 +113,6 @@ type WiffTransactionScope() =
         (this :> ITransactionScope).Rollback()
 
 type WiffFileReader(dataProvider:AnalystWiffDataProvider, disposed:Boolean, wiffFilePath:string, licenseFilePath:string) =
-
 
     let mutable dataProvider    = dataProvider
 
@@ -423,19 +425,24 @@ type WiffFileReader(dataProvider:AnalystWiffDataProvider, disposed:Boolean, wiff
             //    | :? Exception
             //        -> failwith (MzLiteIOException.MzLiteIOException(ex.Message, ex).ToString())
 
-        member this.ReadMassSpectrumAsync(spectrumID:string) =
-            let tmp = this :> IMzLiteDataReader
-            async
-                {
-                    return tmp.ReadMassSpectrum(spectrumID)
-                }
+        member this.ReadMassSpectrumAsync(spectrumID:string) =        
+            //let tmp = this :> IMzLiteDataReader
+            //async
+            //    {
+            //        return tmp.ReadMassSpectrum(spectrumID)
+            //    }
 
-        member this.ReadSpectrumPeaksAsync(spectrumID:string) =
-            let tmp = this :> IMzLiteDataReader
-            async
-                {
-                    return tmp.ReadSpectrumPeaks(spectrumID)
-                }
+            Task<MzIO.Model.MassSpectrum>.Run(fun () -> this.ReadMassSpectrum(spectrumID))
+
+        member this.ReadSpectrumPeaksAsync(spectrumID:string) =            
+            //let tmp = this :> IMzLiteDataReader
+            //async
+            //    {
+            //        return tmp.ReadSpectrumPeaks(spectrumID)
+            //    }
+
+            Task<Peak1DArray>.Run(fun () -> this.ReadSpectrumPeaks(spectrumID))
+
 
         member this.ReadChromatograms(runID:string) =
             Enumerable.Empty<Chromatogram>()
