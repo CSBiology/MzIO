@@ -1445,18 +1445,18 @@ module MzML =
                     outerLoop (reader.Read())
             outerLoop false
 
-        interface IMzLiteDataReader with
+        //interface IMzLiteDataReader with
     
-            member this.ReadMassSpectra(runID: string) = 
-                this.getSpectra()
+        //    member this.ReadMassSpectra(runID: string) = 
+        //        this.getSpectra()
 
-            member this. ReadMassSpectrum(spectrumID: string) =
-                match this.getSpectrum(spectrumID) with
-                | Some x -> x
-                | None   -> failwith "%s is not a valid SpectrumID" spectrumID
+        //    member this. ReadMassSpectrum(spectrumID: string) =
+        //        match this.getSpectrum(spectrumID) with
+        //        | Some x -> x
+        //        | None   -> failwith "%s is not a valid SpectrumID" spectrumID
 
-            //member this.ReadMassSPectrumAsync(spectrumID: string) =
-            //    Task<MzIO.Model.MassSpectrum>.Run(fun () -> this.ReadMassSpectrum())
+        //    //member this.ReadMassSPectrumAsync(spectrumID: string) =
+        //    //    Task<MzIO.Model.MassSpectrum>.Run(fun () -> this.ReadMassSpectrum())
             
-            member this.ReadSpectrumPeaks(spectrumID: string) =
-                this.translatePeak1DArray()
+        //    member this.ReadSpectrumPeaks(spectrumID: string) =
+        //        this.translatePeak1DArray()
