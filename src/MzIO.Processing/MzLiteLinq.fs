@@ -78,7 +78,7 @@ module MzIOLinq =
             if   ms.TryGetMsLevel(& msLevel') = false || msLevel' <> msLevel then false
             elif ms.Scans.Count < 1 then false
             else
-                 let scan = ms.Scans.[0]
+                 let scan = (*ms.Scans.[0]*)(ms.Scans.GetProperties false |> Seq.item 0).Value :?> Scan
                  let mutable rt = 0.
                  if scan.TryGetScanStartTime(& rt) then
                      entry <- new RtIndexEntry(rt, ms.ID)
@@ -176,11 +176,6 @@ module MzIOLinq =
                 | " "   -> failwith (ArgumentNullException("runID").ToString())
                 |   _   -> runID
             let massSpectra   = this.ReadMassSpectra(runID)
-            let tmp =
-                massSpectra
-                |> List.ofSeq
-                |> List.head
-            //let mutable idx = 0
             let entries       = new List<RtIndexEntry>()
             let mutable entry = new RtIndexEntry()
             for ms in massSpectra do

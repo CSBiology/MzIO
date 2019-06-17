@@ -1,0 +1,30 @@
+type project
+id MzIO.SQL
+title
+    MzIO.SQL
+owners
+    Timo Mühlhaus
+authors 
+    Patrick Blume, Jonathan Ott
+projectUrl
+    https://github.com/Etschbeijer/MzIO
+iconUrl
+    https://raw.githubusercontent.com/Etschbeijer/MzIO/master/docs/files/img/logo.png
+licenseUrl
+    https://github.com/Etschbeijer/MzIO/blob/master/LICENSE.txt
+requireLicenseAcceptance
+    false
+language
+    F#
+copyright
+    Copyright 2017
+tags
+    F# MassSpectrometry FSharp MzLite MzMl BigData
+summary
+    F# port of MzLite
+description
+    F# port of MzLite
+include-referenced-projects 
+    true
+files
+	../../bin/MzIO.SQL ==> lib

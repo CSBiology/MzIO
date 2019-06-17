@@ -1,6 +1,7 @@
 ﻿namespace MzIO.Model
 
 
+open System.Collections.Generic
 open MzIO.Model
 open MzIO.Model.CvParam
 open Newtonsoft.Json
@@ -16,9 +17,11 @@ type SampleTreatment() =
     inherit DynamicObj()
 
 [<Sealed>]
-type SampleTreatmentList [<JsonConstructor>] () =
+type SampleTreatmentList [<JsonConstructor>] internal (dict:Dictionary<string, obj>) =
 
-    inherit ObservableCollection<SampleTreatment>()
+    inherit ObservableCollection<SampleTreatment>(dict)
+
+    new() = new SampleTreatmentList(new Dictionary<string, obj>())
 
 /// <summary>
 /// Expansible description of a sample preparation.
@@ -30,9 +33,11 @@ type SamplePreparation() =
     inherit DynamicObj()
 
 [<Sealed>]
-type SamplePreparationList [<JsonConstructor>] () =
+type SamplePreparationList [<JsonConstructor>] internal (dict:Dictionary<string, obj>) =
 
-    inherit ObservableCollection<SamplePreparation>()
+    inherit ObservableCollection<SamplePreparation>(dict)
+
+    new() = new SamplePreparationList(new Dictionary<string, obj>())
 
 /// <summary>
 /// Expansible description of a sample.
@@ -59,6 +64,8 @@ type Sample [<JsonConstructor>] (id:string, name:string) =
 /// The model item container for samples.
 /// </summary>
 [<Sealed>]
-type SampleList [<JsonConstructor>] () =
+type SampleList [<JsonConstructor>] internal (dict:Dictionary<string, obj>) =
 
-    inherit ObservableModelItemCollection<Sample>()
+    inherit ObservableModelItemCollection<Sample>(dict)
+
+    new() = new SampleList(new Dictionary<string, obj>())

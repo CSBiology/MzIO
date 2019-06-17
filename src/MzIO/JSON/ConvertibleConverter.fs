@@ -14,7 +14,7 @@ type ConvertibleConverter() =
         failwith ((new NotSupportedException("JsonConverter.CanConvert()")).ToString())
 
     member this.ReadValue(reader:JsonReader, tc:TypeCode, jtval:JToken, serializer:JsonSerializer) =
-
+        
         match tc with
         | TypeCode.Boolean  -> jtval.ToObject<bool>(serializer)     :> IConvertible
         | TypeCode.Byte     -> jtval.ToObject<byte>(serializer)     :> IConvertible
@@ -60,12 +60,13 @@ type ConvertibleConverter() =
         if value = null then
             writer.WriteNull()
         else
-            let (ic: IConvertible) =    if (value :? IConvertible) then
-                                            value :?> IConvertible
-                                        else failwith "Object type code not supported."
-            writer.WriteStartObject()
-            writer.WritePropertyName("$tc")
-            serializer.Serialize(writer, ic.GetTypeCode())
-            writer.WritePropertyName("$val")
-            serializer.Serialize(writer, ic)
-            writer.WriteEndObject()
+            let ic = value :?> IConvertible
+            if ic.GetTypeCode() = TypeCode.Object then
+                failwith "Object type code not supported."
+            else
+                writer.WriteStartObject()
+                writer.WritePropertyName("$tc")
+                serializer.Serialize(writer, ic.GetTypeCode())
+                writer.WritePropertyName("$val")
+                serializer.Serialize(writer, ic)
+                writer.WriteEndObject()

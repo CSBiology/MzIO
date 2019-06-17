@@ -5,12 +5,14 @@ open System
 open System.IO
 open System.Globalization
 open Newtonsoft.Json
+open Newtonsoft.Json.Linq
 open Newtonsoft.Json.Serialization
 open MzIO.IO
 open MzIO.Model
+open MzIO.Model.CvParam
 
 
-type MzLiteJson =
+type MzIOJson =
 
     static member jsonSettings = 
         let tmp = new JsonSerializerSettings()
@@ -31,7 +33,7 @@ type MzLiteJson =
         use writer      = File.CreateText(path)
         use jsonWriter  = new JsonTextWriter(writer)
         (
-            let serializer = JsonSerializer.Create(MzLiteJson.jsonSettings)
+            let serializer = JsonSerializer.Create(MzIOJson.jsonSettings)
             serializer.Formatting <- Formatting.Indented
             serializer.Serialize(jsonWriter, obj)
         )
@@ -43,7 +45,7 @@ type MzLiteJson =
         use reader = File.OpenText(path)
         use jsonReader = new JsonTextReader(reader)
         (
-            let serializer = JsonSerializer.Create(MzLiteJson.jsonSettings)
+            let serializer = JsonSerializer.Create(MzIOJson.jsonSettings)
             let tmp = serializer.Deserialize<'T>(jsonReader)
             tmp
         )
@@ -62,13 +64,13 @@ type MzLiteJson =
 
         if not (File.Exists(path)) then
             let model = io.CreateDefaultModel()
-            MzLiteJson.SaveJsonFile(model, path)
+            MzIOJson.SaveJsonFile(model, path)
             model
         
         else
             let ex = new Exception()
             try
-                MzLiteJson.ReadJsonFile<MzLiteModel>(path)
+                MzIOJson.ReadJsonFile<MzLiteModel>(path)
             with
                 | :? Exception
                     -> 
@@ -85,7 +87,7 @@ type MzLiteJson =
 
                             //model <- io.CreateDefaultModel()
                             let model = io.CreateDefaultModel()
-                            MzLiteJson.SaveJsonFile(model, path)
+                            MzIOJson.SaveJsonFile(model, path)
 
                             let mutable msg = System.Text.StringBuilder()
                             //msg.AppendFormat
@@ -105,11 +107,52 @@ type MzLiteJson =
 
     static member FromJson<'T>(json: string) =
         match json with
-        | null  -> failwith (ArgumentNullException("sqlFilePath").ToString())      
-        | ""    -> failwith (ArgumentNullException("sqlFilePath").ToString())      
-        | " "   -> failwith (ArgumentNullException("sqlFilePath").ToString())      
-        |   _   -> JsonConvert.DeserializeObject<'T>(json)
+        | null  -> failwith (ArgumentNullException("json").ToString())      
+        | ""    -> failwith (ArgumentNullException("json").ToString())      
+        | " "   -> failwith (ArgumentNullException("json").ToString())      
+        |   _   -> (*JsonConvert.DeserializeObject<'T>(json)*)
+            let tmp = JsonConvert.DeserializeObject<'T>(json)
+            match tmp :> Object with
+            | :? DynamicObj as item -> MzIOJson.deserializeJObject(item, tmp :> Object)
+            | _                     -> ()
+            tmp
+
+    static member deserializeJObject(baseObj:DynamicObj, jsonObj:Object) =
+        match jsonObj with
+        | :? DynamicObj as value ->
+            value.GetProperties true
+            |> Seq.iter (fun item -> MzIOJson.deserializeJObject(value, item.Value))
+        | _ -> 
+            if (jsonObj :? JObject) = true then
+                if
+                    (jsonObj :?> JObject).["CvAccession"] <> null && 
+                    (jsonObj :?> JObject).["Type"] <> null then
+                        let tmp = JsonConvert.DeserializeObject<CvParam<IConvertible>>(jsonObj.ToString())
+                        baseObj.SetValue(tmp.CvAccession, tmp)
+                else
+                    if
+                        (jsonObj :?> JObject).["Name"] <> null && 
+                        (jsonObj :?> JObject).["Type"] <> null then
+                            let tmp = JsonConvert.DeserializeObject<UserParam<IConvertible>>(jsonObj.ToString())
+                            baseObj.SetValue(tmp.Name, tmp)
+                    else 
+                        let jString = jsonObj.ToString()
+                        match baseObj.ToString() with
+                        | "MzIO.Model.ScanList" -> 
+                            let tmp = JsonConvert.DeserializeObject<Scan>(jString)
+                            baseObj.SetValue(tmp.ToString(), tmp)
+                            MzIOJson.deserializeJObject(tmp, tmp)
+                        | "MzIO.Model.ProductList" -> 
+                            let tmp = JsonConvert.DeserializeObject<Product>(jString)
+                            baseObj.SetValue(tmp.ToString(), tmp)
+                            MzIOJson.deserializeJObject(tmp, tmp)
+                        | "MzIO.Model.PrecursorList" -> 
+                            let tmp = JsonConvert.DeserializeObject<Precursor>(jString)
+                            baseObj.SetValue(tmp.ToString(), tmp)
+                            MzIOJson.deserializeJObject(tmp, tmp)
+                        | _ -> ()
+            else ()
 
     static member ToJson(obj:Object) =
 
-        JsonConvert.SerializeObject(obj, MzLiteJson.jsonSettings)        
+        JsonConvert.SerializeObject(obj, MzIOJson.jsonSettings)

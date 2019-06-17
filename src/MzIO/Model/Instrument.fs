@@ -1,6 +1,7 @@
 ﻿namespace MzIO.Model
 
 
+open System.Collections.Generic
 open MzIO.Model
 open MzIO.Model.CvParam
 open Newtonsoft.Json
@@ -47,9 +48,11 @@ type DetectorComponent [<JsonConstructor>] () =
 /// </summary>
 [<Sealed>]
 [<JsonObject(ItemTypeNameHandling = TypeNameHandling.All)>]
-type ComponentList [<JsonConstructor>] () =
+type ComponentList [<JsonConstructor>] internal (dict:Dictionary<string, obj>) =
 
-    inherit ObservableCollection<Component>()
+    inherit MzIO.Model.ObservableCollection<Component>(dict)
+
+    new() = new ComponentList(new Dictionary<string, obj>())
 
 /// <summary>
 /// Expansible description of the hardware configuration of a mass spectrometer.
@@ -65,7 +68,7 @@ type Instrument([<JsonProperty("ID")>] id:string, software, components) =
     let mutable components' = components
 
     [<JsonConstructor>]
-    new(id) = new Instrument("id", new Software(), new ComponentList())
+    new(id) = new Instrument(id, new Software(), new ComponentList())
     new() = new Instrument("id", new Software(), new ComponentList())
 
     [<JsonProperty(NullValueHandling = NullValueHandling.Ignore)>]
@@ -85,6 +88,8 @@ type Instrument([<JsonProperty("ID")>] id:string, software, components) =
 /// The model item container for instrument configurations.
 /// </summary>
 [<Sealed>]
-type InstrumentList [<JsonConstructor>] () =
+type InstrumentList [<JsonConstructor>] internal (dict:Dictionary<string, obj>) =
 
-    inherit ObservableModelItemCollection<Instrument>()
+    inherit MzIO.Model.ObservableModelItemCollection<Instrument>(dict)
+
+    new() = new InstrumentList(new Dictionary<string, obj>())

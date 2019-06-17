@@ -1,6 +1,7 @@
 ﻿namespace MzIO.Model
 
 
+open System.Collections.Generic
 open MzIO.Model
 open Newtonsoft.Json
 
@@ -35,6 +36,7 @@ type DataProcessingStep [<JsonConstructor>] ([<JsonProperty("Name")>] name: stri
 /// </summary>
 [<Sealed>]
 type DataProcessingStepList [<JsonConstructor>] () =
+
     inherit ObservableNamedItemCollection<DataProcessingStep>()
 
 /// <summary>
@@ -63,5 +65,8 @@ type DataProcessing ([<JsonProperty("ID")>]id: string, processingSteps:DataProce
 /// </summary>
 
 [<Sealed>]
-type DataProcessingList [<JsonConstructor>] () =
-    inherit ObservableModelItemCollection<DataProcessing>()
+type DataProcessingList [<JsonConstructor>] internal (dict:Dictionary<string, obj>) =
+    
+    inherit ObservableModelItemCollection<DataProcessing>(dict)
+
+    new() = new DataProcessingList(new Dictionary<string, obj>())

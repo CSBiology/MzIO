@@ -81,15 +81,15 @@ module SwathIndexer =
             let mutable msLevel = 0
             if ms.TryGetMsLevel(& msLevel) = false || msLevel <> 2 then None
             else
-                if ms.Precursors.Count < 1 || ms.Precursors.[0].SelectedIons.Count < 1 || ms.Scans.Count < 1 then None
+                if ms.Precursors.Count < 1 || ((ms.Precursors.GetProperties false |> Seq.head).Value :?> Precursor).SelectedIons.Count < 1 || ms.Scans.Count < 1 then None
                 else
                     let mutable rt = 0.
                     let mutable mz = 0.
                     let mutable mzLow = 0.
                     let mutable mzHeigh = 0.
 
-                    let isoWin  = ms.Precursors.[0].IsolationWindow
-                    let scan    = ms.Scans.[0]
+                    let isoWin  = ((ms.Precursors.GetProperties false |> Seq.head).Value :?> Precursor).IsolationWindow
+                    let scan    = ((ms.Precursors.GetProperties false |> Seq.head).Value :?> Scan)
 
                     if (scan.TryGetScanStartTime(& rt) &&
                         isoWin.TryGetIsolationWindowTargetMz(& mz) &&

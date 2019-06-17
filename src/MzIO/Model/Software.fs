@@ -1,6 +1,7 @@
 ﻿namespace MzIO.Model
 
 
+open System.Collections.Generic
 open MzIO.Model
 open Newtonsoft.Json
 
@@ -18,6 +19,9 @@ type Software [<JsonConstructor>] (id:string) =
 ///// The model item container for processing software.
 ///// </summary>
 [<Sealed>]
-type SoftwareList [<JsonConstructor>] () =
+type SoftwareList [<JsonConstructor>] internal (dict:Dictionary<string, obj>) =
 
-    inherit ObservableModelItemCollection<Software>()
+    inherit MzIO.Model.ObservableModelItemCollection<Software>(dict)
+
+    new() = new SoftwareList(new Dictionary<string, obj>())
+
