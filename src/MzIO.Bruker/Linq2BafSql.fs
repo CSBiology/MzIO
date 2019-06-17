@@ -11,172 +11,239 @@ open System.Linq
 
 module Linq2BafSql =
 
+    [<Sealed>]
     [<Table(Name = "Spectra")>]
-    type BafSqlSpectrum =
-        {
-            [<Column(IsPrimaryKey = true)>]
-            Id                  : Nullable<UInt64>  //{ get; set; }
-            [<Column>]                              
-            Rt                  : Nullable<double>  //{ get; set; }
-            [<Column>]                              
-            Segment             : Nullable<UInt64>  //{ get; set; }
-            [<Column>]                              
-            AcquisitionKey      : Nullable<UInt64>  //{ get; set; }
-            [<Column>]                              
-            Parent              : Nullable<UInt64>  //{ get; set; }
-            [<Column>]                              
-            MzAcqRangeLower     : Nullable<UInt64>  //{ get; set; }
-            [<Column>]                              
-            MzAcqRangeUpper     : Nullable<UInt64>  //{ get; set; }
-            [<Column>]                              
-            SumIntensity        : Nullable<double>  //{ get; set; }
-            [<Column>]                              
-            MaxIntensity        : Nullable<double>  //{ get; set; }
-            [<Column>]                              
-            TransformatorId     : Nullable<UInt64>  //{ get; set; }
-            [<Column>]                              
-            ProfileMzId         : Nullable<UInt64>  //{ get; set; }
-            [<Column>]                              
-            ProfileIntensityId  : Nullable<UInt64>  //{ get; set; }
-            [<Column>]                               
-            LineIndexId         : Nullable<UInt64>  //{ get; set; }
-            [<Column>]                              
-            LineMzId            : Nullable<UInt64>  //{ get; set; }
-            [<Column>]                               
-            LineIntensityId     : Nullable<UInt64>  //{ get; set; }
-            [<Column>]                              
-            LineIndexWidthId    : Nullable<UInt64>  //{ get; set; }
-            [<Column>]                              
-            LinePeakAreaId      : Nullable<UInt64>  //{ get; set; }
-            [<Column>]                              
-            LineSnrId           : Nullable<UInt64>  //{ get; set; }
-        }
+    type BafSqlSpectrum() =
+        
+        let mutable id              = Unchecked.defaultof<UInt64 option>
+        let mutable rt              = Unchecked.defaultof<double option>
+        let mutable seg             = Unchecked.defaultof<UInt64 option>
+        let mutable aqk             = Unchecked.defaultof<UInt64 option>
+        let mutable parent          = Unchecked.defaultof<UInt64 option>
+        let mutable mzAqRL          = Unchecked.defaultof<UInt64 option>
+        let mutable mzAqRUpper      = Unchecked.defaultof<UInt64 option>
+        let mutable sumInt          = Unchecked.defaultof<float option>
+        let mutable maxInt          = Unchecked.defaultof<float option>
+        let mutable tranForId       = Unchecked.defaultof<UInt64 option>
+        let mutable profMzId        = Unchecked.defaultof<UInt64 option>
+        let mutable profIntId       = Unchecked.defaultof<UInt64 option>
+        let mutable lineIndexId     = Unchecked.defaultof<UInt64 option>
+        let mutable lineMzId        = Unchecked.defaultof<UInt64 option>
+        let mutable lineIntId       = Unchecked.defaultof<UInt64 option>
+        let mutable lineIdxWithId   = Unchecked.defaultof<UInt64 option>
+        let mutable linePeakAreaId  = Unchecked.defaultof<UInt64 option>
+        let mutable lineSnrId       = Unchecked.defaultof<UInt64 option>
 
-    let private createBafSqlSpectrum id rt segment aqKey parent mzAqRLower mzAQRUpper szmInt maxInt tForId 
-        proMzId proInt lineIdxId lineMzId lineIntId lineIdxWithId linePeakAreaId lineSnrId =
-        {
-            BafSqlSpectrum.Id                   = id
-            BafSqlSpectrum.Rt                   = rt
-            BafSqlSpectrum.Segment              = segment
-            BafSqlSpectrum.AcquisitionKey       = aqKey
-            BafSqlSpectrum.Parent               = parent
-            BafSqlSpectrum.MzAcqRangeLower      = mzAqRLower
-            BafSqlSpectrum.MzAcqRangeUpper      = mzAQRUpper
-            BafSqlSpectrum.SumIntensity         = szmInt
-            BafSqlSpectrum.MaxIntensity         = maxInt
-            BafSqlSpectrum.TransformatorId      = tForId
-            BafSqlSpectrum.ProfileMzId          = proMzId
-            BafSqlSpectrum.ProfileIntensityId   = proInt
-            BafSqlSpectrum.LineIndexId          = lineIdxId
-            BafSqlSpectrum.LineMzId             = lineMzId
-            BafSqlSpectrum.LineIntensityId      = lineIntId
-            BafSqlSpectrum.LineIndexWidthId     = lineIdxWithId
-            BafSqlSpectrum.LinePeakAreaId       = linePeakAreaId
-            BafSqlSpectrum.LineSnrId            = lineSnrId
-        }
+        [<Column(IsPrimaryKey = true)>]
+        member this.Id 
+            with get() = id 
+            and  set(value) = id <- value
+            
+        [<Column>]                              
+        member this.Rt
+            with get() = rt 
+            and  set(value) = rt <- value
+        [<Column>]                              
+        member this.Segment
+            with get() = seg 
+            and  set(value) = seg <- value
+        [<Column>]                              
+        member this.AcquisitionKey
+            with get() = aqk 
+            and  set(value) = aqk <- value
+        [<Column>]                              
+        member this.Parent
+            with get() = parent 
+            and  set(value) = parent <- value
+        [<Column>]                              
+        member this.MzAcqRangeLower
+            with get() = mzAqRL 
+            and  set(value) = mzAqRL <- value
+        [<Column>]                              
+        member this.MzAcqRangeUpper
+            with get() = mzAqRUpper 
+            and  set(value) = mzAqRUpper <- value
+        [<Column>]                              
+        member this.SumIntensity
+            with get() = sumInt 
+            and  set(value) = sumInt <- value
+        [<Column>]                              
+        member this.MaxIntensity
+            with get() = maxInt 
+            and  set(value) = maxInt <- value
+        [<Column>]                              
+        member this.TransformatorId
+            with get() = tranForId 
+            and  set(value) = tranForId <- value
+        [<Column>]                              
+        member this.ProfileMzId
+            with get() = profMzId 
+            and  set(value) = profMzId <- value
+        [<Column>]                              
+        member this.ProfileIntensityId
+            with get() = profIntId 
+            and  set(value) = profIntId <- value
+        [<Column>]                               
+        member this.LineIndexId
+            with get() = lineIndexId 
+            and  set(value) = lineIndexId <- value
+        [<Column>]                              
+        member this.LineMzId
+            with get() = lineMzId 
+            and  set(value) = lineMzId <- value
+        [<Column>]                               
+        member this.LineIntensityId     
+            with get() = lineIntId 
+            and  set(value) = lineIntId <- value
+        [<Column>]                              
+        member this.LineIndexWidthId
+            with get() = lineIdxWithId 
+            and  set(value) = lineIdxWithId <- value
+        [<Column>]                              
+        member this.LinePeakAreaId
+            with get() = linePeakAreaId 
+            and  set(value) = linePeakAreaId <- value
+        [<Column>]                              
+        member this.LineSnrId
+            with get() = lineSnrId 
+            and  set(value) = lineSnrId <- value
 
+    [<Sealed>]
     [<Table(Name = "AcquisitionKeys")>]
-    type BafSqlAcquisitionKey =
-        {
-            [<Column(IsPrimaryKey = true)>]
-            Id              : Nullable<UInt64>  //{ get; set; }
-            [<Column>]                      
-            Polarity        : Nullable<int>     //{ get; set; }
-            [<Column>]                      
-            ScanMode        : Nullable<int>     //{ get; set; }
-            [<Column>]                      
-            AcquisitionMode : Nullable<int>     //{ get; set; }
-            [<Column>]                      
-            MsLevel         : Nullable<int>     //{ get; set; }
-        }   
+    type BafSqlAcquisitionKey() =
 
-    let private createBafSqlAcquisitionKey id polarity scanMode aqMode msLvl =
-        {
-            BafSqlAcquisitionKey.Id              = id
-            BafSqlAcquisitionKey.Polarity        = polarity
-            BafSqlAcquisitionKey.ScanMode        = scanMode
-            BafSqlAcquisitionKey.AcquisitionMode = aqMode
-            BafSqlAcquisitionKey.MsLevel         = msLvl
-        } 
+        let mutable id          = Unchecked.defaultof<UInt64 option>
+        let mutable poalrity    = Unchecked.defaultof<int option>
+        let mutable scanMode    = Unchecked.defaultof<int option>
+        let mutable aqMode      = Unchecked.defaultof<int option>
+        let mutable msLevel     = Unchecked.defaultof<int option>
 
+        [<Column(IsPrimaryKey = true)>]
+        member this.Id
+            with get() = id 
+            and  set(value) = id <- value
+        [<Column>]                      
+        member this.Polarity
+            with get() = poalrity 
+            and  set(value) = poalrity <- value
+        [<Column>]                      
+        member this.ScanMode
+            with get() = scanMode 
+            and  set(value) = scanMode <- value
+        [<Column>]                      
+        member this.AcquisitionMode
+            with get() = aqMode 
+            and  set(value) = aqMode <- value
+        [<Column>]                      
+        member this.MsLevel
+            with get() = msLevel 
+            and  set(value) = msLevel <- value
+
+    [<Sealed>]
     [<Table(Name = "PerSpectrumVariables")>]
-    type BafSqlPerSpectrumVariable =
-        {
-            [<Column(IsPrimaryKey = true)>]
-            Spectrum    : Nullable<UInt64>  //{ get; set; }
-            [<Column(IsPrimaryKey = true)>]
-            Variable    : Nullable<UInt64>  //{ get; set; }
-            [<Column>]                      
-            Value       : Nullable<decimal> //{ get; set; }
-        } 
+    type BafSqlPerSpectrumVariable() =
 
-    let private createBafSqlPerSpectrumVariable spectrum variable value =
-        {
-            BafSqlPerSpectrumVariable.Spectrum  = spectrum
-            BafSqlPerSpectrumVariable.Variable  = variable
-            BafSqlPerSpectrumVariable.Value     = value
-        }
+        let mutable spec    = Unchecked.defaultof<UInt64 option>
+        let mutable var     = Unchecked.defaultof<UInt64 option>
+        let mutable value'  = Unchecked.defaultof<Decimal option>
 
+        [<Column(IsPrimaryKey = true)>]
+        member this.Spectrum
+            with get() = spec 
+            and  set(value) = spec <- value
+        [<Column(IsPrimaryKey = true)>]
+        member this.Variable
+            with get() = var 
+            and  set(value) = var <- value
+        [<Column>]                      
+        member this.Value
+            with get() = value' 
+            and  set(value) = value' <- value
+
+    [<Sealed>]
     [<Table(Name = "SupportedVariables")>]
-    type BafSqlSupportedVariable =
-        {
-            [<Column(IsPrimaryKey = true)>]
-            Variable            : Nullable<UInt64>  //{ get; set; }
-            [<Column>]                              
-            PermanentName       : string            //{ get; set; }
-            [<Column>]                              
-            Type                : Nullable<UInt64>  //{ get; set; }
-            [<Column>]                              
-            DisplayGroupName    : string            //{ get; set; }
-            [<Column>]                              
-            DisplayName         : string            //{ get; set; }
-            [<Column>]                              
-            DisplayValueText    : string            //{ get; set; }
-            [<Column>]                              
-            DisplayFormat       : string            //{ get; set; }
-            [<Column>]                              
-            DisplayDimension    : string            //{ get; set; }
-        }
+    type BafSqlSupportedVariable() =
 
-    let private createBafSqlSupportedVariable var permanentName type' dispGroupName dispName dispValueText dispFormat dispDimension =
-        {
-            BafSqlSupportedVariable.Variable            = var
-            BafSqlSupportedVariable.PermanentName       = permanentName
-            BafSqlSupportedVariable.Type                = type'
-            BafSqlSupportedVariable.DisplayGroupName    = dispGroupName
-            BafSqlSupportedVariable.DisplayName         = dispName
-            BafSqlSupportedVariable.DisplayValueText    = dispValueText
-            BafSqlSupportedVariable.DisplayFormat       = dispFormat
-            BafSqlSupportedVariable.DisplayDimension    = dispDimension
-        }
+        let mutable var             = Unchecked.defaultof<UInt64 option>
+        let mutable permName        = Unchecked.defaultof<string>
+        let mutable type'           = Unchecked.defaultof<UInt64 option>
+        let mutable disGroupName    = Unchecked.defaultof<string>
+        let mutable disName         = Unchecked.defaultof<string>
+        let mutable disValueText    = Unchecked.defaultof<string>
+        let mutable disFor          = Unchecked.defaultof<string>
+        let mutable disDim          = Unchecked.defaultof<string>
 
+        [<Column(IsPrimaryKey = true)>]
+        member this.Variable
+            with get() = var
+            and  set(value) = var <- value
+        [<Column>]                              
+        member this.PermanentName
+            with get() = permName
+            and  set(value) = permName <- value
+        [<Column>]                              
+        member this.Type
+            with get() = type'
+            and  set(value) = type' <- value
+        [<Column>]                              
+        member this.DisplayGroupName
+            with get() = disGroupName
+            and  set(value) = disGroupName <- value
+        [<Column>]                              
+        member this.DisplayName
+            with get() = disName
+            and  set(value) = disName <- value
+        [<Column>]                              
+        member this.DisplayValueText
+            with get() = disValueText
+            and  set(value) = disValueText <- value
+        [<Column>]                              
+        member this.DisplayFormat
+            with get() = disFor
+            and  set(value) = disFor <- value
+        [<Column>]                              
+        member this.DisplayDimension
+            with get() = disDim
+            and  set(value) = disDim <- value
+
+
+    [<Sealed>]
     [<Table(Name = "Steps")>]
-    type BafSqlStep =
-        {
-            [<Column>]
-            TargetSpectrum : Nullable<UInt64>   //{ get; set; }
-            [<Column>]                          
-            Number : Nullable<int>              //{ get; set; }
-            [<Column>]                          
-            IsolationType : Nullable<int>       //{ get; set; }
-            [<Column>]                          
-            ReactionType : Nullable<int>        //{ get; set; }
-            [<Column>]                          
-            MsLevel : Nullable<int>             //{ get; set; }
-            [<Column>]                          
-            Mass : Nullable<double>             //{ get; set; }
-        }
+    type BafSqlStep() =
+        
+        let mutable tarSpec = Unchecked.defaultof<UInt64 option>
+        let mutable num     = Unchecked.defaultof<int option>
+        let mutable isoType = Unchecked.defaultof<int option>
+        let mutable reaType = Unchecked.defaultof<int option>
+        let mutable msLvl   = Unchecked.defaultof<int option>
+        let mutable mass    = Unchecked.defaultof<float option>
 
-    let private createBafSqlStep tarSpec num isoType reacType msLvl mass =
-        {
-            BafSqlStep.TargetSpectrum   = tarSpec
-            BafSqlStep.Number           = num
-            BafSqlStep.IsolationType    = isoType
-            BafSqlStep.ReactionType     = reacType
-            BafSqlStep.MsLevel          = msLvl
-            BafSqlStep.Mass             = mass
-        }
+        [<Column>]
+        member this.TargetSpectrum
+            with get() = tarSpec
+            and  set(value) = tarSpec <- value
+        [<Column>]                          
+        member this.Number
+            with get() = num
+            and  set(value) = num <- value
+        [<Column>]                          
+        member this.IsolationType
+            with get() = isoType
+            and  set(value) = isoType <- value
+        [<Column>]                          
+        member this.ReactionType
+            with get() = reaType
+            and  set(value) = reaType <- value
+        [<Column>]                          
+        member this.MsLevel
+            with get() = msLvl
+            and  set(value) = msLvl <- value
+        [<Column>]                          
+        member this.Mass
+            with get() = mass
+            and  set(value) = mass <- value
 
+    [<Sealed>]
     type Linq2BafSql(sqlFilePath:string) =
 
         let mapping = new AttributeMappingSource()
@@ -228,15 +295,18 @@ module Linq2BafSql =
 
         member this.Steps = core.GetTable<BafSqlStep>()
 
-        member this.GetBafSqlSpectrum() =
+        member this.GetBafSqlSpectrum(context, id) =
             CompiledQuery.Compile(fun db id -> db.GetTable<BafSqlSpectrum>().Where(fun x -> x.Id = id).SingleOrDefault())
 
-        member this.GetBafSqlAcquisitionKey() =
+        member this.GetBafSqlAcquisitionKey(context, id) =
             CompiledQuery.Compile(fun db id -> db.GetTable<BafSqlAcquisitionKey>().Where(fun x -> x.Id = id).SingleOrDefault())
 
-        member this.GetBafSqlSteps() =
+        member this.GetBafSqlSteps(context, id) =
             CompiledQuery.Compile(fun db id -> db.GetTable<BafSqlStep>().Where(fun x -> x.TargetSpectrum = id).SingleOrDefault())
 
-        member this.GetPerSpectrumVariables() =
+        //member this.GetPerSpectrumVariables(context, id) =
+        //    CompiledQuery.Compile(fun db id -> db.GetTable<BafSqlPerSpectrumVariable>().Where(fun x -> x.Spectrum = id).SingleOrDefault())
+
+        member this.GetPerSpectrumVariables(context, id) =
             CompiledQuery.Compile(fun db id -> db.GetTable<BafSqlPerSpectrumVariable>().Where(fun x -> 
-                x.Spectrum = id && x.Variable <> System.Nullable() && x.Value <> System.Nullable()).SingleOrDefault())
+                x.Spectrum = id && x.Variable.IsSome && x.Value.IsSome).SingleOrDefault())
