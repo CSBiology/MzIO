@@ -178,7 +178,10 @@ type MzMLWriter(path:string) =
                 currentWriteState <- MzMLWriteState.ERROR
                 failwith ((new MzLiteIOException("Error writing mzml output file.", ex)).ToString())
 
-    //#region param writing
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////#region param writing////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
     member this.WriteCvList() =
         writer.WriteStartElement("cvList")
         this.WriteXmlAttribute("count", "2")
@@ -264,7 +267,13 @@ type MzMLWriter(path:string) =
             )
         writer.WriteEndElement()
 
-    //#region model writing
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////#region model writing////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     member private this.WriteSourceFile(sf: SourceFile) =
 
@@ -287,7 +296,7 @@ type MzMLWriter(path:string) =
 
         this.WriteList("sourceFileList", fdesc.SourceFiles, this.WriteSourceFile)
 
-        //null check missing
+        //missing null check
         writer.WriteStartElement("contact");
         this.WriteParamGroup(fdesc.Contact)
         writer.WriteEndElement()
@@ -350,7 +359,7 @@ type MzMLWriter(path:string) =
         this.WriteXmlAttribute("id", instr.ID, true)
         this.WriteParamGroup(instr)
 
-        //null check missing
+        //missing null check
         writer.WriteStartElement("softwareRef")
         this.WriteXmlAttribute("ref", instr.Software.ID, true)
         writer.WriteEndElement()
@@ -423,3 +432,58 @@ type MzMLWriter(path:string) =
         this.WriteParamGroup(scan)
         this.WriteList("scanWindowList", scan.ScanWindows, this.WriteScanWindow)
         writer.WriteEndElement()
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////#region binary data writing/////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    member private this.WriteBinaryDataArray(values: double[], binaryDataType: BinaryDataType, pars: UserDescription) =
+
+        let encoder = new BinaryDataEncoder(values.Length * 8)
+        let base64 = encoder.EncodeBase64(values, BinaryDataCompressionType.NoCompression, binaryDataType)
+        let len = base64.Length
+
+        writer.WriteStartElement("binaryDataArray")
+        this.WriteXmlAttribute("encodedLength", len.ToString(formatProvider))
+
+        this.WriteParamGroup(pars)
+
+        writer.WriteStartElement("binary")
+        writer.WriteString(base64)
+        writer.WriteEndElement()
+
+        writer.WriteEndElement()
+
+    member private this.WriteBinaryDataArrayList(peaks: Peak1DArray) =
+
+        writer.WriteStartElement("binaryDataArrayList");
+        this.WriteXmlAttribute("count", "2");
+
+        let mzParams = new UserDescription("mzParams");
+        mzParams
+            .SetMzArray()                                           
+            .SetCompression(BinaryDataCompressionType.NoCompression)
+            .SetBinaryDataType(peaks.MzDataType) |> ignore
+
+        let mzValues = peaks.Peaks.Select(fun x -> x.Mz).ToArray()
+        this.WriteBinaryDataArray(mzValues, peaks.MzDataType, mzParams)
+
+        let intParams = new UserDescription("intParams")
+        intParams
+            .SetIntensityArray().NoUnit()
+            .SetCompression(BinaryDataCompressionType.NoCompression)
+            .SetBinaryDataType(peaks.IntensityDataType) |> ignore
+
+        let intValues = peaks.Peaks.Select(fun x -> x.Intensity).ToArray()
+        this.WriteBinaryDataArray(intValues, peaks.IntensityDataType, intParams)
+
+        writer.WriteEndElement()
+        
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
