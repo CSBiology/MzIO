@@ -60,25 +60,35 @@ type MzMLWriter(path:string) =
 
             this.Close()
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////#region write states/////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
     member private this.EnsureWriteState(expectedWs:MzMLWriteState) =
 
         if currentWriteState = MzMLWriteState.ERROR then
             failwith ((new MzLiteIOException("Current write state is ERROR.")).ToString())
-        else
-            if currentWriteState = MzMLWriteState.CLOSED then
-                failwith ((new MzLiteIOException("Current write state is CLOSED.")).ToString())
-            else
-                if currentWriteState <> expectedWs then
-                    failwith ((new MzLiteIOException(String.Format("Invalid write state: expected '{0}' but current is '{1}'.", expectedWs, currentWriteState))).ToString())
+        if currentWriteState = MzMLWriteState.CLOSED then
+            failwith ((new MzLiteIOException("Current write state is CLOSED.")).ToString())
+        if currentWriteState <> expectedWs then
+            failwith ((new MzLiteIOException(String.Format("Invalid write state: expected '{0}' but current is '{1}'.", expectedWs, currentWriteState))).ToString())
 
     member private this.EnterWriteState(expectedWs:MzMLWriteState, newWs:MzMLWriteState) =
 
-            if consumedWriteStates.Contains(newWs) then
-                failwith (((new MzLiteIOException(String.Format("Can't reentering write state: '{0}'.", newWs))).ToString()))
-            else
-                this.EnsureWriteState(expectedWs)
-                currentWriteState = newWs
-                consumedWriteStates.Add(newWs)
+        if consumedWriteStates.Contains(newWs) then
+            failwith (((new MzLiteIOException(String.Format("Can't reentering write state: '{0}'.", newWs))).ToString()))
+        this.EnsureWriteState(expectedWs)
+        currentWriteState <- newWs
+        consumedWriteStates.Add(newWs)
+
+    member private this.LeaveWriteState(expectedWs: MzMLWriteState, newWs: MzMLWriteState) =
+
+        this.EnsureWriteState(expectedWs);
+        currentWriteState <- newWs
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     member this.Close() =
 
@@ -465,7 +475,7 @@ type MzMLWriter(path:string) =
 
         let mzParams = new UserDescription("mzParams");
         mzParams
-            .SetMzArray()                                           
+            .SetMzArray()
             .SetCompression(BinaryDataCompressionType.NoCompression)
             .SetBinaryDataType(peaks.MzDataType) |> ignore
 
@@ -482,7 +492,6 @@ type MzMLWriter(path:string) =
         this.WriteBinaryDataArray(intValues, peaks.IntensityDataType, intParams)
 
         writer.WriteEndElement()
-        
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
