@@ -27,6 +27,11 @@
     <ProjectReference Include="..\MzIO\MzIO.fsproj" />
   </ItemGroup>
   <ItemGroup>
+    <Reference Include="baf2sql_c">
+      <HintPath>baf2sqlLib\win64\baf2sql_c.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
     <Reference Include="System.Data.Linq" />
   </ItemGroup>
   <Import Project="..\..\.paket\Paket.Restore.targets" />
