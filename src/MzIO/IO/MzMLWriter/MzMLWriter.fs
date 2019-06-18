@@ -124,7 +124,23 @@ type MzMLWriter(path:string) =
                 ()
         writer.WriteAttributeString(name, value)
 
-    member private this.WriteList<'TItem>(elementName:string, list:DynamicObj, writeItem:Action<'TItem>, ?skipEmpty:bool) =
+    //member private this.WriteList<'TItem>(elementName: string, list: DynamicObj, writeItem: Func<'TItem>, ?skipEmtpy: bool) =
+        
+    //    let skipEmpty = defaultArg skipEmtpy true
+    //    let count = list.Count
+
+    //    if skipEmpty && count = 0 then ()
+
+    //    writer.WriteStartElement(elementName)
+
+    //    this.WriteXmlAttribute("count", count.ToString(formatProvider))
+
+    //    for item in (list.GetProperties false) do
+    //        writeItem.Invoke(item.Value :?> 'TItem)
+        
+    //    writer.WriteEndElement()
+
+    member private this.WriteList<'TItem>(elementName:string, list:DynamicObj, writeItem:'TItem -> unit, ?skipEmpty:bool) =
 
         let skipEmpty = defaultArg skipEmpty true
         let count = list.GetProperties false |> Seq.length
@@ -133,11 +149,11 @@ type MzMLWriter(path:string) =
             writer.WriteStartElement(elementName)
             this.WriteXmlAttribute("count", count.ToString(formatProvider))
             list.GetProperties false
-            |> Seq.iter (fun item -> writeItem.Invoke(item.Value :?> 'TItem))
+            |> Seq.iter (fun item -> writeItem(item.Value :?> 'TItem))
 
             writer.WriteEndElement()
 
-    member private this.WriteList<'TItem>(elementName:string, list:DynamicObj, writeItem:Action<'TItem, int>, ?skipEmpty:bool) =
+    member private this.WriteList2<'TItem>(elementName:string, list:DynamicObj, writeItem:('TItem * int) -> unit, ?skipEmpty:bool) =
 
         let skipEmpty = defaultArg skipEmpty true
         let count = list.GetProperties false |> Seq.length
@@ -147,7 +163,7 @@ type MzMLWriter(path:string) =
             this.WriteXmlAttribute("count", count.ToString(formatProvider))
             list.GetProperties false
             |> Seq.fold (fun (idx:int) item ->
-                writeItem.Invoke(item.Value :?> 'TItem, idx)
+                writeItem(item.Value :?> 'TItem, idx)
                 idx + 1) 0
             |> ignore
 
@@ -254,6 +270,17 @@ type MzMLWriter(path:string) =
 ////////////////////////////////////////////////#region model writing////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+    member private this.WriteSourceFile(sf: SourceFile) =
+
+        writer.WriteStartElement("sourceFile")
+        this.WriteXmlAttribute("id", sf.ID, true)
+        this.WriteXmlAttribute("name", sf.Name, true)
+        this.WriteXmlAttribute("location", sf.Location, true)
+
+        this.WriteParamGroup(sf)
+
+        writer.WriteEndElement()
+
     member private this.WriteFileDescription(fdesc:FileDescription) =
 
         writer.WriteStartElement("fileDescription");
@@ -268,17 +295,6 @@ type MzMLWriter(path:string) =
         writer.WriteStartElement("contact");
         this.WriteParamGroup(fdesc.Contact)
         writer.WriteEndElement()
-
-        writer.WriteEndElement()
-
-    member private this.WriteSourceFile(sf: SourceFile) =
-
-        writer.WriteStartElement("sourceFile")
-        this.WriteXmlAttribute("id", sf.ID, true)
-        this.WriteXmlAttribute("name", sf.Name, true)
-        this.WriteXmlAttribute("location", sf.Location, true)
-
-        this.WriteParamGroup(sf)
 
         writer.WriteEndElement()
 
@@ -345,7 +361,7 @@ type MzMLWriter(path:string) =
 
         // TODO scanSettingsRef
 
-        this.WriteList("componentList", instr.Components, this.WriteComponent, true)
+        this.WriteList2("componentList", instr.Components, this.WriteComponent, true)
 
         writer.WriteEndElement()
 
