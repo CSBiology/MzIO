@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFrameworks>net45</TargetFrameworks>
     <RootNamespace>MzIO</RootNamespace>
@@ -17,6 +17,12 @@
     <EmbeddedResource Remove="Scripts\**" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="baf2sqlLib\win32\baf2sql_c_32.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="baf2sqlLib\win64\baf2sql_c.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <Compile Include="Linq2BafSql.fs" />
     <Compile Include="Baf2SqlWrapper.fs" />
     <Compile Include="BafFileReader.fs" />
@@ -25,11 +31,6 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\MzIO\MzIO.fsproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <Reference Include="baf2sql_c">
-      <HintPath>baf2sqlLib\win64\baf2sql_c.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System.Data.Linq" />
