@@ -23,12 +23,12 @@ type private MzMLWriteState =
     | SPECTRUM_LIST
     | CHROMATOGRAM_LIST
 
-//    // TODO cv lookup
-//    // TODO param name lookup
-//    // TODO model only one run
-//    // TODO simplify write states, only speclist, chromlist
-//    // TODO write chromatogram list
-//    // TODO get disposable on all beginxxx methods
+// TODO cv lookup
+// TODO param name lookup
+// TODO model only one run
+// TODO simplify write states, only speclist, chromlist
+// TODO write chromatogram list
+// TODO get disposable on all beginxxx methods
 [<Sealed>]
 type MzMLWriter(path:string) =
 
@@ -53,6 +53,25 @@ type MzMLWriter(path:string) =
                 | :? Exception as ex ->
                     currentWriteState <- MzMLWriteState.ERROR
                     failwith ((new MzLiteIOException("Error init mzml output file.", ex)).ToString())
+
+    member this.Close() =
+
+        if isClosed = false then
+
+            try
+                this.EnterWriteState(MzMLWriteState.INITIAL, MzMLWriteState.CLOSED)
+                writer.WriteEndDocument()
+                writer.Flush()
+                writer.Close()
+                writer.Dispose()
+
+                isClosed <- true
+
+            with
+                | :? Exception as ex ->
+                    currentWriteState <- MzMLWriteState.ERROR
+                    failwith ((new MzLiteIOException("Error closing mzml output file.", ex)).ToString())
+        else ()
 
     interface IDisposable with
 
@@ -89,25 +108,6 @@ type MzMLWriter(path:string) =
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-    member this.Close() =
-
-        if isClosed = false then
-
-            try
-                this.EnterWriteState(MzMLWriteState.INITIAL, MzMLWriteState.CLOSED)
-                writer.WriteEndDocument()
-                writer.Flush()
-                writer.Close()
-                writer.Dispose()
-
-                isClosed <- true
-
-            with
-                | :? Exception as ex ->
-                    currentWriteState <- MzMLWriteState.ERROR
-                    failwith ((new MzLiteIOException("Error closing mzml output file.", ex)).ToString())
-        else ()
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////#region xml writing helper/////////////////////////////////////////////
@@ -156,30 +156,6 @@ type MzMLWriter(path:string) =
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-    member this.BeginMzML(model:MzLiteModel) =
-
-        try
-            this.EnterWriteState(MzMLWriteState.INITIAL, MzMLWriteState.MZML) |> ignore
-            writer.WriteStartElement("mzML", "http://psi.hupo.org/ms/mzml")
-            writer.WriteAttributeString("xmlns", "xsi", null, "http://www.w3.org/2001/XMLSchema-instance")
-            writer.WriteAttributeString("xsi", "schemaLocation", null, "http://psi.hupo.org/ms/mzml http://psidev.info/files/ms/mzML/xsd/mzML1.1.0.xsd")
-            writer.WriteAttributeString("version", "1.1.0")
-
-            this.WriteCvList()
-
-            //TODO scanSettingsList, also add to model
-
-            this.WriteFileDescription(model.FileDescription)
-            this.WriteList<DataProcessing>("dataProcessingList", model.DataProcessings, this.WriteDataProcessing, false)
-            this.WriteList("softwareList", model.Softwares, this.WriteSoftware, false)
-            this.WriteList("instrumentConfigurationList", model.Instruments, this.WriteInstrument, false)
-            this.WriteList("sampleList", model.Samples, this.WriteSample)
-
-        with
-            | :? Exception as ex ->
-                currentWriteState <- MzMLWriteState.ERROR
-                failwith ((new MzLiteIOException("Error writing mzml output file.", ex)).ToString())
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////#region param writing////////////////////////////////////////////////
@@ -489,3 +465,126 @@ type MzMLWriter(path:string) =
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    member this.BeginMzML(model:MzLiteModel) =
+
+        try
+            this.EnterWriteState(MzMLWriteState.INITIAL, MzMLWriteState.MZML) |> ignore
+            writer.WriteStartElement("mzML", "http://psi.hupo.org/ms/mzml")
+            writer.WriteAttributeString("xmlns", "xsi", null, "http://www.w3.org/2001/XMLSchema-instance")
+            writer.WriteAttributeString("xsi", "schemaLocation", null, "http://psi.hupo.org/ms/mzml http://psidev.info/files/ms/mzML/xsd/mzML1.1.0.xsd")
+            writer.WriteAttributeString("version", "1.1.0")
+
+            this.WriteCvList()
+
+            //TODO scanSettingsList, also add to model
+
+            this.WriteFileDescription(model.FileDescription)
+            this.WriteList<DataProcessing>("dataProcessingList", model.DataProcessings, this.WriteDataProcessing, false)
+            this.WriteList("softwareList", model.Softwares, this.WriteSoftware, false)
+            this.WriteList("instrumentConfigurationList", model.Instruments, this.WriteInstrument, false)
+            this.WriteList("sampleList", model.Samples, this.WriteSample)
+
+        with
+            | :? Exception as ex ->
+                currentWriteState <- MzMLWriteState.ERROR
+                failwith ((new MzLiteIOException("Error writing mzml output file.", ex)).ToString())
+
+    member this.EndMzML() =
+
+        try
+            this.LeaveWriteState(MzMLWriteState.MZML, MzMLWriteState.INITIAL)
+            writer.WriteEndElement()
+
+        with
+            | :? Exception as ex ->
+                currentWriteState <- MzMLWriteState.ERROR
+                failwith ((new MzLiteIOException("Error writing mzml output file.", ex)).ToString())
+
+    member this.BeginRun(run: Run) =
+
+        try
+            //missing null check
+            this.EnterWriteState(MzMLWriteState.MZML, MzMLWriteState.RUN)
+
+            writer.WriteStartElement("run")
+            this.WriteXmlAttribute("id", run.ID, true)
+            //missing null check
+            this.WriteXmlAttribute("sampleRef", run.Sample.ID, true)
+            //missing null check
+            this.WriteXmlAttribute("defaultInstrumentConfigurationRef", run.DefaultInstrument.ID, true)
+
+            this.WriteParamGroup(run)
+
+        with
+            | :? Exception as ex ->
+                currentWriteState <- MzMLWriteState.ERROR
+                failwith ((new MzLiteIOException("Error writing mzml output file.", ex)).ToString())
+
+    member this.EndRun() =
+
+        try
+            this.LeaveWriteState(MzMLWriteState.RUN, MzMLWriteState.MZML)
+            writer.WriteEndElement()
+
+        with
+            | :? Exception as ex ->
+                currentWriteState <- MzMLWriteState.ERROR
+                failwith ((new MzLiteIOException("Error writing mzml output file.", ex)).ToString())
+
+    member this.BeginSpectrumList(count: int) =
+
+        try
+            if count < 0 then
+                failwith ((new ArgumentOutOfRangeException("count")).ToString())
+            this.EnterWriteState(MzMLWriteState.RUN, MzMLWriteState.SPECTRUM_LIST)
+            writer.WriteStartElement("spectrumList")
+            this.WriteXmlAttribute("count", count.ToString(formatProvider))
+
+        with
+            | :? Exception as ex ->
+                currentWriteState <- MzMLWriteState.ERROR
+                failwith ((new MzLiteIOException("Error writing mzml output file.", ex)).ToString())
+
+    member this.EndSpectrumList() =
+
+        try
+            this.LeaveWriteState(MzMLWriteState.SPECTRUM_LIST, MzMLWriteState.RUN)
+            writer.WriteEndElement()
+
+        with
+            | :? Exception as ex ->
+                currentWriteState <- MzMLWriteState.ERROR
+                failwith ((new MzLiteIOException("Error writing mzml output file.", ex)).ToString())
+
+    member this.WriteSpectrum(ms: MassSpectrum, peaks: Peak1DArray, index: int) =
+
+        try
+            //missing null checks for ms and peaks
+            if index < 0 then
+                failwith ((new ArgumentOutOfRangeException("idx")).ToString())
+
+            this.EnsureWriteState(MzMLWriteState.SPECTRUM_LIST)
+
+            writer.WriteStartElement("spectrum")
+
+            this.WriteXmlAttribute("id", ms.ID, true)
+            this.WriteXmlAttribute("index", index.ToString(formatProvider), true)
+            this.WriteXmlAttribute("dataProcessingRef", ms.DataProcessingReference, false)
+            this.WriteXmlAttribute("sourceFileRef", ms.SourceFileReference, false)
+            this.WriteXmlAttribute("defaultArrayLength", peaks.Peaks.Length.ToString(formatProvider), true)
+
+            this.WriteParamGroup(ms)
+
+            this.WriteList("scanList", ms.Scans, this.WriteScan)
+            this.WriteList("precursorList", ms.Precursors, this.WritePrecursor)
+            this.WriteList("productList", ms.Products, this.WriteProduct)
+
+            this.WriteBinaryDataArrayList(peaks)
+
+            writer.WriteEndElement()
+
+        with
+            | :? Exception as ex ->
+                currentWriteState <- MzMLWriteState.ERROR
+                failwith ((new MzLiteIOException("Error writing mzml output file.", ex)).ToString())
