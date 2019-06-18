@@ -1,3 +1,6 @@
+#### 0.0.3 - Tuesday, June 18, 2019
+* Add package for the Bruker-Reader
+
 #### 0.0.2 - Thursday, June 14, 2019
 * Contains MzIO-Model
 * Contains Binary decompressor and compressor for ZLib and NumPress
