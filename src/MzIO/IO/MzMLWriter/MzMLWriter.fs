@@ -161,7 +161,7 @@ type MzMLWriter(path:string) =
 ////////////////////////////////////////////////#region param writing////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    member this.WriteCvList() =
+    member private this.WriteCvList() =
         writer.WriteStartElement("cvList")
         this.WriteXmlAttribute("count", "2")
         this.WriteCv("MS", "Proteomics Standards Initiative Mass Spectrometry Ontology", "3.79.0", "http://psidev.info/ms/mzML/psi-ms.obo")
@@ -192,7 +192,7 @@ type MzMLWriter(path:string) =
                 tmp.Value.StartsWith("UO:", StringComparison.InvariantCultureIgnoreCase)
             else true
 
-    member this.ParseCvRef(accession:string) =
+    member private this.ParseCvRef(accession:string) =
 
         match accession with
         | null  -> null
@@ -254,17 +254,6 @@ type MzMLWriter(path:string) =
 ////////////////////////////////////////////////#region model writing////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    member private this.WriteSourceFile(sf: SourceFile) =
-
-        writer.WriteStartElement("sourceFile")
-        this.WriteXmlAttribute("id", sf.ID, true)
-        this.WriteXmlAttribute("name", sf.Name, true)
-        this.WriteXmlAttribute("location", sf.Location, true)
-
-        this.WriteParamGroup(sf)
-
-        writer.WriteEndElement()
-
     member private this.WriteFileDescription(fdesc:FileDescription) =
 
         writer.WriteStartElement("fileDescription");
@@ -282,21 +271,15 @@ type MzMLWriter(path:string) =
 
         writer.WriteEndElement()
 
-    member private this.WriteComponent(comp: Component, index: int) =
+    member private this.WriteSourceFile(sf: SourceFile) =
 
-        let mutable elemName = ""
+        writer.WriteStartElement("sourceFile")
+        this.WriteXmlAttribute("id", sf.ID, true)
+        this.WriteXmlAttribute("name", sf.Name, true)
+        this.WriteXmlAttribute("location", sf.Location, true)
 
-        if (comp :? SourceComponent) then
-           elemName <- "sourceComponent"
-        if (comp :? DetectorComponent) then
-           elemName <- "detectorComponent"
-        if (comp :? AnalyzerComponent) then
-           elemName <- "analyzerComponent"
-        else
-            ()
-        writer.WriteStartElement(elemName)
-        this.WriteXmlAttribute("order", index.ToString(formatProvider))
-        this.WriteParamGroup(comp)
+        this.WriteParamGroup(sf)
+
         writer.WriteEndElement()
 
     member private this.WriteDataProcessing(dp:DataProcessing) =
@@ -332,6 +315,23 @@ type MzMLWriter(path:string) =
         this.WriteParamGroup(sw)
         writer.WriteEndElement()
 
+    member private this.WriteComponent(comp: Component, index: int) =
+
+        let mutable elemName = ""
+
+        if (comp :? SourceComponent) then
+           elemName <- "sourceComponent"
+        if (comp :? DetectorComponent) then
+           elemName <- "detectorComponent"
+        if (comp :? AnalyzerComponent) then
+           elemName <- "analyzerComponent"
+        else
+            ()
+        writer.WriteStartElement(elemName)
+        this.WriteXmlAttribute("order", index.ToString(formatProvider))
+        this.WriteParamGroup(comp)
+        writer.WriteEndElement()
+
     member private this.WriteInstrument(instr: Instrument) =
 
         writer.WriteStartElement("instrumentConfiguration")
@@ -359,12 +359,6 @@ type MzMLWriter(path:string) =
 
         writer.WriteEndElement()
 
-    member private this.WriteIsolationWindow(isolationWindow: IsolationWindow) =
-
-        writer.WriteStartElement("isolationWindow")
-        this.WriteParamGroup(isolationWindow)
-        writer.WriteEndElement()
-
     member private this.WriteProduct(p: Product) =
 
         writer.WriteStartElement("product")
@@ -374,6 +368,10 @@ type MzMLWriter(path:string) =
 
     member private this.WritePrecursor(pc: Precursor) =
 
+        writer.WriteStartElement("precursor")
+        //missing null check
+        this.WriteSpectrumRef(pc.SpectrumReference)
+        this.WriteList("selectedIonList", pc.SelectedIons, this.WriteSelectedIon)
         //missing null check
         this.WriteIsolationWindow(pc.IsolationWindow)
         //missing null check
@@ -381,6 +379,12 @@ type MzMLWriter(path:string) =
         this.WriteParamGroup(pc.Activation)
         writer.WriteEndElement()
 
+        writer.WriteEndElement()
+
+    member private this.WriteIsolationWindow(isolationWindow: IsolationWindow) =
+
+        writer.WriteStartElement("isolationWindow")
+        this.WriteParamGroup(isolationWindow)
         writer.WriteEndElement()
 
     member private this.WriteSelectedIon(ion: SelectedIon) =
@@ -395,14 +399,6 @@ type MzMLWriter(path:string) =
         this.WriteParamGroup(sw)
         writer.WriteEndElement()
 
-    member private this.WriteSpectrumRef(spectrumReference: SpectrumReference) =
-
-        if (spectrumReference.IsExternal) then
-            this.WriteXmlAttribute("sourceFileRef", spectrumReference.SourceFileID, true)
-            this.WriteXmlAttribute("externalSpectrumID", spectrumReference.SpectrumID, true)
-        else
-            this.WriteXmlAttribute("spectrumRef", spectrumReference.SpectrumID, true)
-
     member private this.WriteScan(scan: Scan) =
 
         writer.WriteStartElement("scan")
@@ -411,6 +407,14 @@ type MzMLWriter(path:string) =
         this.WriteParamGroup(scan)
         this.WriteList("scanWindowList", scan.ScanWindows, this.WriteScanWindow)
         writer.WriteEndElement()
+
+    member private this.WriteSpectrumRef(spectrumReference: SpectrumReference) =
+
+        if (spectrumReference.IsExternal) then
+            this.WriteXmlAttribute("sourceFileRef", spectrumReference.SourceFileID, true)
+            this.WriteXmlAttribute("externalSpectrumID", spectrumReference.SpectrumID, true)
+        else
+            this.WriteXmlAttribute("spectrumRef", spectrumReference.SpectrumID, true)
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
