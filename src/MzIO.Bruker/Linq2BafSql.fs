@@ -15,24 +15,24 @@ module Linq2BafSql =
     [<Table(Name = "Spectra")>]
     type BafSqlSpectrum() =
         
-        let mutable id              = Unchecked.defaultof<UInt64 option>
-        let mutable rt              = Unchecked.defaultof<double option>
-        let mutable seg             = Unchecked.defaultof<UInt64 option>
-        let mutable aqk             = Unchecked.defaultof<UInt64 option>
-        let mutable parent          = Unchecked.defaultof<UInt64 option>
-        let mutable mzAqRL          = Unchecked.defaultof<UInt64 option>
-        let mutable mzAqRUpper      = Unchecked.defaultof<UInt64 option>
-        let mutable sumInt          = Unchecked.defaultof<float option>
-        let mutable maxInt          = Unchecked.defaultof<float option>
-        let mutable tranForId       = Unchecked.defaultof<UInt64 option>
-        let mutable profMzId        = Unchecked.defaultof<UInt64 option>
-        let mutable profIntId       = Unchecked.defaultof<UInt64 option>
-        let mutable lineIndexId     = Unchecked.defaultof<UInt64 option>
-        let mutable lineMzId        = Unchecked.defaultof<UInt64 option>
-        let mutable lineIntId       = Unchecked.defaultof<UInt64 option>
-        let mutable lineIdxWithId   = Unchecked.defaultof<UInt64 option>
-        let mutable linePeakAreaId  = Unchecked.defaultof<UInt64 option>
-        let mutable lineSnrId       = Unchecked.defaultof<UInt64 option>
+        let mutable id              = Unchecked.defaultof<Nullable<UInt64>>
+        let mutable rt              = Unchecked.defaultof<Nullable<float>>
+        let mutable seg             = Unchecked.defaultof<Nullable<UInt64>>
+        let mutable aqk             = Unchecked.defaultof<Nullable<UInt64>>
+        let mutable parent          = Unchecked.defaultof<Nullable<UInt64>>
+        let mutable mzAqRL          = Unchecked.defaultof<Nullable<UInt64>>
+        let mutable mzAqRUpper      = Unchecked.defaultof<Nullable<UInt64>>
+        let mutable sumInt          = Unchecked.defaultof<Nullable<float>>
+        let mutable maxInt          = Unchecked.defaultof<Nullable<float>>
+        let mutable tranForId       = Unchecked.defaultof<Nullable<UInt64>>
+        let mutable profMzId        = Unchecked.defaultof<Nullable<UInt64>>
+        let mutable profIntId       = Unchecked.defaultof<Nullable<UInt64>>
+        let mutable lineIndexId     = Unchecked.defaultof<Nullable<UInt64>>
+        let mutable lineMzId        = Unchecked.defaultof<Nullable<UInt64>>
+        let mutable lineIntId       = Unchecked.defaultof<Nullable<UInt64>>
+        let mutable lineIdxWithId   = Unchecked.defaultof<Nullable<UInt64>>
+        let mutable linePeakAreaId  = Unchecked.defaultof<Nullable<UInt64>>
+        let mutable lineSnrId       = Unchecked.defaultof<Nullable<UInt64>>
 
         [<Column(IsPrimaryKey = true)>]
         member this.Id 
@@ -112,11 +112,11 @@ module Linq2BafSql =
     [<Table(Name = "AcquisitionKeys")>]
     type BafSqlAcquisitionKey() =
 
-        let mutable id          = Unchecked.defaultof<UInt64 option>
-        let mutable poalrity    = Unchecked.defaultof<int option>
-        let mutable scanMode    = Unchecked.defaultof<int option>
-        let mutable aqMode      = Unchecked.defaultof<int option>
-        let mutable msLevel     = Unchecked.defaultof<int option>
+        let mutable id          = Unchecked.defaultof<Nullable<UInt64>>
+        let mutable poalrity    = Unchecked.defaultof<Nullable<int>>
+        let mutable scanMode    = Unchecked.defaultof<Nullable<int>>
+        let mutable aqMode      = Unchecked.defaultof<Nullable<int>>
+        let mutable msLevel     = Unchecked.defaultof<Nullable<int>>
 
         [<Column(IsPrimaryKey = true)>]
         member this.Id
@@ -143,9 +143,9 @@ module Linq2BafSql =
     [<Table(Name = "PerSpectrumVariables")>]
     type BafSqlPerSpectrumVariable() =
 
-        let mutable spec    = Unchecked.defaultof<UInt64 option>
-        let mutable var     = Unchecked.defaultof<UInt64 option>
-        let mutable value'  = Unchecked.defaultof<Decimal option>
+        let mutable spec    = Unchecked.defaultof<Nullable<UInt64>>
+        let mutable var     = Unchecked.defaultof<Nullable<UInt64>>
+        let mutable value'  = Unchecked.defaultof<Nullable<Decimal>>
 
         [<Column(IsPrimaryKey = true)>]
         member this.Spectrum
@@ -164,9 +164,9 @@ module Linq2BafSql =
     [<Table(Name = "SupportedVariables")>]
     type BafSqlSupportedVariable() =
 
-        let mutable var             = Unchecked.defaultof<UInt64 option>
+        let mutable var             = Unchecked.defaultof<Nullable<UInt64>>
         let mutable permName        = Unchecked.defaultof<string>
-        let mutable type'           = Unchecked.defaultof<UInt64 option>
+        let mutable type'           = Unchecked.defaultof<Nullable<UInt64>>
         let mutable disGroupName    = Unchecked.defaultof<string>
         let mutable disName         = Unchecked.defaultof<string>
         let mutable disValueText    = Unchecked.defaultof<string>
@@ -211,12 +211,12 @@ module Linq2BafSql =
     [<Table(Name = "Steps")>]
     type BafSqlStep() =
         
-        let mutable tarSpec = Unchecked.defaultof<UInt64 option>
-        let mutable num     = Unchecked.defaultof<int option>
-        let mutable isoType = Unchecked.defaultof<int option>
-        let mutable reaType = Unchecked.defaultof<int option>
-        let mutable msLvl   = Unchecked.defaultof<int option>
-        let mutable mass    = Unchecked.defaultof<float option>
+        let mutable tarSpec = Unchecked.defaultof<Nullable<UInt64>>
+        let mutable num     = Unchecked.defaultof<Nullable<int>>
+        let mutable isoType = Unchecked.defaultof<Nullable<int>>
+        let mutable reaType = Unchecked.defaultof<Nullable<int>>
+        let mutable msLvl   = Unchecked.defaultof<Nullable<int>>
+        let mutable mass    = Unchecked.defaultof<Nullable<float>>
 
         [<Column>]
         member this.TargetSpectrum
@@ -309,4 +309,4 @@ module Linq2BafSql =
 
         member this.GetPerSpectrumVariables(context, id) =
             CompiledQuery.Compile(fun db id -> db.GetTable<BafSqlPerSpectrumVariable>().Where(fun x -> 
-                x.Spectrum = id && x.Variable.IsSome && x.Value.IsSome).SingleOrDefault())
+                x.Spectrum = id && x.Variable<>System.Nullable() && x.Value<>System.Nullable()).SingleOrDefault())

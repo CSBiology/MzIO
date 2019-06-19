@@ -28,7 +28,7 @@ type private SupportedVariablesCollection() =
     static member ReadSupportedVariables(linq2BafSql:Linq2BafSql) =
         
         let tmp = linq2BafSql
-        let variables = tmp.SupportedVariables.ToArray().Where(fun x -> x.Variable.IsSome && String.IsNullOrWhiteSpace(x.PermanentName) = false)
+        let variables = tmp.SupportedVariables.ToArray().Where(fun x -> x.Variable<>System.Nullable() && String.IsNullOrWhiteSpace(x.PermanentName) = false)
         let col = new SupportedVariablesCollection()
         variables
         |> Seq.iter (fun item -> col.Add(item))
@@ -144,13 +144,12 @@ type private BafPeaksArray(masses:double[], intensities:UInt32[]) =
 type BafFileReader(bafFilePath:string) =
 
     let mutable bafFilePath =
-        match bafFilePath with
-        | null  -> failwith (ArgumentNullException("bafFilePath").ToString())
-        | ""    -> failwith (ArgumentNullException("bafFilePath").ToString())
-        | " "   -> failwith (ArgumentNullException("bafFilePath").ToString())
-        |   _   -> 
+
+        if String.IsNullOrWhiteSpace(bafFilePath) then
+            raise (ArgumentNullException("bafFilePath"))
+        else
             if File.Exists(bafFilePath) = false then 
-                failwith (FileNotFoundException("Baf file not exists.").ToString())
+                raise (FileNotFoundException("Baf file not exists."))
             else 
                 bafFilePath
 
@@ -158,17 +157,20 @@ type BafFileReader(bafFilePath:string) =
 
     //member this.Test =  
     //    try
-    let sqlFilePath = Baf2SqlWrapper.GetSQLiteCacheFilename(bafFilePath)
+    let sqlFilePath = 
+        Baf2SqlWrapper.GetSQLiteCacheFilename(bafFilePath)
     // First argument = 1, ignore contents of Calibrator.ami (if it exists)
-
-    let baf2SqlHandle = Baf2SqlWrapper.baf2sql_array_open_storage(1, bafFilePath)
+    
+    let baf2SqlHandle =
+        Baf2SqlWrapper.baf2sql_array_open_storage(1, bafFilePath)
 
     let baf2SqlHandle =
         if baf2SqlHandle = Convert.ToUInt64 0 then Baf2SqlWrapper.ThrowLastBaf2SqlError()
         else baf2SqlHandle
     let mutable linq2BafSql = new Linq2BafSql(sqlFilePath)
 
-    let supportedVariables = SupportedVariablesCollection.ReadSupportedVariables(linq2BafSql)
+    let supportedVariables =
+        SupportedVariablesCollection.ReadSupportedVariables(linq2BafSql)
 
     interface IMzLiteIO with
 
@@ -256,7 +258,7 @@ type BafFileReader(bafFilePath:string) =
 
     member private this.YieldMassSpectra() =
 
-        let mutable ids = linq2BafSql.Spectra.Where(fun x -> x.Id.IsSome).OrderBy(fun x -> x.Rt).Select(fun x -> x.Id).ToArray()
+        let mutable ids = linq2BafSql.Spectra.Where(fun x -> x.Id<>System.Nullable()).OrderBy(fun x -> x.Rt).Select(fun x -> x.Id).ToArray()
 
         ids
         |> Array.map (fun id -> this.ReadMassSpectrum(id.Value))
@@ -397,19 +399,19 @@ type BafFileReader(bafFilePath:string) =
         let aqKey = linq2BafSql.GetBafSqlAcquisitionKey(this.linq2BafSql.Core, bafSpec.AcquisitionKey).Target :?> BafSqlAcquisitionKey
         let mutable msLevel = Unchecked.defaultof<int option>
         
-        if (*aqKey <> null && *)aqKey.MsLevel.IsSome then
+        if (*aqKey <> null && *)aqKey.MsLevel<>System.Nullable() then
             // bruker starts ms level by 0, must be added by 1
             msLevel <- Some (aqKey.MsLevel.Value + 1)
             ms.SetMsLevel(msLevel.Value) |> ignore
 
         // determine type of spectrum and read peak data
         // if profile data available we prefer to get profile data otherwise centroided data (line spectra)
-        if bafSpec.ProfileMzId.IsSome && bafSpec.ProfileIntensityId.IsSome = true then
+        if bafSpec.ProfileMzId<>System.Nullable() && bafSpec.ProfileIntensityId<>System.Nullable() = true then
             
             ms.SetProfileSpectrum() |> ignore
 
         else
-            if bafSpec.LineMzId.IsSome && bafSpec.LineIntensityId.IsSome then
+            if bafSpec.LineMzId<>System.Nullable() && bafSpec.LineIntensityId<>System.Nullable() then
                     
                     ms.SetCentroidSpectrum() |> ignore
             else
@@ -427,7 +429,7 @@ type BafFileReader(bafFilePath:string) =
                     ms.SetMSnSpectrum() |> ignore
 
         // scan
-        if bafSpec.Rt.IsSome then
+        if bafSpec.Rt<>System.Nullable() then
             let scan = new Scan()
             scan.SetScanStartTime(bafSpec.Rt.Value).UO_Second() |> ignore
             ms.Scans.Add(scan)
@@ -440,9 +442,8 @@ type BafFileReader(bafFilePath:string) =
             if msLevel.Value > 1 then
             
                 let spectrumVariables = 
-                    match bafSpec.Id with
-                    | Some id   -> SpectrumVariableCollection.ReadSpectrumVariables(linq2BafSql, id)
-                    | None      -> SpectrumVariableCollection.ReadSpectrumVariables(linq2BafSql)
+                    if bafSpec.Id <> System.Nullable() then SpectrumVariableCollection.ReadSpectrumVariables(linq2BafSql, Convert.ToUInt64(id))
+                    else SpectrumVariableCollection.ReadSpectrumVariables(linq2BafSql)
 
                 let precursor = new Precursor()
                 let mutable value = decimal(0)
@@ -479,7 +480,7 @@ type BafFileReader(bafFilePath:string) =
                 let ions = linq2BafSql.GetBafSqlSteps(this.linq2BafSql.Core,bafSpec.Id).Target :?> IEnumerable<BafSqlStep>
                 ions
                 |> Seq.map (fun ion ->
-                                if ion.Mass.IsSome then
+                                if ion.Mass<>System.Nullable() then
                                     let selectedIon = new SelectedIon()
                                     precursor.SelectedIons.Add(selectedIon)
                                     selectedIon.SetSelectedIonMz(ion.Mass.Value) |> ignore
@@ -497,7 +498,7 @@ type BafFileReader(bafFilePath:string) =
                             ) |> ignore
 
                 // set parent spectrum as reference
-                if bafSpec.Parent.IsSome then
+                if bafSpec.Parent<>System.Nullable() then
                     
                     precursor.SpectrumReference <- new SpectrumReference(bafSpec.Parent.ToString())
 
@@ -519,13 +520,13 @@ type BafFileReader(bafFilePath:string) =
         let mutable intensities = Array.zeroCreate<UInt32> 0
 
         // if profile data available we prefer to get profile data otherwise centroided data (line spectra)
-        if getCentroids && bafSpec.LineMzId.IsSome && bafSpec.LineIntensityId.IsSome then
+        if getCentroids && bafSpec.LineMzId<>System.Nullable() && bafSpec.LineIntensityId<>System.Nullable() then
             
             masses      <- Baf2SqlWrapper.GetBafDoubleArray(baf2SqlHandle, bafSpec.LineMzId.Value)
             intensities <- Baf2SqlWrapper.GetBafUInt32Array(baf2SqlHandle, bafSpec.LineIntensityId.Value)
 
         else
-            if getCentroids = false && bafSpec.ProfileMzId.IsSome && bafSpec.ProfileIntensityId.IsSome then
+            if getCentroids = false && bafSpec.ProfileMzId<>System.Nullable() && bafSpec.ProfileIntensityId<>System.Nullable() then
                 
                 masses      <- Baf2SqlWrapper.GetBafDoubleArray(baf2SqlHandle, bafSpec.ProfileMzId.Value);
                 intensities <- Baf2SqlWrapper.GetBafUInt32Array(baf2SqlHandle, bafSpec.ProfileIntensityId.Value);
