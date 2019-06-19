@@ -24,31 +24,39 @@ type Baf2SqlException() =
 /// </summary>
 module Baf2SqlWrapper =
     
-    [<DllImport(@"baf2sql_c", CallingConvention = CallingConvention.Cdecl)>]
+    [<Literal>]
+    let versionNumber =  
+        #if !VersionNumber
+        "baf2sql_c_64" 
+        #else 
+        "baf2sql_c_32"
+        #endif
+
+    [<DllImport(versionNumber, CallingConvention = CallingConvention.Cdecl)>]
     extern UInt32 baf2sql_get_sqlite_cache_filename(StringBuilder sql_filename_buf, UInt32 sql_filename_buflen, String baf_filename)
     
-    [<DllImport(@"baf2sql_c", CallingConvention = CallingConvention.Cdecl)>]
+    [<DllImport(versionNumber, CallingConvention = CallingConvention.Cdecl)>]
     extern UInt64 baf2sql_array_open_storage(int ignore_calibrator_ami, String filename)
     
-    [<DllImport(@"baf2sql_c", CallingConvention = CallingConvention.Cdecl)>]
+    [<DllImport(versionNumber, CallingConvention = CallingConvention.Cdecl)>]
     extern void baf2sql_array_close_storage(UInt64 handle)
     
-    [<DllImport(@"baf2sql_c", CallingConvention = CallingConvention.Cdecl)>]
+    [<DllImport(versionNumber, CallingConvention = CallingConvention.Cdecl)>]
     extern void baf2sql_array_get_num_elements(UInt64 , UInt64 id, (*ref*) UInt64 num_elements)
     
-    [<DllImport(@"baf2sql_c", CallingConvention = CallingConvention.Cdecl)>]
+    [<DllImport(versionNumber, CallingConvention = CallingConvention.Cdecl)>]
     extern int baf2sql_array_read_double(UInt64 handle, UInt64 id, double[] buf)
     
-    [<DllImport(@"baf2sql_c", CallingConvention = CallingConvention.Cdecl)>]
+    [<DllImport(versionNumber, CallingConvention = CallingConvention.Cdecl)>]
     extern int baf2sql_array_read_float(UInt64 handle, UInt64 id, float[] buf)
     
-    [<DllImport(@"baf2sql_c", CallingConvention = CallingConvention.Cdecl)>]
+    [<DllImport(versionNumber, CallingConvention = CallingConvention.Cdecl)>]
     extern int baf2sql_array_read_uint32(UInt64 handle, UInt64 id, UInt32[] buf)
     
-    [<DllImport(@"baf2sql_c", CallingConvention = CallingConvention.Cdecl)>]
+    [<DllImport(versionNumber, CallingConvention = CallingConvention.Cdecl)>]
     extern UInt32 baf2sql_get_last_error_string(StringBuilder buf, UInt32 len)
     
-    [<DllImport(@"baf2sql_c", CallingConvention = CallingConvention.Cdecl)>]
+    [<DllImport(versionNumber, CallingConvention = CallingConvention.Cdecl)>]
     extern void baf2sql_set_num_threads(UInt32 n)
 
     

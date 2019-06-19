@@ -382,3 +382,4 @@ let mzLiteFSharpDBPath  = @"C:\Users\Student\source\repos\wiffTestFiles\Database
 //////xI.Scans.Count
 
 let brukerReader = new BafFileReader(bafTestFile)
+
