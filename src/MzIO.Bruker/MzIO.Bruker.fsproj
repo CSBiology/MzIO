@@ -17,7 +17,7 @@
     <EmbeddedResource Remove="Scripts\**" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="baf2sqlLib\win32\baf2sql_c_32.dll">
+    <None Include="baf2sqlLib\win32\baf2sql_c.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="baf2sqlLib\win64\baf2sql_c.dll">
