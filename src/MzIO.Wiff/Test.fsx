@@ -9,10 +9,13 @@
 #r @"../MzIO.Wiff\bin\Release\net45\MzIO.Wiff.dll"
 #r @"../MzIO.SQL\bin\Release\net45\MzIO.SQL.dll"
 #r @"../MzIO.Processing\bin\Release\net45\MzIO.Processing.dll"
+#r @"../MzIO.Bruker\bin\Release\net45\MzIO.Bruker.dll"
 
 
 open System
 open System.Collections.Generic
+open Newtonsoft.Json
+open Newtonsoft.Json.Linq
 open MzIO.Binary
 open MzIO.Wiff
 open MzIO.SQLReader
@@ -23,8 +26,7 @@ open MzIO.Model.CvParam
 open MzIO.MetaData.UO.UO
 open MzIO.Processing.MzIOLinq
 open MzIO.Json
-open Newtonsoft.Json
-open Newtonsoft.Json.Linq
+open MzIO.Bruker
 
 
 //let test = Software()
@@ -56,6 +58,7 @@ let paddeTestPath       = @"D:\Users\Patrick\Desktop\BioInformatik\MzLiteTestFil
 let wiffTestUni         = @"C:\Users\Student\source\repos\wiffTestFiles\20171129 FW LWagg001.wiff"
 let uniTestPath         = @"C:\Users\Student\source\repos\wiffTestFiles\20171129 FW LWagg001.wiff.mzlite"
 
+let bafTestFile         = @"C:\Users\Student\source\repos\wiffTestFiles\Bruker\170922_4597.d\analysis.baf" 
 
 let mzLiteFSharpDBPath  = @"C:\Users\Student\source\repos\wiffTestFiles\Databases\MzLiteFSHarpLWagg001.mzlite"
 
@@ -92,113 +95,113 @@ let mzLiteFSharpDBPath  = @"C:\Users\Student\source\repos\wiffTestFiles\Database
 //testIIII.[0]
 //testV.[0]
 
-type MzLiteHelper =
-    {
-        RunID           : string
-        MassSpectrum    : seq<MzIO.Model.MassSpectrum>
-        Peaks           : seq<Peak1DArray>
-        Path            : string
-    }
+//type MzLiteHelper =
+//    {
+//        RunID           : string
+//        MassSpectrum    : seq<MzIO.Model.MassSpectrum>
+//        Peaks           : seq<Peak1DArray>
+//        Path            : string
+//    }
 
-let createMzLiteHelper (runID:string) (path:string) (spectrum:seq<MzIO.Model.MassSpectrum>) (peaks:seq<Peak1DArray>) =
-    {
-        MzLiteHelper.RunID          = runID
-        MzLiteHelper.MassSpectrum   = spectrum
-        MzLiteHelper.Peaks          = peaks
-        MzLiteHelper.Path           = path
-    }
+//let createMzLiteHelper (runID:string) (path:string) (spectrum:seq<MzIO.Model.MassSpectrum>) (peaks:seq<Peak1DArray>) =
+//    {
+//        MzLiteHelper.RunID          = runID
+//        MzLiteHelper.MassSpectrum   = spectrum
+//        MzLiteHelper.Peaks          = peaks
+//        MzLiteHelper.Path           = path
+//    }
 
-let wiffFilePaths =
-    [
-        @"C:\Users\Student\source\repos\wiffTestFiles\20171129 FW LWagg001.wiff"
-        @"C:\Users\Student\source\repos\wiffTestFiles\20171129 FW LWagg002.wiff"
-        @"C:\Users\Student\source\repos\wiffTestFiles\20171129 FW LWagg003.wiff"
-        @"C:\Users\Student\source\repos\wiffTestFiles\20171129 FW LWagg004.wiff"
-        @"C:\Users\Student\source\repos\wiffTestFiles\20171129 FW LWagg005.wiff"
-        @"C:\Users\Student\source\repos\wiffTestFiles\20171129 FW LWagg006.wiff"
-        @"C:\Users\Student\source\repos\wiffTestFiles\20171129 FW LWagg007.wiff"
-        @"C:\Users\Student\source\repos\wiffTestFiles\20171129 FW LWagg008.wiff"
-        @"C:\Users\Student\source\repos\wiffTestFiles\20171129 FW LWagg009.wiff"
-        @"C:\Users\Student\source\repos\wiffTestFiles\20171129 FW LWagg010.wiff"
-        @"C:\Users\Student\source\repos\wiffTestFiles\20171129 FW LWagg011.wiff"
-        //@"C:\Users\Student\source\repos\wiffTestFiles\20171129 FW LWagg012.wiff"
-    ]
+//let wiffFilePaths =
+//    [
+//        @"C:\Users\Student\source\repos\wiffTestFiles\20171129 FW LWagg001.wiff"
+//        @"C:\Users\Student\source\repos\wiffTestFiles\20171129 FW LWagg002.wiff"
+//        @"C:\Users\Student\source\repos\wiffTestFiles\20171129 FW LWagg003.wiff"
+//        @"C:\Users\Student\source\repos\wiffTestFiles\20171129 FW LWagg004.wiff"
+//        @"C:\Users\Student\source\repos\wiffTestFiles\20171129 FW LWagg005.wiff"
+//        @"C:\Users\Student\source\repos\wiffTestFiles\20171129 FW LWagg006.wiff"
+//        @"C:\Users\Student\source\repos\wiffTestFiles\20171129 FW LWagg007.wiff"
+//        @"C:\Users\Student\source\repos\wiffTestFiles\20171129 FW LWagg008.wiff"
+//        @"C:\Users\Student\source\repos\wiffTestFiles\20171129 FW LWagg009.wiff"
+//        @"C:\Users\Student\source\repos\wiffTestFiles\20171129 FW LWagg010.wiff"
+//        @"C:\Users\Student\source\repos\wiffTestFiles\20171129 FW LWagg011.wiff"
+//        //@"C:\Users\Student\source\repos\wiffTestFiles\20171129 FW LWagg012.wiff"
+//    ]
 
-let getWiffFileReader (path:string) =
-    new WiffFileReader(path, licensePath)
+//let getWiffFileReader (path:string) =
+//    new WiffFileReader(path, licensePath)
 
-let getMassSpectra (wiffFileReader:WiffFileReader) =
-    wiffFileReader.Model.Runs.GetProperties false
-    |> Seq.collect (fun (run:KeyValuePair<string, obj>) -> wiffFileReader.ReadMassSpectra run.Key)
+//let getMassSpectra (wiffFileReader:WiffFileReader) =
+//    wiffFileReader.Model.Runs.GetProperties false
+//    |> Seq.collect (fun (run:KeyValuePair<string, obj>) -> wiffFileReader.ReadMassSpectra run.Key)
 
-let getPeak1DArrays (wiffFileReader:WiffFileReader) =
-    getMassSpectra wiffFileReader
-    |> Seq.map (fun spectrum -> wiffFileReader.ReadSpectrumPeaks spectrum.ID)
+//let getPeak1DArrays (wiffFileReader:WiffFileReader) =
+//    getMassSpectra wiffFileReader
+//    |> Seq.map (fun spectrum -> wiffFileReader.ReadSpectrumPeaks spectrum.ID)
 
-let getMzLiteHelper (path:string) (compressionType:BinaryDataCompressionType) =
-    let wiffFileReader = new WiffFileReader(path, licensePath)
-    let runIDMassSpectra =
-        wiffFileReader.Model.Runs.GetProperties false
-        |> Seq.map (fun (run:KeyValuePair<string, obj>) -> run.Key, wiffFileReader.ReadMassSpectra run.Key)
-    let tmp =
-        runIDMassSpectra
-        |> Seq.map (fun (runID, massSpectra) ->
-            massSpectra
-            |> Seq.map (fun spectrum -> (wiffFileReader.ReadSpectrumPeaks spectrum.ID))
-            |> Seq.map (fun peak -> peak.CompressionType <- compressionType
-                                    peak)
-            |> createMzLiteHelper runID path massSpectra
-            )
-        |> Seq.head
-    tmp
+//let getMzLiteHelper (path:string) (compressionType:BinaryDataCompressionType) =
+//    let wiffFileReader = new WiffFileReader(path, licensePath)
+//    let runIDMassSpectra =
+//        wiffFileReader.Model.Runs.GetProperties false
+//        |> Seq.map (fun (run:KeyValuePair<string, obj>) -> run.Key, wiffFileReader.ReadMassSpectra run.Key)
+//    let tmp =
+//        runIDMassSpectra
+//        |> Seq.map (fun (runID, massSpectra) ->
+//            massSpectra
+//            |> Seq.map (fun spectrum -> (wiffFileReader.ReadSpectrumPeaks spectrum.ID))
+//            |> Seq.map (fun peak -> peak.CompressionType <- compressionType
+//                                    peak)
+//            |> createMzLiteHelper runID path massSpectra
+//            )
+//        |> Seq.head
+//    tmp
     
-let insertWholeFileIntoDB (helper:MzLiteHelper) =
-    let mzLiteSQL = new MzLiteSQL(helper.Path + ".mzlite")
-    let bn = mzLiteSQL.BeginTransaction()
-    Seq.map2 (fun (spectrum:MzIO.Model.MassSpectrum) (peak:Peak1DArray) -> mzLiteSQL.Insert(helper.RunID, spectrum, peak)) helper.MassSpectrum helper.Peaks
-    |> Seq.length |> ignore
-    bn.Commit()
-    bn.Dispose()
+//let insertWholeFileIntoDB (helper:MzLiteHelper) =
+//    let mzLiteSQL = new MzLiteSQL(helper.Path + ".mzlite")
+//    let bn = mzLiteSQL.BeginTransaction()
+//    Seq.map2 (fun (spectrum:MzIO.Model.MassSpectrum) (peak:Peak1DArray) -> mzLiteSQL.Insert(helper.RunID, spectrum, peak)) helper.MassSpectrum helper.Peaks
+//    |> Seq.length |> ignore
+//    bn.Commit()
+//    bn.Dispose()
   
-let insertIntoDB (amount:int) (helper:MzLiteHelper) =
-    let mzLiteSQL = new MzLiteSQL(helper.Path + ".mzlite")
-    let bn = mzLiteSQL.BeginTransaction()
-    Seq.map2 (fun (spectrum:MzIO.Model.MassSpectrum) (peak:Peak1DArray) -> mzLiteSQL.Insert(helper.RunID, spectrum, peak)) (Seq.take amount helper.MassSpectrum) (Seq.take amount helper.Peaks)
-    |> Seq.length |> ignore
-    bn.Commit()
-    bn.Dispose()
+//let insertIntoDB (amount:int) (helper:MzLiteHelper) =
+//    let mzLiteSQL = new MzLiteSQL(helper.Path + ".mzlite")
+//    let bn = mzLiteSQL.BeginTransaction()
+//    Seq.map2 (fun (spectrum:MzIO.Model.MassSpectrum) (peak:Peak1DArray) -> mzLiteSQL.Insert(helper.RunID, spectrum, peak)) (Seq.take amount helper.MassSpectrum) (Seq.take amount helper.Peaks)
+//    |> Seq.length |> ignore
+//    bn.Commit()
+//    bn.Dispose()
 
-let getSpectrum (path:string) (spectrumID:string) =
-    let mzLiteSQL = new MzLiteSQL(path)
-    let bn = mzLiteSQL.BeginTransaction()
-    mzLiteSQL.ReadMassSpectrum spectrumID
+//let getSpectrum (path:string) (spectrumID:string) =
+//    let mzLiteSQL = new MzLiteSQL(path)
+//    let bn = mzLiteSQL.BeginTransaction()
+//    mzLiteSQL.ReadMassSpectrum spectrumID
 
-let getSpectra (path:string) (helper:MzLiteHelper) =
-    let mzLiteSQL = new MzLiteSQL(path)
-    let bn = mzLiteSQL.BeginTransaction()
-    let tmp = 
-        mzLiteSQL.ReadMassSpectra helper.RunID
-        |> List.ofSeq
-    bn.Commit()
-    bn.Dispose()
-    tmp
+//let getSpectra (path:string) (helper:MzLiteHelper) =
+//    let mzLiteSQL = new MzLiteSQL(path)
+//    let bn = mzLiteSQL.BeginTransaction()
+//    let tmp = 
+//        mzLiteSQL.ReadMassSpectra helper.RunID
+//        |> List.ofSeq
+//    bn.Commit()
+//    bn.Dispose()
+//    tmp
 
-let getSpectrumPeaks (path:string) (spectrumID:string) =
+//let getSpectrumPeaks (path:string) (spectrumID:string) =
 
-    let mzLiteSQL = new MzLiteSQL(path)
+//    let mzLiteSQL = new MzLiteSQL(path)
 
-    let bn = mzLiteSQL.BeginTransaction()
+//    let bn = mzLiteSQL.BeginTransaction()
 
-    mzLiteSQL.ReadSpectrumPeaks spectrumID
+//    mzLiteSQL.ReadSpectrumPeaks spectrumID
 
-#time
-let wiffFileReader =
-    getWiffFileReader wiffTestUni
+//#time
+//let wiffFileReader =
+//    getWiffFileReader wiffTestUni
 
-let massSpectra =
-    getMassSpectra wiffFileReader
+//let massSpectra =
+//    getMassSpectra wiffFileReader
 
-let helper = getMzLiteHelper wiffTestUni BinaryDataCompressionType.NoCompression
+//let helper = getMzLiteHelper wiffTestUni BinaryDataCompressionType.NoCompression
 
 //let peak1DArrays = getPeak1DArrays wiffFileReader
 
@@ -330,25 +333,25 @@ let helper = getMzLiteHelper wiffTestUni BinaryDataCompressionType.NoCompression
 
 //////let dbPath = @"C:\Users\Student\OneDrive\MP_Biotech\VP_Timo\MassSpecFiles\wiffTestFiles\20171129 FW LWagg001_testMzIO.mzlite"
 
-let mzsqlreader = new MzLiteSQL(uniTestPath)
+//let mzsqlreader = new MzLiteSQL(uniTestPath)
 
-let tr = mzsqlreader.BeginTransaction()
+//let tr = mzsqlreader.BeginTransaction()
 
-let tmpX = mzsqlreader.ReadMassSpectra("sample=0") |> List.ofSeq |> List.head
+//let tmpX = mzsqlreader.ReadMassSpectra("sample=0") |> List.ofSeq |> List.head
 
-let mutable idx1 = 0
-tmpX.TryGetMsLevel(& idx1)
-idx1
+//let mutable idx1 = 0
+//tmpX.TryGetMsLevel(& idx1)
+//idx1
 
-tmpX.TryGetValue(PSIMS_Spectrum.MsLevel)
+//tmpX.TryGetValue(PSIMS_Spectrum.MsLevel)
 
-tmpX.TryGetTypedValue<CvParam<IConvertible>>(PSIMS_Spectrum.MsLevel)
+//tmpX.TryGetTypedValue<CvParam<IConvertible>>(PSIMS_Spectrum.MsLevel)
 
-tmpX.Scans.GetProperties true
+//tmpX.Scans.GetProperties true
 
-let rtIndexEntry = mzsqlreader.BuildRtIndex("sample=0")
+//let rtIndexEntry = mzsqlreader.BuildRtIndex("sample=0")
 
-let rtProfile = mzsqlreader.RtProfile (rtIndexEntry, (new MzIO.Processing.RangeQuery(1., 300., 600.)), (new MzIO.Processing.RangeQuery(1., 300., 600.)))
+//let rtProfile = mzsqlreader.RtProfile (rtIndexEntry, (new MzIO.Processing.RangeQuery(1., 300., 600.)), (new MzIO.Processing.RangeQuery(1., 300., 600.)))
 
 //let tmpXY = (new Scan())
 //tmpXY.AddCvParam(new CvParam<string>("Test)"))
@@ -356,6 +359,7 @@ let rtProfile = mzsqlreader.RtProfile (rtIndexEntry, (new MzIO.Processing.RangeQ
 //let scan = Seq.head (tmpX.Scans.GetProperties false)
 //MzIOJson.FromJson(scan.Value.ToString()) :> Scan
 
+//fileDir + "..\baf2sqlLib\win32/baf2sql_c.dll"
 
 ////let test = new MassSpectrum()
 ////let scanList = (new ScanList())
@@ -376,3 +380,5 @@ let rtProfile = mzsqlreader.RtProfile (rtIndexEntry, (new MzIO.Processing.RangeQ
 //////    |> (fun item -> JsonConvert.DeserializeObject<MassSpectrum>(item))
 
 //////xI.Scans.Count
+
+let brukerReader = new BafFileReader(bafTestFile)

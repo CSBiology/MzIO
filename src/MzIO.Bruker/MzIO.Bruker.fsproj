@@ -22,7 +22,6 @@
     <Compile Include="Baf2SqlWrapper.fs" />
     <Compile Include="BafFileReader.fs" />
     <None Include="baf2sql_c_32.dll">
-    <None Include="baf2sqlLib\win32\baf2sql_c_32.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="baf2sql_c_64.dll">
