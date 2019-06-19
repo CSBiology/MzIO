@@ -27,7 +27,7 @@ open MzIO.MetaData.UO.UO
 open MzIO.Processing.MzIOLinq
 open MzIO.Json
 open MzIO.Bruker
-
+open System.Runtime.InteropServices
 
 //let test = Software()
 //let tests = SoftwareList()
