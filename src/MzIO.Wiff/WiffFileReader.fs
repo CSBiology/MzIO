@@ -448,32 +448,32 @@ type WiffFileReader(dataProvider:AnalystWiffDataProvider, disposed:Boolean, wiff
             Enumerable.Empty<Chromatogram>()
 
         member this.ReadChromatogram(runID:string) =
+            let mutable  ex = Exception()
             try
-                raise (new NotSupportedException())
+                failwith ((new NotSupportedException()).ToString())
             with
-                | :? Exception as ex-> 
-                    raise (MzLiteIOException(ex.Message, ex))
+                | :? Exception -> failwith ((MzLiteIOException(ex.Message, ex)).ToString())
 
         member this.ReadChromatogramPeaks(runID:string) =
+            let mutable  ex = Exception()
             try
-                raise ((new NotSupportedException()))
+                failwith ((new NotSupportedException()).ToString())
             with
-                | :? Exception as ex -> 
-                    raise (MzLiteIOException(ex.Message, ex))
+                | :? Exception -> failwith ((MzLiteIOException(ex.Message, ex)).ToString())
 
         member this.ReadChromatogramAsync(runID:string) =
+            let mutable  ex = Exception()
             try
-                raise ((new NotSupportedException()))
+                failwith ((new NotSupportedException()).ToString())
             with
-                | :? Exception as ex -> 
-                    raise (MzLiteIOException(ex.Message, ex))
+                | :? Exception -> failwith ((MzLiteIOException(ex.Message, ex)).ToString())
 
         member this.ReadChromatogramPeaksAsync(runID:string) =
+            let mutable  ex = Exception()
             try
-                raise ((new NotSupportedException()))
+                failwith ((new NotSupportedException()).ToString())
             with
-                | :? Exception as ex -> 
-                    raise (MzLiteIOException(ex.Message, ex))
+                | :? Exception -> failwith ((MzLiteIOException(ex.Message, ex)).ToString())
 
     member this.ReadMassSpectra(runID:string)               =
 
@@ -514,7 +514,7 @@ type WiffFileReader(dataProvider:AnalystWiffDataProvider, disposed:Boolean, wiff
     //potential error source because text isn't splitted into several keys
     static member ReadWiffLicense(licensePath:string) =
         if not (File.Exists(licensePath)) then
-            raise  (new FileNotFoundException("Missing Clearcore2 license file: " + licensePath))
+            failwith  ((new FileNotFoundException("Missing Clearcore2 license file: " + licensePath)).ToString())
         let text = File.ReadAllText(licensePath)
         Clearcore2.Licensing.LicenseKeys.Keys <- [|text|]
 
