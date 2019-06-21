@@ -1,13 +1,13 @@
 namespace MzIO.Model
 
 
-open Newtonsoft.Json
 open System
 open System.Globalization
 open System.Dynamic
 open System.Collections.Generic
 open System.Collections.Specialized
 open System.Collections.ObjectModel
+open Newtonsoft.Json
 open Newtonsoft.Json.Linq
 open Newtonsoft.Json.Serialization
 //open System.Reflection
@@ -118,7 +118,7 @@ module ReflectionHelper =
 
 module CvParam =
 
-    //type private MzLiteJson =
+    //type private MzIOJson =
     //    static member jsonSettings = 
     //        let tmp = new JsonSerializerSettings()
     //        //new method to preserve paramcontainer fields when serealizing type
@@ -204,19 +204,19 @@ module CvParam =
         static member private createJsonValue(item:string) =
             if item.StartsWith("WithCvUnitAccession") then
                 let tmp = item.Substring(0, 19), item.Substring(20)
-                let tmpID = "\"Type\":\"" + (fst tmp) + "\""
-                let tmpValues = ",\"Values\":[" + (((snd tmp).Remove(0, 1)).Remove((snd tmp).Length-2)) + "]"
-                sprintf "%s}" (tmpID + tmpValues)
+                let tmpID = sprintf "\"Type\":\%s\"" (fst tmp)
+                let tmpValues = sprintf ",\"Values\":[%s]" (((snd tmp).Remove(0, 1)).Remove((snd tmp).Length-2))
+                sprintf "%s}" (sprintf "%s%s" tmpID tmpValues)
             else
                 if item.StartsWith("CvValue") then
                     let tmp = item.Substring(0, 7), item.Substring(8)
-                    let tmpID = "\"Type\":\"" + (fst tmp) + "\""
-                    let tmpValues = ",\"Values\":[" + snd tmp + "]"
-                    sprintf "%s}" (tmpID + tmpValues)
+                    let tmpID = sprintf "\"Type\":\"%s\"" (fst tmp)
+                    let tmpValues = sprintf ",\"Values\":[%s]" (snd tmp)
+                    sprintf "%s}" (sprintf "%s%s" tmpID tmpValues)
                 else
-                    let tmpID = "\"Type\":\"" + "CvValue" + "\""
+                    let tmpID = "\"Type\":\"CvValue\""
                     let tmpValues = ",\"Values\":[null]"
-                    sprintf "%s}" (tmpID + tmpValues)
+                    sprintf "%s}" (sprintf "%s%s" tmpID tmpValues)
 
         static member private createParamValue(item:JObject) =
             match item.["Type"].ToString() with
@@ -245,16 +245,16 @@ module CvParam =
                 
             | _     -> failwith ((new JsonSerializationException("Could not determine concrete param type.")).ToString())
 
-        static member private createJsonParam<'T when 'T :> IConvertible>(param:IParamBase<'T>) =
+        static member private createJsonParam<'T when 'T :> IConvertible>(param:Object) =
             match param with
             | :? CvParam<'T>    as item ->                
                 let tmpID = sprintf "{\"%s\":\"%s\",\"CvAccession\":\"%s\"," "$id" "1" item.CvAccession
                 let tmpValue = ParamBaseConverter.createJsonValue(if item.Value.IsSome then item.Value.Value.ToString() else "None")
-                JObject.Parse(tmpID + tmpValue)
+                JObject.Parse(sprintf "%s%s" tmpID tmpValue)
             | :? UserParam<'T>  as item -> 
                 let tmpID = sprintf "{\"%s\":\"%s\",\"Name\":\"%s\"," "$id" "1" item.Name
                 let tmpValue = ParamBaseConverter.createJsonValue(if item.Value.IsSome then item.Value.Value.ToString() else "None")
-                JObject.Parse(tmpID + tmpValue)
+                JObject.Parse(sprintf "%s%s" tmpID tmpValue)
             | _     -> failwith ((new JsonSerializationException("Could not determine concrete param type.")).ToString())
         
         override this.CanConvert(objectType:Type) =
@@ -284,47 +284,48 @@ module CvParam =
             if value = null then
                 writer.WriteNull()
             else
-                match value with
-                | :? CvParam<bool>      as value -> serializer.Serialize(writer, ParamBaseConverter.createJsonParam value)
-                | :? CvParam<byte>      as value -> serializer.Serialize(writer, ParamBaseConverter.createJsonParam value)
-                | :? CvParam<char>      as value -> serializer.Serialize(writer, ParamBaseConverter.createJsonParam value)
-                | :? CvParam<DateTime>  as value -> serializer.Serialize(writer, ParamBaseConverter.createJsonParam value)
-                | :? CvParam<DBNull>    as value -> serializer.Serialize(writer, ParamBaseConverter.createJsonParam value)
-                | :? CvParam<decimal>   as value -> serializer.Serialize(writer, ParamBaseConverter.createJsonParam value)
-                | :? CvParam<double>    as value -> serializer.Serialize(writer, ParamBaseConverter.createJsonParam value)
-                //| :? CvParam<e<Empty> as value -> serializer.Serialize(writer, value)
-                | :? CvParam<Int16>     as value -> serializer.Serialize(writer, ParamBaseConverter.createJsonParam value)
-                | :? CvParam<Int32>     as value -> serializer.Serialize(writer, ParamBaseConverter.createJsonParam value)
-                | :? CvParam<Int64>     as value -> serializer.Serialize(writer, ParamBaseConverter.createJsonParam value)
-                //| :? CvParam<Object>    as value -> serializer.Serialize(writer, value)
-                | :? CvParam<sbyte>     as value -> serializer.Serialize(writer, ParamBaseConverter.createJsonParam value)
-                //| :? CvParam<e<float>   as value -> serializer.Serialize(writer, value)
-                | :? CvParam<string>    as value -> serializer.Serialize(writer, ParamBaseConverter.createJsonParam value)
-                | :? CvParam<UInt16>    as value -> serializer.Serialize(writer, ParamBaseConverter.createJsonParam value)
-                | :? CvParam<UInt32>    as value -> serializer.Serialize(writer, ParamBaseConverter.createJsonParam value)
-                | :? CvParam<UInt64>    as value -> serializer.Serialize(writer, ParamBaseConverter.createJsonParam value)
-                | :? CvParam<IConvertible>    as value -> serializer.Serialize(writer, ParamBaseConverter.createJsonParam value)
+                serializer.Serialize(writer, ParamBaseConverter.createJsonParam value)
+                //match value with
+                //| :? CvParam<bool>      as value -> serializer.Serialize(writer, ParamBaseConverter.createJsonParam value)
+                //| :? CvParam<byte>      as value -> serializer.Serialize(writer, ParamBaseConverter.createJsonParam value)
+                //| :? CvParam<char>      as value -> serializer.Serialize(writer, ParamBaseConverter.createJsonParam value)
+                //| :? CvParam<DateTime>  as value -> serializer.Serialize(writer, ParamBaseConverter.createJsonParam value)
+                //| :? CvParam<DBNull>    as value -> serializer.Serialize(writer, ParamBaseConverter.createJsonParam value)
+                //| :? CvParam<decimal>   as value -> serializer.Serialize(writer, ParamBaseConverter.createJsonParam value)
+                //| :? CvParam<double>    as value -> serializer.Serialize(writer, ParamBaseConverter.createJsonParam value)
+                ////| :? CvParam<e<Empty> as value -> serializer.Serialize(writer, value)
+                //| :? CvParam<Int16>     as value -> serializer.Serialize(writer, ParamBaseConverter.createJsonParam value)
+                //| :? CvParam<Int32>     as value -> serializer.Serialize(writer, ParamBaseConverter.createJsonParam value)
+                //| :? CvParam<Int64>     as value -> serializer.Serialize(writer, ParamBaseConverter.createJsonParam value)
+                ////| :? CvParam<Object>    as value -> serializer.Serialize(writer, value)
+                //| :? CvParam<sbyte>     as value -> serializer.Serialize(writer, ParamBaseConverter.createJsonParam value)
+                ////| :? CvParam<e<float>   as value -> serializer.Serialize(writer, value)
+                //| :? CvParam<string>    as value -> serializer.Serialize(writer, ParamBaseConverter.createJsonParam value)
+                //| :? CvParam<UInt16>    as value -> serializer.Serialize(writer, ParamBaseConverter.createJsonParam value)
+                //| :? CvParam<UInt32>    as value -> serializer.Serialize(writer, ParamBaseConverter.createJsonParam value)
+                //| :? CvParam<UInt64>    as value -> serializer.Serialize(writer, ParamBaseConverter.createJsonParam value)
+                //| :? CvParam<IConvertible>    as value -> serializer.Serialize(writer, ParamBaseConverter.createJsonParam value)
 
-                | :? UserParam<bool>    as value -> serializer.Serialize(writer, ParamBaseConverter.createJsonParam value)
-                | :? UserParam<byte>    as value -> serializer.Serialize(writer, ParamBaseConverter.createJsonParam value)
-                | :? UserParam<char>    as value -> serializer.Serialize(writer, ParamBaseConverter.createJsonParam value)
-                | :? UserParam<DateTime>as value -> serializer.Serialize(writer, ParamBaseConverter.createJsonParam value)
-                | :? UserParam<DBNull>  as value -> serializer.Serialize(writer, ParamBaseConverter.createJsonParam value)
-                | :? UserParam<decimal> as value -> serializer.Serialize(writer, ParamBaseConverter.createJsonParam value)
-                | :? UserParam<double>  as value -> serializer.Serialize(writer, ParamBaseConverter.createJsonParam value)
-                //| :UserParam<e<Empty> as value -> serializer.Serialize(writer, value)
-                | :? UserParam<Int16>   as value -> serializer.Serialize(writer, ParamBaseConverter.createJsonParam value)
-                | :? UserParam<Int32>   as value -> serializer.Serialize(writer, ParamBaseConverter.createJsonParam value)
-                | :? UserParam<Int64>   as value -> serializer.Serialize(writer, ParamBaseConverter.createJsonParam value)
-                //| :UserParam<Object>    as value -> serializer.Serialize(writer, value)
-                | :? UserParam<sbyte>   as value -> serializer.Serialize(writer, ParamBaseConverter.createJsonParam value)
-                //| :UserParam<e<float>   as value -> serializer.Serialize(writer, value)
-                | :? UserParam<string>  as value -> serializer.Serialize(writer, ParamBaseConverter.createJsonParam value)
-                | :? UserParam<UInt16>  as value -> serializer.Serialize(writer, ParamBaseConverter.createJsonParam value)
-                | :? UserParam<UInt32>  as value -> serializer.Serialize(writer, ParamBaseConverter.createJsonParam value)
-                | :? UserParam<UInt64>  as value -> serializer.Serialize(writer, ParamBaseConverter.createJsonParam value)
-                | :? UserParam<IConvertible>  as value -> serializer.Serialize(writer, ParamBaseConverter.createJsonParam value)
-                | _     -> failwith ((new JsonSerializationException("Type not supported: " + value.GetType().FullName)).ToString())
+                //| :? UserParam<bool>    as value -> serializer.Serialize(writer, ParamBaseConverter.createJsonParam value)
+                //| :? UserParam<byte>    as value -> serializer.Serialize(writer, ParamBaseConverter.createJsonParam value)
+                //| :? UserParam<char>    as value -> serializer.Serialize(writer, ParamBaseConverter.createJsonParam value)
+                //| :? UserParam<DateTime>as value -> serializer.Serialize(writer, ParamBaseConverter.createJsonParam value)
+                //| :? UserParam<DBNull>  as value -> serializer.Serialize(writer, ParamBaseConverter.createJsonParam value)
+                //| :? UserParam<decimal> as value -> serializer.Serialize(writer, ParamBaseConverter.createJsonParam value)
+                //| :? UserParam<double>  as value -> serializer.Serialize(writer, ParamBaseConverter.createJsonParam value)
+                ////| :UserParam<e<Empty> as value -> serializer.Serialize(writer, value)
+                //| :? UserParam<Int16>   as value -> serializer.Serialize(writer, ParamBaseConverter.createJsonParam value)
+                //| :? UserParam<Int32>   as value -> serializer.Serialize(writer, ParamBaseConverter.createJsonParam value)
+                //| :? UserParam<Int64>   as value -> serializer.Serialize(writer, ParamBaseConverter.createJsonParam value)
+                ////| :UserParam<Object>    as value -> serializer.Serialize(writer, value)
+                //| :? UserParam<sbyte>   as value -> serializer.Serialize(writer, ParamBaseConverter.createJsonParam value)
+                ////| :UserParam<e<float>   as value -> serializer.Serialize(writer, value)
+                //| :? UserParam<string>  as value -> serializer.Serialize(writer, ParamBaseConverter.createJsonParam value)
+                //| :? UserParam<UInt16>  as value -> serializer.Serialize(writer, ParamBaseConverter.createJsonParam value)
+                //| :? UserParam<UInt32>  as value -> serializer.Serialize(writer, ParamBaseConverter.createJsonParam value)
+                //| :? UserParam<UInt64>  as value -> serializer.Serialize(writer, ParamBaseConverter.createJsonParam value)
+                //| :? UserParam<IConvertible>  as value -> serializer.Serialize(writer, ParamBaseConverter.createJsonParam value)
+                //| _     -> failwith ((new JsonSerializationException("Type not supported: " + value.GetType().FullName)).ToString())
 
 
     let getCvAccessionOrName (param:#IParamBase<_>) =
