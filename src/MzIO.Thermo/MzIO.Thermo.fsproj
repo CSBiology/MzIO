@@ -17,7 +17,6 @@
   <ItemGroup>
     <EmbeddedResource Remove="Scripts\**" />
   </ItemGroup>
-  <ItemGroup />
   <ItemGroup>
     <Compile Include="ThermoRawFileReader.fs" />
     <None Include="paket.references" />
