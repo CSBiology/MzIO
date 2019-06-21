@@ -1,0 +1,2 @@
+The Clearcore2 license from SCIEX is required to run this program.
+The license can be acquired here: https://sciex.com/products/in-vitro-diagnostics/enhancements-and-options/clearcore-md-software
