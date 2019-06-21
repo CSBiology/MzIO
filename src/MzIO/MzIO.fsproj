@@ -48,8 +48,6 @@
     <Compile Include="IO\IMzLiteIO.fs" />
     <Compile Include="IO\MzLiteDataReader.fs" />
     <Compile Include="IO\IMzLiteDataWriter.fs" />
-    <Compile Include="IO\MzMLReader\MzMLReader.fs" />
-    <Compile Include="IO\MzMLWriter\MzMLWriter.fs" />
     <Compile Include="JSON\ParamBaseConverter.fs" />
     <Compile Include="JSON\MzIOJson.fs" />
     <Compile Include="JSON\ConvertibleConverter.fs" />
