@@ -36,7 +36,7 @@ type BinaryDataDecoder() =
         //    let mz          = BinaryDataDecoder.ReadValue(reader, peakArray.MzDataType)
         //    peaks.[i]   <-  new Peak1D(intensity, mz)
         let peaks = Array.init len (fun i -> Peak1D(BinaryDataDecoder.ReadValue(reader, peakArray.IntensityDataType), BinaryDataDecoder.ReadValue(reader, peakArray.MzDataType)))
-        peakArray.Peaks <- MzLiteArray.ToMzLiteArray<Peak1D>(peaks)
+        peakArray.Peaks <- MzIOArray.ToMzIOArray<Peak1D>(peaks)
         peakArray
 
     static member private NoCompression(stream:Stream, peakArray:Peak2DArray) =
@@ -62,7 +62,7 @@ type BinaryDataDecoder() =
         //    peaks.[i]   <-  new Peak2D(intensity, mz, rt)
 
         let peaks = Array.init len (fun i -> Peak2D(BinaryDataDecoder.ReadValue(reader, peakArray.IntensityDataType), BinaryDataDecoder.ReadValue(reader, peakArray.MzDataType), BinaryDataDecoder.ReadValue(reader, peakArray.RtDataType)))
-        peakArray.Peaks <- MzLiteArray.ToMzLiteArray<Peak2D>(peaks)
+        peakArray.Peaks <- MzIOArray.ToMzIOArray<Peak2D>(peaks)
         peakArray
 
     static member private ZLib(stream:Stream, peakArray:Peak1DArray) =
@@ -98,7 +98,7 @@ type BinaryDataDecoder() =
         let intensityArray          = BinaryDataDecoder.ByteToFloatArray (BinaryDataDecoder.DeflateStreamDecompress intensities)
         let mzArray                 = BinaryDataDecoder.ByteToFloatArray (BinaryDataDecoder.DeflateStreamDecompress mz)
         Array.map2 (fun int mz -> new Peak1D(int, mz)) intensityArray mzArray
-        |> fun peak1Ds -> peakArray.Peaks <- MzLiteArray.ToMzLiteArray<Peak1D>(peak1Ds)
+        |> fun peak1Ds -> peakArray.Peaks <- MzIOArray.ToMzIOArray<Peak1D>(peak1Ds)
         peakArray
 
     static member private Numpress1D(stream:Stream, peakArray: Peak1DArray) =
@@ -115,7 +115,7 @@ type BinaryDataDecoder() =
         let mzArray                 = NumpressDecodingHelpers.decodeLin (byteArrayMz, numberEncodedBytesMz, originalDataLengthMz)
 
         Array.map2 (fun int mz -> new Peak1D(int, mz)) intensityArray mzArray
-        |> fun peak1Ds -> peakArray.Peaks <- MzLiteArray.ToMzLiteArray<Peak1D>(peak1Ds)
+        |> fun peak1Ds -> peakArray.Peaks <- MzIOArray.ToMzIOArray<Peak1D>(peak1Ds)
         peakArray
 
     static member private Numpress2D(stream:Stream, peakArray: Peak2DArray) =
@@ -137,7 +137,7 @@ type BinaryDataDecoder() =
         let rtArray                 = NumpressDecodingHelpers.decodeLin (byteArrayRt, numberEncodedBytesRt, originalDataLengthRt)
 
         Array.map3 (fun int mz rt -> new Peak2D(int, mz, rt)) intensityArray mzArray rtArray
-        |> fun peak2Ds -> peakArray.Peaks <- MzLiteArray.ToMzLiteArray<Peak2D>(peak2Ds)
+        |> fun peak2Ds -> peakArray.Peaks <- MzIOArray.ToMzIOArray<Peak2D>(peak2Ds)
         peakArray
 
     static member private NumpressDeflate1D(stream:Stream, peakArray: Peak1DArray) =
@@ -159,7 +159,7 @@ type BinaryDataDecoder() =
         let mzArray                 = NumpressDecodingHelpers.decodeLin (byteArrayMzDeflated, numberEncodedBytesMz, originalDataLengthMz)
 
         Array.map2 (fun int mz -> new Peak1D(int, mz)) intensityArray mzArray
-        |> fun peak1Ds -> peakArray.Peaks <- MzLiteArray.ToMzLiteArray<Peak1D>(peak1Ds)
+        |> fun peak1Ds -> peakArray.Peaks <- MzIOArray.ToMzIOArray<Peak1D>(peak1Ds)
         peakArray
 
     static member private NumpressDeflate2D(stream:Stream, peakArray: Peak2DArray) =
@@ -187,7 +187,7 @@ type BinaryDataDecoder() =
         let rtArray                 = NumpressDecodingHelpers.decodeLin (byteArrayRtDeflated, numberEncodedBytesRt, originalDataLengthRt)
 
         Array.map3 (fun int mz rt -> new Peak2D(int, mz, rt)) intensityArray mzArray rtArray
-        |> fun peak2Ds -> peakArray.Peaks <- MzLiteArray.ToMzLiteArray<Peak2D>(peak2Ds)
+        |> fun peak2Ds -> peakArray.Peaks <- MzIOArray.ToMzIOArray<Peak2D>(peak2Ds)
         peakArray
 
     member this.Decode(stream:Stream, peakArray:Peak1DArray) =
@@ -202,7 +202,7 @@ type BinaryDataDecoder() =
             ////////////////////////////////////////////////////\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
     ///////////////////////////////////////////////////////DIFFERENCE\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
             ////////////////////////////////////////////////////\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
-    //Add Decode function for Peak1DArray and byte[] that did not exist in MzLite.
+    //Add Decode function for Peak1DArray and byte[] that did not exist in MzIO.
     member this.Decode(peakArray:Peak1DArray, bytes:byte[]) =
 
         let memoryStream = new MemoryStream(bytes)

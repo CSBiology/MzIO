@@ -34,11 +34,9 @@ module ParamEditExtension =
             member this.ParamContainer  = paramContainer'
             member this.Param           = param'
             member this.SetUnit(unitAccession:string) =
-                match unitAccession with
-                | null  -> failwith (ArgumentNullException("unitAccession","accession may not be null or empty.").ToString())
-                | ""    -> failwith (ArgumentNullException("unitAccession","accession may not be null or empty.").ToString())
-                | " "   -> failwith (ArgumentNullException("unitAccession","accession may not be null or empty.").ToString())
-                |   _   -> 
+                if (String.IsNullOrWhiteSpace(unitAccession)) then 
+                    raise (ArgumentNullException("unitAccession","unitAccession may not be null or empty."))
+                else
                     let paramValue = 
                         match tryGetValue param' with
                         | Some value -> new CvParam<IConvertible>(param'.ID, ParamValue.WithCvUnitAccession(value, unitAccession)) :> IParamBase<IConvertible>
@@ -59,11 +57,9 @@ module ParamEditExtension =
         member this.SetCvParam(accession:string, value:IConvertible) =
 
             let mutable param' =
-                match accession with
-                | null  -> failwith (ArgumentNullException("accession","accession may not be null or empty.").ToString())
-                | ""    -> failwith (ArgumentNullException("accession","accession may not be null or empty.").ToString())
-                | " "   -> failwith (ArgumentNullException("accession","accession may not be null or empty.").ToString())
-                |   _   ->
+                if (String.IsNullOrWhiteSpace(accession)) then 
+                    raise (ArgumentNullException("accession","accession may not be null or empty."))
+                else
                     let paramValue = ParamValue.CvValue(value)
                     let mutable param = new CvParam<IConvertible>(accession, paramValue)
                     if this.TryGetTypedValue<CvParam<IConvertible>>(accession).IsNone then
@@ -75,11 +71,9 @@ module ParamEditExtension =
         member this.SetCvParam(accession:string) =
 
             let mutable param' =
-                match accession with
-                | null  -> failwith (ArgumentNullException("accession","accession may not be null or empty.").ToString())
-                | ""    -> failwith (ArgumentNullException("accession","accession may not be null or empty.").ToString())
-                | " "   -> failwith (ArgumentNullException("accession","accession may not be null or empty.").ToString())
-                |   _   ->
+                if (String.IsNullOrWhiteSpace(accession)) then 
+                    raise (ArgumentNullException("accession","accession may not be null or empty."))
+                else
                     let mutable param = new CvParam<IConvertible>(accession)
                     if this.TryGetTypedValue<CvParam<IConvertible>>(accession).IsNone then
                         this.AddCvParam(param)
@@ -87,22 +81,19 @@ module ParamEditExtension =
                     param
             new HasUnit<_>(this, param' :> IParamBase<IConvertible>)
 
-        member this.HasCvParam(name:string) =
+        member this.HasCvParam(accession:string) =
             
-           match name with
-                | null  -> failwith (ArgumentNullException("accession","accession may not be null or empty.").ToString())
-                | ""    -> failwith (ArgumentNullException("accession","accession may not be null or empty.").ToString())
-                | " "   -> failwith (ArgumentNullException("accession","accession may not be null or empty.").ToString())
-                |   _   -> this.TryGetItemByKey(name, this)
+           if (String.IsNullOrWhiteSpace(accession)) then 
+                    raise (ArgumentNullException("accession","accession may not be null or empty."))
+                else
+                    this.TryGetItemByKey(accession, this)
 
         member this.SetUserParam(name:string, value:IConvertible) =
 
             let mutable param' =
-                match name with
-                | null  -> failwith (ArgumentNullException("name","accession may not be null or empty.").ToString())
-                | ""    -> failwith (ArgumentNullException("name","accession may not be null or empty.").ToString())
-                | " "   -> failwith (ArgumentNullException("name","accession may not be null or empty.").ToString())
-                |   _   ->
+                if (String.IsNullOrWhiteSpace(name)) then 
+                    raise (ArgumentNullException("name","name may not be null or empty."))
+                else
                     let paramValue = ParamValue.CvValue(value)
                     let mutable param = new UserParam<IConvertible>(name, paramValue)
                     if this.TryGetTypedValue<UserParam<IConvertible>>(name).IsNone then
@@ -114,11 +105,9 @@ module ParamEditExtension =
         member this.SetUserParam(name:string) =
 
             let mutable param' =
-                match name with
-                | null  -> failwith (ArgumentNullException("name","accession may not be null or empty.").ToString())
-                | ""    -> failwith (ArgumentNullException("name","accession may not be null or empty.").ToString())
-                | " "   -> failwith (ArgumentNullException("name","accession may not be null or empty.").ToString())
-                |   _   ->
+                if (String.IsNullOrWhiteSpace(name)) then 
+                    raise (ArgumentNullException("name","name may not be null or empty."))
+                else
                     let mutable param = new UserParam<IConvertible>(name)
                     if this.TryGetTypedValue<UserParam<IConvertible>>(name).IsNone then
                         this.AddUserParam(param)
@@ -126,22 +115,20 @@ module ParamEditExtension =
                     param
             new HasUnit<_>(this, param' :> IParamBase<IConvertible>)
 
-        member this.HasUserParam(accession:string) =
+        member this.HasUserParam(name:string) =
             
-           match accession with
-                | null  -> failwith (ArgumentNullException("accession","accession may not be null or empty.").ToString())
-                | ""    -> failwith (ArgumentNullException("accession","accession may not be null or empty.").ToString())
-                | " "   -> failwith (ArgumentNullException("accession","accession may not be null or empty.").ToString())
-                |   _   -> this.TryGetItemByKey(accession, this)
+           if (String.IsNullOrWhiteSpace(name)) then 
+                    raise (ArgumentNullException("name","name may not be null or empty."))
+                else 
+                    this.TryGetItemByKey(name, this)
 
 
         /// Has functionality for User- and CvParam
         member this.TryGetParam(accession:string) =
-            match accession with
-                | null  -> failwith (ArgumentNullException("accession","accession may not be null or empty.").ToString())
-                | ""    -> failwith (ArgumentNullException("accession","accession may not be null or empty.").ToString())
-                | " "   -> failwith (ArgumentNullException("accession","accession may not be null or empty.").ToString())
-                |   _   -> this.TryGetItemByKey(accession, this)
+            if (String.IsNullOrWhiteSpace(accession)) then 
+                    raise (ArgumentNullException("accession","accession may not be null or empty."))
+                else
+                    this.TryGetItemByKey(accession, this)
 
     type IParamBase<'T when 'T :> IConvertible> with
 

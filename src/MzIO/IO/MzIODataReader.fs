@@ -9,9 +9,9 @@ open MzIO.Model
 
 
 //potential error source: replaced Task<'T> with Async<'T>
-type IMzLiteDataReader =
+type IMzIODataReader =
 
-    inherit IMzLiteIO
+    inherit IMzIOIO
 
     abstract member ReadMassSpectra     : string -> IEnumerable<MassSpectrum>
     abstract member ReadMassSpectrum    : string -> MassSpectrum

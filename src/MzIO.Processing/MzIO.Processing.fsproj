@@ -20,7 +20,7 @@
     <Compile Include="RangeQuery.fs" />
     <Compile Include="CSVReader.fs" />
     <Compile Include="BinarySearch.fs" />
-    <Compile Include="MzLiteLinq.fs" />
+    <Compile Include="MzIOLinq.fs" />
     <Compile Include="SwathIndexer.fs" />
   </ItemGroup>
   <ItemGroup>

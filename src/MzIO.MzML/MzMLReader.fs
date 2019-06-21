@@ -1419,7 +1419,7 @@ module MzML =
                     else new FileDescription(contact, fileContent, sourceFileList)
             loop (new FileContent()) (new SourceFileList()) (new Contact()) ()
 
-        member this.getMzLiteModel() =
+        member this.getMzIOModel() =
             let rec outerLoop acc =
                 if reader.Name = "mzML" then
                     let readSubtree = reader.ReadSubtree()
@@ -1439,13 +1439,13 @@ module MzML =
                             |   _                           -> loop name fileDes samples softwares instruments dataProcessings run (readOp() |> ignore)
                         else
                             if readOp()=true then loop name fileDes samples softwares instruments dataProcessings run ()
-                            else new MzLiteModel(name.Value, fileDes, samples, softwares, dataProcessings, instruments, run)
+                            else new MzIOModel(name.Value, fileDes, samples, softwares, dataProcessings, instruments, run)
                     loop None (new FileDescription()) (new SampleList()) (new SoftwareList()) (new InstrumentList()) (new DataProcessingList()) (new RunList()) ()
                 else
                     outerLoop (reader.Read())
             outerLoop false
 
-        //interface IMzLiteDataReader with
+        //interface IMzIODataReader with
     
         //    member this.ReadMassSpectra(runID: string) = 
         //        this.getSpectra()

@@ -15,6 +15,8 @@
     <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
   </PropertyGroup>
   <ItemGroup>
+    <EmbeddedResource Remove="IO\MzMLReader\**" />
+    <EmbeddedResource Remove="IO\MzMLWriter\**" />
     <EmbeddedResource Remove="Scripts\**" />
   </ItemGroup>
   <ItemGroup>
@@ -32,9 +34,9 @@
     <Compile Include="Model\DataProcessing.fs" />
     <Compile Include="Model\Run.fs" />
     <Compile Include="Model\FileDescription.fs" />
-    <Compile Include="Model\MzLiteProject.fs" />
-    <Compile Include="Model\MzLiteModel.fs" />
-    <Compile Include="Commons\Arrays\MzLiteArray.fs" />
+    <Compile Include="Model\MzIOProject.fs" />
+    <Compile Include="Model\MzIOModel.fs" />
+    <Compile Include="Commons\Arrays\MzIO.fs" />
     <Compile Include="Binary\MSNumpress.fs" />
     <Compile Include="Binary\NumpressHelper.fs" />
     <Compile Include="Binary\PeakArray.fs" />
@@ -43,11 +45,11 @@
     <Compile Include="MetaData\ParamEdit.fs" />
     <Compile Include="MetaData\UOExtension.fs" />
     <Compile Include="MetaData\PSIMSExtension.fs" />
-    <Compile Include="IO\MzLiteIOExcpetion.fs" />
+    <Compile Include="IO\MzIOIOExcpetion.fs" />
     <Compile Include="IO\ITransactionScope.fs" />
-    <Compile Include="IO\IMzLiteIO.fs" />
-    <Compile Include="IO\MzLiteDataReader.fs" />
-    <Compile Include="IO\IMzLiteDataWriter.fs" />
+    <Compile Include="IO\IMzIOIO.fs" />
+    <Compile Include="IO\MzIODataReader.fs" />
+    <Compile Include="IO\IMzIODataWriter.fs" />
     <Compile Include="JSON\ParamBaseConverter.fs" />
     <Compile Include="JSON\MzIOJson.fs" />
     <Compile Include="JSON\ConvertibleConverter.fs" />

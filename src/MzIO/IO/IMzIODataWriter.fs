@@ -6,9 +6,9 @@ open MzIO.Binary
 open MzIO.IO
 
 
-type IMzLiteDataWriter =
+type IMzIODataWriter =
 
-    inherit IMzLiteIO
+    inherit IMzIOIO
 
     abstract member InsertMass          : string * MzIO.Model.MassSpectrum * Peak1DArray -> unit
 

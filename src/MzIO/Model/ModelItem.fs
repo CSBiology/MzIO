@@ -19,11 +19,10 @@ type ModelItem(id:string)  =
     inherit DynamicObj()
 
     let mutable id = 
-        match id with
-        | null  -> failwith (ArgumentNullException("id").ToString())
-        | ""    -> failwith (ArgumentNullException("id").ToString())
-        | " "   -> failwith (ArgumentNullException("id").ToString())
-        |   _   -> id
+        if String.IsNullOrWhiteSpace(id) then
+            raise (ArgumentNullException("id"))
+        else
+            id
 
     let propertyChanged = new Event<_, _>()
 
@@ -75,11 +74,10 @@ type NamedModelItem(id:string, name:string) =
     inherit ModelItem(id)    
 
     let mutable name   = 
-        match name with
-        | null  -> failwith (ArgumentNullException("name").ToString())
-        | ""    -> failwith (ArgumentNullException("name").ToString())
-        | " "   -> failwith (ArgumentNullException("name").ToString())
-        |   _   -> name
+        if String.IsNullOrWhiteSpace(name) then
+            raise (ArgumentNullException("name"))
+        else
+            name 
 
     new() = NamedModelItem("id", "name")
 

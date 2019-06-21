@@ -51,7 +51,7 @@ type MzIOJson =
         )
 
 
-    static member HandleExternalModelFile(io:IMzLiteIO, path:string) =
+    static member HandleExternalModelFile(io:IMzIOIO, path:string) =
         
         //to be safe it is false
         let mutable throwExceptionIfFileCouldNotRead = false
@@ -70,7 +70,7 @@ type MzIOJson =
         else
             let ex = new Exception()
             try
-                MzIOJson.ReadJsonFile<MzLiteModel>(path)
+                MzIOJson.ReadJsonFile<MzIOModel>(path)
             with
                 | :? Exception
                     -> 

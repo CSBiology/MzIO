@@ -6,7 +6,7 @@ open Newtonsoft.Json
 
 
 [<Sealed>]
-type MzLiteProject [<JsonConstructor>] ([<JsonProperty("Name")>] name:string, sourceFiles:SourceFileList, samples:SampleList, runs:ProjectRunList) =
+type MzIOProject [<JsonConstructor>] ([<JsonProperty("Name")>] name:string, sourceFiles:SourceFileList, samples:SampleList, runs:ProjectRunList) =
 
     inherit NamedItem(name)
 
@@ -16,7 +16,7 @@ type MzLiteProject [<JsonConstructor>] ([<JsonProperty("Name")>] name:string, so
 
     let mutable runs'           = runs
 
-    //member this.MzLiteProject   = base.Name
+    //member this.MzIOProject   = base.Name
 
     [<JsonProperty>]
     member this.SourceFiles     = sourceFiles'

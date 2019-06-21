@@ -5,7 +5,7 @@ open System.Collections.Generic
 open System.Linq
 open MzIO.Model
 open MzIO.Commons.Arrays
-open MzIO.Commons.Arrays.MzLiteArray
+open MzIO.Commons.Arrays.MzIOArray
 open MzIO.MetaData.PSIMSExtension
 open MzIO.IO
 
@@ -36,18 +36,18 @@ type IndexRange(low: int, high: int) =
         if i < 0 then failwith ((new ArgumentOutOfRangeException( "i >= 0 expected")).ToString())
         else this.Low + i
 
-    static member EnumRange<'TItem>(items: IMzLiteArray<'TItem>, range: IndexRange) =
+    static member EnumRange<'TItem>(items: IMzIOArray<'TItem>, range: IndexRange) =
         seq {
             for i = range.Low to range.High do
                 yield items.[i]
             }
 
     static member EnumRange<'TItem>(items: 'TItem[], range: IndexRange) =
-        IndexRange.EnumRange((items.ToMzLiteArray()), range)
+        IndexRange.EnumRange((items.ToMzIOArray()), range)
 
 type BinarySearch =
 
-    static member Search<'TItem, 'TQuery>(items:IMzLiteArray<'TItem>, query:'TQuery, searchCompare: ('TItem*'TQuery) -> int, result:byref<IndexRange option>) =
+    static member Search<'TItem, 'TQuery>(items:IMzIOArray<'TItem>, query:'TQuery, searchCompare: ('TItem*'TQuery) -> int, result:byref<IndexRange option>) =
 
         let mutable lo = 0
 
@@ -97,7 +97,7 @@ type BinarySearch =
                 //result <- null
         tmpResult
 
-    static member Search<'TItem, 'TQuery>(items:IMzLiteArray<'TItem>, query:'TQuery, searchCompare: ('TItem*'TQuery) -> int) =
+    static member Search<'TItem, 'TQuery>(items:IMzIOArray<'TItem>, query:'TQuery, searchCompare: ('TItem*'TQuery) -> int) =
         let mutable result = Some (new IndexRange())
         if BinarySearch.Search(items, query, searchCompare, & result) then
             IndexRange.EnumRange(items, result.Value)
@@ -105,7 +105,7 @@ type BinarySearch =
             Enumerable.Empty<'TItem>()
 
     static member Search<'TItem, 'TQuery>(items:'TItem[], query:'TQuery, searchCompare: ('TItem*'TQuery) -> int, result:byref<IndexRange option>) =
-        BinarySearch.Search(items.ToMzLiteArray(), query, searchCompare, & result)
+        BinarySearch.Search(items.ToMzIOArray(), query, searchCompare, & result)
 
     static member Search<'TItem, 'TQuery>(items:'TItem[], query:'TQuery, searchCompare: ('TItem*'TQuery) -> int) =
-        BinarySearch.Search(items.ToMzLiteArray(), query, searchCompare)
+        BinarySearch.Search(items.ToMzIOArray(), query, searchCompare)

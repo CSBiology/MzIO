@@ -1,5 +1,6 @@
 ﻿namespace MzIO.Bruker
 
+
 open System
 open System.Collections.Generic
 open System.IO
@@ -94,7 +95,7 @@ type private SpectrumVariableCollection() =
 
 type private BafPeaksArray(masses:double[], intensities:UInt32[]) =
 
-    interface IMzLiteArray<Peak1D> with
+    interface IMzIOArray<Peak1D> with
 
         member this.Length =
         
@@ -132,13 +133,13 @@ type private BafPeaksArray(masses:double[], intensities:UInt32[]) =
         this.Yield().GetEnumerator()
 
     member this.Length =
-        (this :> IMzLiteArray<Peak1D>).Length
+        (this :> IMzIOArray<Peak1D>).Length
 
     member this.Item 
     
         with get idx =
 
-            (this :> IMzLiteArray<Peak1D>).[idx]
+            (this :> IMzIOArray<Peak1D>).[idx]
 
 [<Sealed>]
 type BafFileReader(bafFilePath:string) =
@@ -172,14 +173,14 @@ type BafFileReader(bafFilePath:string) =
     let supportedVariables =
         SupportedVariablesCollection.ReadSupportedVariables(linq2BafSql)
 
-    interface IMzLiteIO with
+    interface IMzIOIO with
 
         member this.CreateDefaultModel() =
 
             this.RaiseDisposed()
 
             let modelName = Path.GetFileNameWithoutExtension(bafFilePath)
-            let model = new MzLiteModel(modelName)
+            let model = new MzIOModel(modelName)
 
             let sampleName = Path.GetFileNameWithoutExtension(bafFilePath)
             let sample = new Sample("sample_1", sampleName);
@@ -202,7 +203,7 @@ type BafFileReader(bafFilePath:string) =
                 MzIOJson.SaveJsonFile(this.model, this.GetModelFilePath())
             with
                 | :? Exception as ex ->
-                    failwith ((new MzLiteIOException(ex.Message, ex)).ToString())
+                    failwith ((new MzIOIOException(ex.Message, ex)).ToString())
 
         member this.BeginTransaction() =
             
@@ -232,13 +233,13 @@ type BafFileReader(bafFilePath:string) =
 
 
     member private this.model = MzIOJson.HandleExternalModelFile(this, this.GetModelFilePath())
-        //let model = MzLiteJson.HandleExternalModelFile(this, this.GetModelFilePath())
+        //let model = MzIOJson.HandleExternalModelFile(this, this.GetModelFilePath())
 
     //let supportedVariables = SupportedVariablesCollection.ReadSupportedVariables(linq2BafSql)
 
         //with
         //    | :? Exception as ex ->
-        //        failwith ((new MzLiteIOException(ex.Message, ex)).ToString())
+        //        failwith ((new MzIOIOException(ex.Message, ex)).ToString())
 
     member private this.linq2BafSql = linq2BafSql
 
@@ -246,7 +247,7 @@ type BafFileReader(bafFilePath:string) =
 
     member private this.GetModelFilePath() =
         
-        bafFilePath + ".mzlitemodel"
+        bafFilePath + ".MzIOmodel"
 
     member private this.RaiseDisposed() =
 
@@ -265,7 +266,7 @@ type BafFileReader(bafFilePath:string) =
         |> (fun item -> item :> IEnumerable<MassSpectrum>)
             
 
-    interface IMzLiteDataReader with
+    interface IMzIODataReader with
 
         member this.ReadMassSpectra(runID:string) =
 
@@ -276,13 +277,13 @@ type BafFileReader(bafFilePath:string) =
 
             with
 
-                | :? MzLiteIOException as ex ->
+                | :? MzIOIOException as ex ->
 
                     failwith (ex.ToString())
 
                 | :? Exception as ex ->
                 
-                    failwith ((new MzLiteIOException("Error reading spectrum.", ex)).ToString())
+                    failwith ((new MzIOIOException("Error reading spectrum.", ex)).ToString())
         
         member this.ReadMassSpectrum(spectrumID:string) =
 
@@ -293,13 +294,13 @@ type BafFileReader(bafFilePath:string) =
                 this.ReadMassSpectrum(id)
 
             with
-                | :? MzLiteIOException as ex ->
+                | :? MzIOIOException as ex ->
 
                     failwith (ex.ToString())
 
                 | :? Exception as ex ->
                     
-                    failwith ((new MzLiteIOException("Error reading spectrum: " + spectrumID, ex)).ToString())
+                    failwith ((new MzIOIOException("Error reading spectrum: " + spectrumID, ex)).ToString())
 
         //member this.ReadSpectrumPeaks(spectrumID:string, getCentroids:bool) =
 
@@ -310,11 +311,11 @@ type BafFileReader(bafFilePath:string) =
         //        this.ReadSpectrumPeaks(id, getCentroids)
 
         //    with
-        //        | :? MzLiteIOException as ex ->
+        //        | :? MzIOIOException as ex ->
         //            failwith (ex.ToString())
 
         //        | :? Exception as ex ->
-        //            failwith ((new MzLiteIOException("Error reading spectrum peaks: " + spectrumID, ex)).ToString())
+        //            failwith ((new MzIOIOException("Error reading spectrum peaks: " + spectrumID, ex)).ToString())
 
         member this.ReadSpectrumPeaks(spectrumID:string) =
 
@@ -326,19 +327,19 @@ type BafFileReader(bafFilePath:string) =
                 this.ReadSpectrumPeaks(id, false)
 
             with
-                | :? MzLiteIOException as ex ->
+                | :? MzIOIOException as ex ->
                     failwith (ex.ToString())
 
                 | :? Exception as ex ->
-                    failwith ((new MzLiteIOException("Error reading spectrum peaks: " + spectrumID, ex)).ToString())
+                    failwith ((new MzIOIOException("Error reading spectrum peaks: " + spectrumID, ex)).ToString())
 
         member this.ReadMassSpectrumAsync(spectrumID:string) =
 
-            Task<MzIO.Model.MassSpectrum>.Run(fun () -> (this :> IMzLiteDataReader).ReadMassSpectrum(spectrumID))
+            Task<MzIO.Model.MassSpectrum>.Run(fun () -> (this :> IMzIODataReader).ReadMassSpectrum(spectrumID))
 
         member this.ReadSpectrumPeaksAsync(spectrumID:string) =
 
-            Task<Peak1DArray>.Run(fun () -> (this :> IMzLiteDataReader).ReadSpectrumPeaks(spectrumID))
+            Task<Peak1DArray>.Run(fun () -> (this :> IMzIODataReader).ReadSpectrumPeaks(spectrumID))
 
         member this.ReadChromatograms(runID:string) =
             
@@ -347,7 +348,7 @@ type BafFileReader(bafFilePath:string) =
 
             with
                 | :? Exception as ex ->
-                    failwith ((new MzLiteIOException(ex.Message, ex)).ToString())
+                    failwith ((new MzIOIOException(ex.Message, ex)).ToString())
 
         member this.ReadChromatogram(runID:string) =
             
@@ -356,7 +357,7 @@ type BafFileReader(bafFilePath:string) =
 
             with
                 | :? Exception as ex ->
-                    failwith ((new MzLiteIOException(ex.Message, ex)).ToString())
+                    failwith ((new MzIOIOException(ex.Message, ex)).ToString())
 
         member this.ReadChromatogramPeaks(runID:string) =
             
@@ -365,7 +366,7 @@ type BafFileReader(bafFilePath:string) =
 
             with
                 | :? Exception as ex ->
-                    failwith ((new MzLiteIOException(ex.Message, ex)).ToString())
+                    failwith ((new MzIOIOException(ex.Message, ex)).ToString())
     
         member this.ReadChromatogramAsync(runID:string) =
             
@@ -374,7 +375,7 @@ type BafFileReader(bafFilePath:string) =
 
             with
                 | :? Exception as ex ->
-                    failwith ((new MzLiteIOException(ex.Message, ex)).ToString())
+                    failwith ((new MzIOIOException(ex.Message, ex)).ToString())
 
         member this.ReadChromatogramPeaksAsync(runID:string) =
             
@@ -383,7 +384,7 @@ type BafFileReader(bafFilePath:string) =
 
             with
                 | :? Exception as ex ->
-                    failwith ((new MzLiteIOException(ex.Message, ex)).ToString())
+                    failwith ((new MzIOIOException(ex.Message, ex)).ToString())
         
     member private this.ReadMassSpectrum(spectrumId:UInt64) =
 
@@ -391,7 +392,7 @@ type BafFileReader(bafFilePath:string) =
 
         //if bafSpec = null then
             
-        //    failwith ((new MzLiteIOException("No spectrum found for id: " + spectrumId.ToString())).ToString())
+        //    failwith ((new MzIOIOException("No spectrum found for id: " + spectrumId.ToString())).ToString())
 
         let ms = new MassSpectrum(spectrumId.ToString())
 

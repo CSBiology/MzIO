@@ -17,11 +17,10 @@ type NamedItem(name:string) =
     inherit DynamicObj()
 
     let mutable name = 
-        match name with
-        | null  -> failwith (ArgumentNullException("name").ToString())
-        | ""    -> failwith (ArgumentNullException("name").ToString())
-        | " "   -> failwith (ArgumentNullException("name").ToString())
-        |   _   -> name    
+        if String.IsNullOrWhiteSpace(name) then
+            raise (ArgumentNullException("name"))
+        else
+            name
     
     let propertyChanged = new Event<_, _>()
 

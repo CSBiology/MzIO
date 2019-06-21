@@ -121,7 +121,7 @@ let description = "Generic data model to unify various reader and writer for dif
 let author = "Patrick Blume, Jonathan Ott"
 
 // Tags for your project (for NuGet package)
-let tags = "F# MassSpectrometry FSharp MzLite MzMl Wiff BigData"
+let tags = "F# MassSpectrometry FSharp MzIO MzMl Wiff BigData"
 
 // File system information
 let solutionFile  = "MzIO.sln"

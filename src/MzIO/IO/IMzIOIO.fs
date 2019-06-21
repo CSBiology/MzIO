@@ -5,13 +5,13 @@ open System
 open MzIO.Model
 
 
-type IMzLiteIO =
+type IMzIOIO =
 
     inherit IDisposable
 
-    abstract member CreateDefaultModel  : unit -> MzLiteModel
+    abstract member CreateDefaultModel  : unit -> MzIOModel
 
-    abstract member Model               : MzLiteModel
+    abstract member Model               : MzIOModel
 
     abstract member SaveModel           : unit -> unit
 

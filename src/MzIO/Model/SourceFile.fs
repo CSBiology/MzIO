@@ -16,11 +16,10 @@ type SourceFile [<JsonConstructor>] ( [<JsonProperty("ID")>] id:string, [<JsonPr
     inherit NamedModelItem(id, name)
 
     let mutable location' = 
-        match location with
-        | null  -> failwith (ArgumentNullException("location").ToString())
-        | ""    -> failwith (ArgumentNullException("location").ToString())
-        | " "   -> failwith (ArgumentNullException("location").ToString())
-        |   _   -> location  
+        if String.IsNullOrWhiteSpace(location) then 
+            raise (ArgumentNullException("location"))
+        else
+            location
 
 
     new(id, name) = SourceFile(id, name, "location")

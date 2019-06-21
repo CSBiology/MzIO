@@ -50,7 +50,7 @@ type MzMLWriter(path:string) =
             with
                 | :? Exception as ex ->
                     currentWriteState <- MzMLWriteState.ERROR
-                    raise (MzLiteIOException("Error init mzml output file.", ex))
+                    raise (MzIOIOException("Error init mzml output file.", ex))
 
     member this.Close() =
 
@@ -68,7 +68,7 @@ type MzMLWriter(path:string) =
             with
                 | :? Exception as ex ->
                     currentWriteState <- MzMLWriteState.ERROR
-                    raise (new MzLiteIOException("Error closing mzml output file.", ex))
+                    raise (new MzIOIOException("Error closing mzml output file.", ex))
         else ()
 
     interface IDisposable with
@@ -84,16 +84,16 @@ type MzMLWriter(path:string) =
     member private this.EnsureWriteState(expectedWs:MzMLWriteState) =
 
         if currentWriteState = MzMLWriteState.ERROR then
-            raise (new MzLiteIOException("Current write state is ERROR."))
+            raise (new MzIOIOException("Current write state is ERROR."))
         if currentWriteState = MzMLWriteState.CLOSED then
-            raise (new MzLiteIOException("Current write state is CLOSED."))
+            raise (new MzIOIOException("Current write state is CLOSED."))
         if currentWriteState <> expectedWs then
-            raise (MzLiteIOException(String.Format("Invalid write state: expected '{0}' but current is '{1}'.", expectedWs, currentWriteState)))
+            raise (MzIOIOException(String.Format("Invalid write state: expected '{0}' but current is '{1}'.", expectedWs, currentWriteState)))
 
     member private this.EnterWriteState(expectedWs:MzMLWriteState, newWs:MzMLWriteState) =
 
         if consumedWriteStates.Contains(newWs) then
-            raise (MzLiteIOException(String.Format("Can't reentering write state: '{0}'.", newWs)))
+            raise (MzIOIOException(String.Format("Can't reentering write state: '{0}'.", newWs)))
         this.EnsureWriteState(expectedWs)
         currentWriteState <- newWs
         consumedWriteStates.Add(newWs) |> ignore
@@ -117,7 +117,7 @@ type MzMLWriter(path:string) =
 
         if String.IsNullOrWhiteSpace(value) then
             if required then
-                raise (MzLiteIOException("Value required for xml attribute: " + name))
+                raise (MzIOIOException("Value required for xml attribute: " + name))
             else
                 ()
         writer.WriteAttributeString(name, value)
@@ -484,7 +484,7 @@ type MzMLWriter(path:string) =
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    member this.BeginMzML(model:MzLiteModel) =
+    member this.BeginMzML(model:MzIOModel) =
 
         try
             this.EnterWriteState(MzMLWriteState.INITIAL, MzMLWriteState.MZML) |> ignore
@@ -506,7 +506,7 @@ type MzMLWriter(path:string) =
         with
             | :? Exception as ex ->
                 currentWriteState <- MzMLWriteState.ERROR
-                raise (MzLiteIOException("Error writing mzml output file.", ex))
+                raise (MzIOIOException("Error writing mzml output file.", ex))
 
     member this.EndMzML() =
 
@@ -517,7 +517,7 @@ type MzMLWriter(path:string) =
         with
             | :? Exception as ex ->
                 currentWriteState <- MzMLWriteState.ERROR
-                raise (MzLiteIOException("Error writing mzml output file.", ex))
+                raise (MzIOIOException("Error writing mzml output file.", ex))
 
     member this.BeginRun(run: Run) =
 
@@ -537,7 +537,7 @@ type MzMLWriter(path:string) =
         with
             | :? Exception as ex ->
                 currentWriteState <- MzMLWriteState.ERROR
-                raise (MzLiteIOException("Error writing mzml output file.", ex))
+                raise (MzIOIOException("Error writing mzml output file.", ex))
 
     member this.EndRun() =
 
@@ -548,7 +548,7 @@ type MzMLWriter(path:string) =
         with
             | :? Exception as ex ->
                 currentWriteState <- MzMLWriteState.ERROR
-                raise (MzLiteIOException("Error writing mzml output file.", ex))
+                raise (MzIOIOException("Error writing mzml output file.", ex))
 
     member this.BeginSpectrumList(count: int) =
 
@@ -562,7 +562,7 @@ type MzMLWriter(path:string) =
         with
             | :? Exception as ex ->
                 currentWriteState <- MzMLWriteState.ERROR
-                raise (MzLiteIOException("Error writing mzml output file.", ex))
+                raise (MzIOIOException("Error writing mzml output file.", ex))
 
     member this.EndSpectrumList() =
 
@@ -573,7 +573,7 @@ type MzMLWriter(path:string) =
         with
             | :? Exception as ex ->
                 currentWriteState <- MzMLWriteState.ERROR
-                raise (MzLiteIOException("Error writing mzml output file.", ex))
+                raise (MzIOIOException("Error writing mzml output file.", ex))
 
     member this.WriteSpectrum(ms: MassSpectrum, peaks: Peak1DArray, index: int) =
 
@@ -605,4 +605,4 @@ type MzMLWriter(path:string) =
         with
             | :? Exception as ex ->
                 currentWriteState <- MzMLWriteState.ERROR
-                raise (MzLiteIOException("Error writing mzml output file.", ex))
+                raise (MzIOIOException("Error writing mzml output file.", ex))
