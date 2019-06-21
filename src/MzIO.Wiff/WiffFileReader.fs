@@ -112,9 +112,9 @@ type WiffTransactionScope() =
 
         (this :> ITransactionScope).Rollback()
 
-type WiffFileReader(dataProvider:AnalystWiffDataProvider, disposed:Boolean, wiffFilePath:string, ?licenseFilePath:string) =
+type WiffFileReader(dataProvider:AnalystWiffDataProvider, disposed:Boolean, wiffFilePath:string, licenseFilePath:string) =
 
-    let licenseFilePath = defaultArg licenseFilePath (sprintf @"%s"(__SOURCE_DIRECTORY__ + "\License\Clearcore2.license.xml"))
+    //let licenseFilePath = defaultArg licenseFilePath (sprintf @"%s"(__SOURCE_DIRECTORY__ + "\License\Clearcore2.license.xml"))
 
     let mutable dataProvider    = dataProvider
 
@@ -157,7 +157,8 @@ type WiffFileReader(dataProvider:AnalystWiffDataProvider, disposed:Boolean, wiff
     //    | " "   -> failwith (ArgumentNullException("LicenseFilePath").ToString())
     //    |   _   -> WiffFileReader.ReadWiffLicense(licenseFilePath)
 
-    new(wiffFilePath:string, licenseFilePath:string) =
+    new(wiffFilePath:string, ?licenseFilePath:string) =
+        let licenseFilePath = defaultArg licenseFilePath (sprintf @"%s"(__SOURCE_DIRECTORY__ + "\License\Clearcore2.license.xml"))
         new WiffFileReader
             (
                 new AnalystWiffDataProvider(true), false, wiffFilePath, licenseFilePath
