@@ -106,7 +106,7 @@ type private BafPeaksArray(masses:double[], intensities:UInt32[]) =
             with get idx =
 
                 if idx < 0 || idx > this.Length then 
-                    failwith ((new IndexOutOfRangeException()).ToString())
+                    raise (new IndexOutOfRangeException())
                 else
                     new Peak1D(float intensities.[idx], masses.[idx])
 
@@ -203,7 +203,7 @@ type BafFileReader(bafFilePath:string) =
                 MzIOJson.SaveJsonFile(this.model, this.GetModelFilePath())
             with
                 | :? Exception as ex ->
-                    failwith ((new MzIOIOException(ex.Message, ex)).ToString())
+                    raise (new MzIOIOException(ex.Message, ex))
 
         member this.BeginTransaction() =
             
@@ -218,7 +218,7 @@ type BafFileReader(bafFilePath:string) =
             this.RaiseDisposed()
 
             if disposed = true then 
-                failwith ((new ObjectDisposedException(this.GetType().Name)).ToString())
+                raise (new ObjectDisposedException(this.GetType().Name))
             else ()
  
             if disposed = true then ()
@@ -239,7 +239,7 @@ type BafFileReader(bafFilePath:string) =
 
         //with
         //    | :? Exception as ex ->
-        //        failwith ((new MzIOIOException(ex.Message, ex)).ToString())
+        //        raise (new MzIOIOException(ex.Message, ex))
 
     member private this.linq2BafSql = linq2BafSql
 
@@ -253,7 +253,7 @@ type BafFileReader(bafFilePath:string) =
 
         if disposed = true then
 
-            failwith (ObjectDisposedException(this.GetType().Name).ToString())
+            raise (ObjectDisposedException(this.GetType().Name))
         else
             ()
 
@@ -279,11 +279,11 @@ type BafFileReader(bafFilePath:string) =
 
                 | :? MzIOIOException as ex ->
 
-                    failwith (ex.ToString())
+                    raise ex
 
                 | :? Exception as ex ->
                 
-                    failwith ((new MzIOIOException("Error reading spectrum.", ex)).ToString())
+                    raise (new MzIOIOException("Error reading spectrum.", ex))
         
         member this.ReadMassSpectrum(spectrumID:string) =
 
@@ -296,11 +296,11 @@ type BafFileReader(bafFilePath:string) =
             with
                 | :? MzIOIOException as ex ->
 
-                    failwith (ex.ToString())
+                    raise ex
 
                 | :? Exception as ex ->
                     
-                    failwith ((new MzIOIOException("Error reading spectrum: " + spectrumID, ex)).ToString())
+                    raise (new MzIOIOException("Error reading spectrum: " + spectrumID, ex))
 
         //member this.ReadSpectrumPeaks(spectrumID:string, getCentroids:bool) =
 
@@ -312,10 +312,10 @@ type BafFileReader(bafFilePath:string) =
 
         //    with
         //        | :? MzIOIOException as ex ->
-        //            failwith (ex.ToString())
+        //            raise ex
 
         //        | :? Exception as ex ->
-        //            failwith ((new MzIOIOException("Error reading spectrum peaks: " + spectrumID, ex)).ToString())
+        //            raise (new MzIOIOException("Error reading spectrum peaks: " + spectrumID, ex))
 
         member this.ReadSpectrumPeaks(spectrumID:string) =
 
@@ -328,10 +328,10 @@ type BafFileReader(bafFilePath:string) =
 
             with
                 | :? MzIOIOException as ex ->
-                    failwith (ex.ToString())
+                    raise ex
 
                 | :? Exception as ex ->
-                    failwith ((new MzIOIOException("Error reading spectrum peaks: " + spectrumID, ex)).ToString())
+                    raise (new MzIOIOException("Error reading spectrum peaks: " + spectrumID, ex))
 
         member this.ReadMassSpectrumAsync(spectrumID:string) =
 
@@ -344,47 +344,47 @@ type BafFileReader(bafFilePath:string) =
         member this.ReadChromatograms(runID:string) =
             
             try
-                failwith ((new NotSupportedException()).ToString())
+                raise (new NotSupportedException())
 
             with
                 | :? Exception as ex ->
-                    failwith ((new MzIOIOException(ex.Message, ex)).ToString())
+                    raise (new MzIOIOException(ex.Message, ex))
 
         member this.ReadChromatogram(runID:string) =
             
             try
-                failwith ((new NotSupportedException()).ToString())
+                raise (new NotSupportedException())
 
             with
                 | :? Exception as ex ->
-                    failwith ((new MzIOIOException(ex.Message, ex)).ToString())
+                    raise (new MzIOIOException(ex.Message, ex))
 
         member this.ReadChromatogramPeaks(runID:string) =
             
             try
-                failwith ((new NotSupportedException()).ToString())
+                raise (new NotSupportedException())
 
             with
                 | :? Exception as ex ->
-                    failwith ((new MzIOIOException(ex.Message, ex)).ToString())
+                    raise (new MzIOIOException(ex.Message, ex))
     
         member this.ReadChromatogramAsync(runID:string) =
             
             try
-                failwith ((new NotSupportedException()).ToString())
+                raise (new NotSupportedException())
 
             with
                 | :? Exception as ex ->
-                    failwith ((new MzIOIOException(ex.Message, ex)).ToString())
+                    raise (new MzIOIOException(ex.Message, ex))
 
         member this.ReadChromatogramPeaksAsync(runID:string) =
             
             try
-                failwith ((new NotSupportedException()).ToString())
+                raise (new NotSupportedException())
 
             with
                 | :? Exception as ex ->
-                    failwith ((new MzIOIOException(ex.Message, ex)).ToString())
+                    raise (new MzIOIOException(ex.Message, ex))
         
     member private this.ReadMassSpectrum(spectrumId:UInt64) =
 
@@ -392,7 +392,7 @@ type BafFileReader(bafFilePath:string) =
 
         //if bafSpec = null then
             
-        //    failwith ((new MzIOIOException("No spectrum found for id: " + spectrumId.ToString())).ToString())
+        //    raise (new MzIOIOException("No spectrum found for id: " + spectrumId.ToString()))
 
         let ms = new MassSpectrum(spectrumId.ToString())
 
