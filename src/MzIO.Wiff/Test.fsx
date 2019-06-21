@@ -58,7 +58,7 @@ open System.Runtime.InteropServices
 
 
 let fileDir             = __SOURCE_DIRECTORY__
-let licensePath         = sprintf @"%s" (fileDir + "\License\Clearcore2.license.xml")
+let licensePath         = @"C:\Users\Patrick\source\repos\MzLiteFSharp\src\MzLiteFSharp.Wiff\License\Clearcore2.license.xml"
 
 let wiffTestFileStudent = @"C:\Users\Student\OneDrive\MP_Biotech\VP_Timo\MassSpecFiles\wiffTestFiles\20171129 FW LWagg001.wiff"
 let mzIOFileStudent     = @"C:\Users\Student\source\repos\wiffTestFiles\20171129 FW LWagg001.wiff.mzIO"
@@ -221,9 +221,9 @@ let helper = getMzIOHelper wiffTestPaeddetor BinaryDataCompressionType.NoCompres
 
 let peak1DArrays = getPeak1DArrays wiffFileReader
 
-//let insertDB =
-//    getMzIOHelper wiffTestPaeddetor BinaryDataCompressionType.NoCompression
-//    |> (fun wiffFileReader -> insertIntoDB 100 wiffFileReader)
+let insertDB =
+    getMzIOHelper wiffTestPaeddetor BinaryDataCompressionType.NoCompression
+    |> (fun wiffFileReader -> insertIntoDB 100 wiffFileReader)
 
 //let spectrum =
 //    getSpectrum paddeTestPath "sample=0 experiment=0 scan=0"
