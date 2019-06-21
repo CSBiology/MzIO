@@ -1,5 +1,8 @@
+#### 0.0.4 - Friday, June 21, 2019
+* Add project for the MzML-Reader
+
 #### 0.0.3 - Tuesday, June 18, 2019
-* Add package for the Bruker-Reader
+* Add project for the Bruker-Reader
 
 #### 0.0.2 - Thursday, June 14, 2019
 * Contains MzIO-Model

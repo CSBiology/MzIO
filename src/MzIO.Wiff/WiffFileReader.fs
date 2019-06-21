@@ -112,7 +112,9 @@ type WiffTransactionScope() =
 
         (this :> ITransactionScope).Rollback()
 
-type WiffFileReader(dataProvider:AnalystWiffDataProvider, disposed:Boolean, wiffFilePath:string, licenseFilePath:string) =
+type WiffFileReader(dataProvider:AnalystWiffDataProvider, disposed:Boolean, wiffFilePath:string, ?licenseFilePath:string) =
+
+    let licenseFilePath = defaultArg licenseFilePath (sprintf @"%s"(__SOURCE_DIRECTORY__ + "\License\Clearcore2.license.xml"))
 
     let mutable dataProvider    = dataProvider
 
@@ -122,24 +124,38 @@ type WiffFileReader(dataProvider:AnalystWiffDataProvider, disposed:Boolean, wiff
 
     //let parseHelper = new ParseHelper()
 
-    let mutable wiffFilePath =
-        if wiffFilePath<>"wiffFilePath" then
-            if not (File.Exists(wiffFilePath)) then
-                failwith  ((new FileNotFoundException("Wiff file not exists.")).ToString())
-            else
-                match wiffFilePath with
-                | null  -> failwith (ArgumentNullException("WiffFilePath").ToString())
-                | ""    -> failwith (ArgumentNullException("WiffFilePath").ToString())
-                | " "   -> failwith (ArgumentNullException("WiffFilePath").ToString())
-                |   _   -> wiffFilePath
-        else wiffFilePath
+    let wiffFileCheck =
 
-    let mutable licenseFilePath =
-        match licenseFilePath with
-        | null  -> failwith (ArgumentNullException("LicenseFilePath").ToString())
-        | ""    -> failwith (ArgumentNullException("LicenseFilePath").ToString())
-        | " "   -> failwith (ArgumentNullException("LicenseFilePath").ToString())
-        |   _   -> WiffFileReader.ReadWiffLicense(licenseFilePath)
+        if not (File.Exists(wiffFilePath)) then
+            raise (FileNotFoundException("Wiff file does not exist."))
+        if (wiffFilePath.Trim() = "") then
+            raise (ArgumentNullException("wiffFilePath"))
+
+    let licenseFileCheck =
+        
+        if (licenseFilePath.Trim() = "") then
+            raise (ArgumentNullException("licenseFilePath"))
+        else 
+            WiffFileReader.ReadWiffLicense(licenseFilePath)
+
+    //let mutable wiffFilePath =
+    //    if wiffFilePath<>"wiffFilePath" then
+    //        if not (File.Exists(wiffFilePath)) then
+    //            failwith  ((new FileNotFoundException("Wiff file not exists.")).ToString())
+    //        else
+    //            match wiffFilePath with
+    //            | null  -> failwith (ArgumentNullException("WiffFilePath").ToString())
+    //            | ""    -> failwith (ArgumentNullException("WiffFilePath").ToString())
+    //            | " "   -> failwith (ArgumentNullException("WiffFilePath").ToString())
+    //            |   _   -> wiffFilePath
+    //    else wiffFilePath
+
+    //let mutable licenseFilePath =
+    //    match licenseFilePath with
+    //    | null  -> failwith (ArgumentNullException("LicenseFilePath").ToString())
+    //    | ""    -> failwith (ArgumentNullException("LicenseFilePath").ToString())
+    //    | " "   -> failwith (ArgumentNullException("LicenseFilePath").ToString())
+    //    |   _   -> WiffFileReader.ReadWiffLicense(licenseFilePath)
 
     new(wiffFilePath:string, licenseFilePath:string) =
         new WiffFileReader
