@@ -11,7 +11,7 @@ open Newtonsoft.Json
 /// and the processing of that data at the level of peak lists.
 /// </summary>
 [<JsonObject(MemberSerialization.OptIn)>]
-type MzLiteModel
+type MzIOModel
     (name:string, fileDescription:FileDescription, samples:SampleList, softwares:SoftwareList, 
      dataProcessings:DataProcessingList, instruments:InstrumentList, runs:RunList
     ) =
@@ -31,19 +31,19 @@ type MzLiteModel
     let mutable runs' = runs
 
     new(name, fileDescription, instruments) = 
-        MzLiteModel(name, fileDescription, new SampleList(),  new SoftwareList(), new DataProcessingList(), 
+        MzIOModel(name, fileDescription, new SampleList(),  new SoftwareList(), new DataProcessingList(), 
                     instruments, new RunList())
 
     new(name:string, fileDescription:FileDescription) = 
-        MzLiteModel(name, fileDescription, new SampleList(),  new SoftwareList(), new DataProcessingList(), 
+        MzIOModel(name, fileDescription, new SampleList(),  new SoftwareList(), new DataProcessingList(), 
                     new InstrumentList(), new RunList())
 
     [<JsonConstructor>]
     new(name) = 
-        MzLiteModel(name, new FileDescription(), new SampleList(),  new SoftwareList(), new DataProcessingList(), 
+        MzIOModel(name, new FileDescription(), new SampleList(),  new SoftwareList(), new DataProcessingList(), 
                     new InstrumentList(), new RunList())
 
-    new() = MzLiteModel("name", new FileDescription(), new SampleList(),  new SoftwareList(), new DataProcessingList(), 
+    new() = MzIOModel("name", new FileDescription(), new SampleList(),  new SoftwareList(), new DataProcessingList(), 
                         new InstrumentList(), new RunList())
 
     [<JsonProperty(Required = Required.Always, ObjectCreationHandling = ObjectCreationHandling.Reuse)>]

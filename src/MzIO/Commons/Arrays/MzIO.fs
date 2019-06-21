@@ -14,7 +14,7 @@ open System.Collections.Generic
         ////////////////////////////////////////////////////\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 //Explicit interface implementation instead of implicit.
 //Change idx to item.
-type IMzLiteArray<'T> =
+type IMzIOArray<'T> =
     
     inherit IEnumerable<'T>
 
@@ -43,8 +43,8 @@ type ArrayWrapper<'T>(array:'T[]) =
         member this.GetEnumerator() = 
             array.GetEnumerator()
 
-    //IMzLiteArray<'T> members 
-    interface IMzLiteArray<'T> with
+    //IMzIOArray<'T> members 
+    interface IMzIOArray<'T> with
         member this.Length = 
             array.Length
 
@@ -71,8 +71,8 @@ type ListWrapper<'T>(list:IList<'T>) =
         member this.GetEnumerator() =
             list.ToArray().GetEnumerator()
 
-    //IMzLiteArray<'T> members 
-    interface IMzLiteArray<'T> with
+    //IMzIOArray<'T> members 
+    interface IMzIOArray<'T> with
         member this.Length = 
             list.Count
 
@@ -84,15 +84,15 @@ type ListWrapper<'T>(list:IList<'T>) =
         ////////////////////////////////////////////////////\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 //ArrayWrapper && ListWrapper lack default constructor which uses the array 
 //on which the function is called.
-type MzLiteArray =
+type MzIOArray =
     
-    static member ToMzLiteArray<'T>(source:'T[]) =
+    static member ToMzIOArray<'T>(source:'T[]) =
         ArrayWrapper<'T>(source)
 
-    static member ToMzLiteArray<'T>(source:IList<'T>) =
+    static member ToMzIOArray<'T>(source:IList<'T>) =
         ListWrapper<'T>(source)
 
-    static member ToCLRArray<'T>(source:IMzLiteArray<'T>) =
+    static member ToCLRArray<'T>(source:IMzIOArray<'T>) =
         //let tmp = Array.create source.Length (source.[0])
         //for i=0 to source.Length-1 do
         //    tmp.[i] <- source.[i]
@@ -102,19 +102,19 @@ type MzLiteArray =
     static member Empty<'T>() =
         ArrayWrapper<'T>([||])
 
-module MzLiteArray =
+module MzIOArray =
 
     type ``[]``<'T> with
 
-        member this.ToMzLiteArray<'T>() =
+        member this.ToMzIOArray<'T>() =
             ArrayWrapper<'T>(this)
 
     type IList<'T> with
 
-        member this.ToMzLiteArray<'T>() =
+        member this.ToMzIOArray<'T>() =
             ListWrapper<'T>(this)
 
-    type IMzLiteArray<'T> with 
+    type IMzIOArray<'T> with 
 
         member this.ToCLRArray<'T>() =
             //let tmp = Array.create this.Length (this.[0])

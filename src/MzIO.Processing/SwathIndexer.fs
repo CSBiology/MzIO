@@ -202,7 +202,7 @@ module SwathIndexer =
 
         member this.SwathList = swathList
 
-        static member Create(dataReader:IMzLiteDataReader, runID:string) =
+        static member Create(dataReader:IMzIODataReader, runID:string) =
 
             let mutable runID =
                 match runID with
@@ -219,7 +219,7 @@ module SwathIndexer =
             let swathList = new SwathList(swathes)
             new SwathIndexer(swathList)
 
-        member this.GetMS2(dataReader:IMzLiteDataReader, query:SwathQuery(*, mzRangeSelector:Func<IEnumerable<Peak1D>, RangeQuery, Peak1D>*)) =
+        member this.GetMS2(dataReader:IMzIODataReader, query:SwathQuery(*, mzRangeSelector:Func<IEnumerable<Peak1D>, RangeQuery, Peak1D>*)) =
 
             let mutable mzRangeSelector = SwathIndexer.GetClosestMz
 
@@ -253,7 +253,7 @@ module SwathIndexer =
                 else 0
 
     //        //public Peak2D[,] GetRTProfiles(
-    //        //    IMzLiteDataReader dataReader,
+    //        //    IMzIODataReader dataReader,
     //        //    SwathQuery query,
     //        //    bool getLockMz,
     //        //    Func<Peak1DArray, RangeQuery, Peak1D> mzRangeSelector)

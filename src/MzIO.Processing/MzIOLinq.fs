@@ -108,21 +108,21 @@ module MzIOLinq =
         /// Get all rt index entries by rt range.
         /// </summary>
 
-        static member Search(rti: IMzLiteArray<RtIndexEntry>, rtRange: RangeQuery) =
+        static member Search(rti: IMzIOArray<RtIndexEntry>, rtRange: RangeQuery) =
             BinarySearch.Search(rti, rtRange, RtIndexEntry.RtSearchCompare1)
 
         /// <summary>
         /// Get all peaks by rt range.
         /// </summary>
 
-        static member RtSearch(peaks: IMzLiteArray<'TPeak>, rtRange: RangeQuery) =
+        static member RtSearch(peaks: IMzIOArray<'TPeak>, rtRange: RangeQuery) =
             BinarySearch.Search(peaks, rtRange, RtIndexEntry.RtSearchCompare2)
 
         /// <summary>
         /// Get all peaks by mz range.
         /// </summary>
 
-        static member MzSearch(peaks: IMzLiteArray<'TPeak>, mzRange: RangeQuery) =
+        static member MzSearch(peaks: IMzIOArray<'TPeak>, mzRange: RangeQuery) =
             BinarySearch.Search(peaks, mzRange, RtIndexEntry.MzSearchCompare)
 
         /// <summary>
@@ -154,7 +154,7 @@ module MzIOLinq =
             member this.Compare(x: RtIndexEntry, y: RtIndexEntry) =
                 x.Rt.CompareTo(y.Rt)
 
-    type IMzLiteDataReader with
+    type IMzIODataReader with
 
         member this.ReadSpectrumPeaks(entry: RtIndexEntry) =
             this.ReadSpectrumPeaks(entry.SpectrumID)
@@ -182,7 +182,7 @@ module MzIOLinq =
                 if RtIndexEntry.TryCreateEntry(ms, msLevel, & entry) then
                     entries.Add(entry)
             entries.Sort(new RtIndexEntrySorting())
-            MzLiteArray.ToMzLiteArray(entries)
+            MzIOArray.ToMzIOArray(entries)
 
         /// <summary>
         /// Extract a rt profile matrix for specified target masses and rt range.
@@ -193,7 +193,7 @@ module MzIOLinq =
         /// and second index corresponds to mz ranges given.
         /// </returns>
 
-        member this.RtProfiles(rtIndex: IMzLiteArray<RtIndexEntry>, rtRange: RangeQuery, mzRanges: RangeQuery[]) =
+        member this.RtProfiles(rtIndex: IMzIOArray<RtIndexEntry>, rtRange: RangeQuery, mzRanges: RangeQuery[]) =
 
             let entries = RtIndexEntry.Search(rtIndex, rtRange).ToArray()
             let profile = Array2D.zeroCreate<Peak2D> entries.Length mzRanges.Length
@@ -216,7 +216,7 @@ module MzIOLinq =
         /// Profile array with index corresponding to continous mass spectra over rt range and mz range given.
         /// </returns>
 
-        member this.RtProfile(rtIndex: IMzLiteArray<RtIndexEntry>, rtRange: RangeQuery, mzRange: RangeQuery) =
+        member this.RtProfile(rtIndex: IMzIOArray<RtIndexEntry>, rtRange: RangeQuery, mzRange: RangeQuery) =
 
             let entries = RtIndexEntry.Search(rtIndex, rtRange).ToArray()
             let profile = Array.zeroCreate<Peak2D> entries.Length

@@ -1,7 +1,7 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>net45</TargetFrameworks>
+    <TargetFrameworks>net451</TargetFrameworks>
     <RootNamespace>MzIO</RootNamespace>
     <AssemblyName>MzIO.Thermo</AssemblyName>
     <Name>MzIO.Thermo</Name>
@@ -17,7 +17,6 @@
   <ItemGroup>
     <EmbeddedResource Remove="Scripts\**" />
   </ItemGroup>
-  <ItemGroup />
   <ItemGroup>
     <Compile Include="ThermoRawFileReader.fs" />
     <None Include="paket.references" />

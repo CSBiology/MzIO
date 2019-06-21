@@ -1,4 +1,4 @@
-﻿namespace MzLite.Thermo
+﻿namespace MzIO.Thermo
 
 
 //open System
@@ -6,7 +6,16 @@
 //open System.IO
 //open System.Linq
 //open System.Threading.Tasks
-//open MSFileReaderLib
+//open ThermoFisher
+//open ThermoFisher.CommonCore
+//open ThermoFisher.CommonCore.RawFileReader
+//open ThermoFisher.CommonCore.RawFileReader.Writers
+//open ThermoFisher.CommonCore.Data
+//open ThermoFisher.CommonCore.Data.Business
+//open ThermoFisher.CommonCore.Data.FilterEnums
+//open ThermoFisher.CommonCore.Data.Interfaces
+//open ThermoFisher.CommonCore.BackgroundSubtraction
+//open ThermoFisher.CommonCore.MassPrecisionEstimator
 //open MzIO.Binary
 //open MzIO.Commons.Arrays
 //open MzIO.IO
@@ -27,9 +36,16 @@
 //            else 
 //                rawFilePath
 //                //try
-//    let rawFile = new MSFileReader_XRawfile() :> IXRawfile5
-//    rawFile.Open(rawFilePath)
-//    rawFile.SetCurrentController(0, 1)
+//    //let rawFile = new MSFileReader_XRawfile() :> IXRawfile5
+//    //rawFile.Open(rawFilePath)
+//    let rawfile =
+//        //RawFileReaderAdapter.ThreadedFileFactory(rawFilePath).CreateThreadAccessor()
+//        //new RawFile()
+//        ThermoFisher.CommonCore.Data.RawDataCreator(null, null, null).
+//    let x =
+        
+//        rawfile.Open(rawFilePath)
+//        rawfile.SetCurrentController(0, 1)
 
 //    let startScanNo = GetFirstSpectrumNumber(rawFile)
 //    let endScanNo = GetLastSpectrumNumber(rawFile)
@@ -152,7 +168,7 @@
                 
 //                let scanNo = Int32.Parse(splitted.[1])
 
-//                if scanNO < startScanNo || scanNo > endScanNo then
+//                if scanNo < startScanNo || scanNo > endScanNo then
 
 //                    raise (new IndexOutOfRangeException("Scan number out of range."))
 

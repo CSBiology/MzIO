@@ -47,3 +47,12 @@ nuget Fake.DotNet.Paket
 nuget Fake.DotNet.Testing.Expecto 
 nuget Fake.DotNet.FSFormatting 
 nuget Fake.Api.GitHub
+
+
+source C:\Users\Patrick\source\repos\MzIO\src\MzIO.Thermo\Lib
+
+
+nuget ThermoFisher.CommonCore.BackgroundSubtraction
+nuget ThermoFisher.CommonCore.Data
+nuget ThermoFisher.CommonCore.MassPrecisionEstimator
+nuget ThermoFisher.CommonCore.RawFileReader

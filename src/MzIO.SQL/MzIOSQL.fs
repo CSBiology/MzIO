@@ -21,13 +21,13 @@ module CMD =
 
 open CMD
 
-type MzLiteSQLTransactionScope(connection: SQLiteConnection, transaction: SQLiteTransaction, commands: IDictionary<string, SQLiteCommand>) =
+type MzIOSQLTransactionScope(connection: SQLiteConnection, transaction: SQLiteTransaction, commands: IDictionary<string, SQLiteCommand>) =
     
     let mutable disposed = false
 
     let mutable transaction = transaction
 
-    new(connection) = new MzLiteSQLTransactionScope(connection, connection.BeginTransaction(), new Dictionary<string, SQLiteCommand>())
+    new(connection) = new MzIOSQLTransactionScope(connection, connection.BeginTransaction(), new Dictionary<string, SQLiteCommand>())
 
     member private this.RaiseDisposed() =
 
@@ -52,7 +52,7 @@ type MzLiteSQLTransactionScope(connection: SQLiteConnection, transaction: SQLite
             if transaction <> null then
                 transaction.Dispose()
             let mutable tmp = Some this
-            MzLiteSQL.ReleaseTransactionScope(& tmp)
+            MzIOSQL.ReleaseTransactionScope(& tmp)
             disposed <- true
 
     member this.Dispose() =
@@ -96,9 +96,9 @@ type MzLiteSQLTransactionScope(connection: SQLiteConnection, transaction: SQLite
 
 
 /// <summary>
-/// The MzLite data reader/writer implementation for SQLite databases.
+/// The MzIO data reader/writer implementation for SQLite databases.
 /// </summary>
-and MzLiteSQL(encoder:BinaryDataEncoder,decoder:BinaryDataDecoder, model:MzLiteModel, currentScope:MzLiteSQLTransactionScope option, sqlFilePath:string) =
+and MzIOSQL(encoder:BinaryDataEncoder,decoder:BinaryDataDecoder, model:MzIOModel, currentScope:MzIOSQLTransactionScope option, sqlFilePath:string) =
     
     let mutable disposed = false
 
@@ -116,33 +116,33 @@ and MzLiteSQL(encoder:BinaryDataEncoder,decoder:BinaryDataDecoder, model:MzLiteM
         | " "   -> failwith (ArgumentNullException("sqlFilePath").ToString())      
         |   _   -> sqlFilePath
 
-    let connection = MzLiteSQL.GetConnection(path)
+    let connection = MzIOSQL.GetConnection(path)
         
     let tmp =
         if not (File.Exists(sqlFilePath)) then
             File.Create(sqlFilePath) |> ignore
         else
-        //let connection = MzLiteSQL.GetConnection(sqlFilePath)
-        MzLiteSQL.SqlRunPragmas(connection)
+        //let connection = MzIOSQL.GetConnection(sqlFilePath)
+        MzIOSQL.SqlRunPragmas(connection)
         //let ex = new Exception()
-        use (scope: ITransactionScope) = MzLiteSQL.BeginTransaction(connection,& currentScope,& disposed)
+        use (scope: ITransactionScope) = MzIOSQL.BeginTransaction(connection,& currentScope,& disposed)
         (
             //try
-                MzLiteSQL.SqlInitSchema(currentScope.Value)
-                if not (MzLiteSQL.SqlTrySelect(currentScope.Value, & model)) then
-                    model<- MzLiteSQL.CreateDefaultModel(path)
-                    MzLiteSQL.SqlSave(& cmd, model, & currentScope)
+                MzIOSQL.SqlInitSchema(currentScope.Value)
+                if not (MzIOSQL.SqlTrySelect(currentScope.Value, & model)) then
+                    model<- MzIOSQL.CreateDefaultModel(path)
+                    MzIOSQL.SqlSave(& cmd, model, & currentScope)
                 scope.Commit()
             //with
                 //| :? Exception -> 
                 //    scope.Rollback()
                 //    this
-                //    //failwith (MzLiteIOException.MzLiteIOException(ex.Message, ex).ToString())
+                //    //failwith (MzIOIOException.MzIOIOException(ex.Message, ex).ToString())
         )
 
-    new(sqlFilePath:string) = new MzLiteSQL(new BinaryDataEncoder(), new BinaryDataDecoder(), new MzLiteModel(), None, sqlFilePath)
+    new(sqlFilePath:string) = new MzIOSQL(new BinaryDataEncoder(), new BinaryDataDecoder(), new MzIOModel(), None, sqlFilePath)
 
-    static member private SqlInitSchema(currentScope:MzLiteSQLTransactionScope) =
+    static member private SqlInitSchema(currentScope:MzIOSQLTransactionScope) =
         use cmd = currentScope.CreateCommand("CREATE TABLE IF NOT EXISTS Model (Lock INTEGER  NOT NULL PRIMARY KEY DEFAULT(0) CHECK (Lock=0), Content TEXT NOT NULL)")
         cmd.ExecuteNonQuery() |> ignore
         use cmd = currentScope.CreateCommand("CREATE TABLE IF NOT EXISTS Spectrum (RunID TEXT NOT NULL, SpectrumID TEXT NOT NULL PRIMARY KEY, Description TEXT NOT NULL, PeakArray TEXT NOT NULL, PeakData BINARY NOT NULL)")
@@ -150,23 +150,23 @@ and MzLiteSQL(encoder:BinaryDataEncoder,decoder:BinaryDataDecoder, model:MzLiteM
         use cmd = currentScope.CreateCommand("CREATE TABLE IF NOT EXISTS Chromatogram (RunID TEXT NOT NULL, ChromatogramID TEXT NOT NULL PRIMARY KEY, Description TEXT NOT NULL, PeakArray TEXT NOT NULL, PeakData BINARY NOT NULL)")
         cmd.ExecuteNonQuery() |> ignore
 
-    static member private SqlTrySelect(currentScope:MzLiteSQLTransactionScope, model:byref<MzLiteModel>) =
+    static member private SqlTrySelect(currentScope:MzIOSQLTransactionScope, model:byref<MzIOModel>) =
         use cmd = currentScope.CreateCommand("SELECT Content FROM Model")
         (
             let content = cmd.ExecuteScalar()
             if (content :? string) then
-                model <- MzIOJson.FromJson<MzLiteModel>(content :?> string)
+                model <- MzIOJson.FromJson<MzIOModel>(content :?> string)
                 true
                     
             else 
-                model<- new MzLiteModel()
+                model<- new MzIOModel()
                 false
         )
 
-    //member this.MzLiteSQL() =
+    //member this.MzIOSQL() =
             
-    //    //let connection = MzLiteSQL.GetConnection(sqlFilePath)
-    //    MzLiteSQL.SqlRunPragmas(connection)
+    //    //let connection = MzIOSQL.GetConnection(sqlFilePath)
+    //    MzIOSQL.SqlRunPragmas(connection)
     //    //let ex = new Exception()
     //    use (scope: ITransactionScope) = this.BeginTransaction()
     //    (
@@ -181,11 +181,11 @@ and MzLiteSQL(encoder:BinaryDataEncoder,decoder:BinaryDataDecoder, model:MzLiteM
     //            //| :? Exception -> 
     //            //    scope.Rollback()
     //            //    this
-    //            //    //failwith (MzLiteIOException.MzLiteIOException(ex.Message, ex).ToString())
+    //            //    //failwith (MzIOIOException.MzIOIOException(ex.Message, ex).ToString())
     //    )
 
         
-    static member private SqlSave(cmd:byref<SQLiteCommand>, model:MzLiteModel, currentScope:byref<MzLiteSQLTransactionScope option>) =
+    static member private SqlSave(cmd:byref<SQLiteCommand>, model:MzIOModel, currentScope:byref<MzIOSQLTransactionScope option>) =
 
         cmd <- currentScope.Value.CreateCommand("DELETE FROM Model")
         (
@@ -200,7 +200,7 @@ and MzLiteSQL(encoder:BinaryDataEncoder,decoder:BinaryDataDecoder, model:MzLiteM
   
     static member private RaiseDisposed(disposed:byref<bool>) =
 
-            if disposed = true then failwith ((new ObjectDisposedException("MzLiteSQL")).ToString())
+            if disposed = true then failwith ((new ObjectDisposedException("MzIOSQL")).ToString())
 
             else ()
 
@@ -226,13 +226,13 @@ and MzLiteSQL(encoder:BinaryDataEncoder,decoder:BinaryDataDecoder, model:MzLiteM
             
         (this :> IDisposable).Dispose()
 
-    interface IMzLiteIO with
+    interface IMzIOIO with
         
         member this.BeginTransaction() =
 
             this.RaiseDisposed()
 
-            currentScope <- Some (new MzLiteSQLTransactionScope(connection))
+            currentScope <- Some (new MzIOSQLTransactionScope(connection))
             currentScope.Value :> ITransactionScope
 
         member this.Model = 
@@ -243,13 +243,13 @@ and MzLiteSQL(encoder:BinaryDataEncoder,decoder:BinaryDataDecoder, model:MzLiteM
             this.RaiseDisposed()
             //function omitted
             this.RaiseNotInScope() //does nothing
-            MzLiteSQL.SqlSave(& cmd, model, & currentScope)
+            MzIOSQL.SqlSave(& cmd, model, & currentScope)
 
         member this.CreateDefaultModel() =
             this.RaiseDisposed()
-            new MzLiteModel(Path.GetFileNameWithoutExtension(path))
+            new MzIOModel(Path.GetFileNameWithoutExtension(path))
 
-    static member internal ReleaseTransactionScope(currentScope:byref<MzLiteSQLTransactionScope option>) =
+    static member internal ReleaseTransactionScope(currentScope:byref<MzIOSQLTransactionScope option>) =
 
         currentScope <- None
 
@@ -259,24 +259,24 @@ and MzLiteSQL(encoder:BinaryDataEncoder,decoder:BinaryDataDecoder, model:MzLiteM
 
     member this.CreateDefaultModel() =
 
-        (this :> IMzLiteIO).CreateDefaultModel()
+        (this :> IMzIOIO).CreateDefaultModel()
 
     static member CreateDefaultModel(path) =
 
-        new MzLiteModel(Path.GetFileNameWithoutExtension(path))
+        new MzIOModel(Path.GetFileNameWithoutExtension(path))
 
     member this.Model =
 
-        (this :> IMzLiteIO).Model
+        (this :> IMzIOIO).Model
 
     member this.BeginTransaction() =
 
-        (this :> IMzLiteIO).BeginTransaction()
+        (this :> IMzIOIO).BeginTransaction()
 
-    static member BeginTransaction(connection:SQLiteConnection, currentScope:byref<MzLiteSQLTransactionScope option>, disposed:byref<bool>) =
+    static member BeginTransaction(connection:SQLiteConnection, currentScope:byref<MzIOSQLTransactionScope option>, disposed:byref<bool>) =
 
-        MzLiteSQL.RaiseDisposed(& disposed)
-        currentScope <- Some (new MzLiteSQLTransactionScope(connection))
+        MzIOSQL.RaiseDisposed(& disposed)
+        currentScope <- Some (new MzIOSQLTransactionScope(connection))
         currentScope.Value :> ITransactionScope
 
     static member GetConnection(path:string) =
@@ -339,8 +339,8 @@ and MzLiteSQL(encoder:BinaryDataEncoder,decoder:BinaryDataDecoder, model:MzLiteM
     //    (fun (runID:string) (spectrum:MassSpectrum) (peaks:Peak1DArray) ->
     //        cmd.Parameters.["@runID"].Value         <- runID
     //        cmd.Parameters.["@spectrumID"].Value    <- spectrum.ID
-    //        cmd.Parameters.["@description"].Value   <- MzLiteJson.ToJson(spectrum)
-    //        cmd.Parameters.["@peakArray"].Value     <- MzLiteJson.ToJson(peaks)
+    //        cmd.Parameters.["@description"].Value   <- MzIOJson.ToJson(spectrum)
+    //        cmd.Parameters.["@peakArray"].Value     <- MzIOJson.ToJson(peaks)
     //        cmd.Parameters.["@peakData"].Value      <- encoder.Encode(peaks)
     //        cmd.ExecuteNonQuery()   |> ignore
     //    )
@@ -358,7 +358,7 @@ and MzLiteSQL(encoder:BinaryDataEncoder,decoder:BinaryDataDecoder, model:MzLiteM
         //    (
         //        seq{
         //            while reader.Read() do
-        //                yield MzLiteJson.FromJson<MassSpectrum>(reader.GetString(0))
+        //                yield MzIOJson.FromJson<MassSpectrum>(reader.GetString(0))
         //           }    
         //           |> List.ofSeq
         //           |> (fun item -> item :> IEnumerable<MassSpectrum>)
@@ -369,8 +369,8 @@ and MzLiteSQL(encoder:BinaryDataEncoder,decoder:BinaryDataDecoder, model:MzLiteM
         //    //        if reader.Read() = false then
         //    //            (List.rev acc) :> IEnumerable<MassSpectrum>
         //    //        else 
-        //    //            //loop (MzLiteJson.FromJson<MassSpectrum>(reader.GetString(0))::acc)
-        //    //            loop (MzLiteJson.FromJson<MassSpectrum>(MzLiteSQL.SafeGetString (reader, 0))::acc)
+        //    //            //loop (MzIOJson.FromJson<MassSpectrum>(reader.GetString(0))::acc)
+        //    //            loop (MzIOJson.FromJson<MassSpectrum>(MzIOSQL.SafeGetString (reader, 0))::acc)
         //    //    loop []     
         //    //)
         //)
@@ -474,9 +474,9 @@ and MzLiteSQL(encoder:BinaryDataEncoder,decoder:BinaryDataDecoder, model:MzLiteM
             )
         )
 
-//    #region IMzLiteDataWriter Members
+//    #region IMzIODataWriter Members
 
-    interface IMzLiteDataWriter with
+    interface IMzIODataWriter with
 
         member this.InsertMass(runID: string, spectrum: MassSpectrum, peaks: Peak1DArray) =
             this.RaiseDisposed()
@@ -498,18 +498,18 @@ and MzLiteSQL(encoder:BinaryDataEncoder,decoder:BinaryDataDecoder, model:MzLiteM
     //    this.SqlInsert() runID spectrum peaks
 
     member this.Insert(runID: string, spectrum: MassSpectrum, peaks: Peak1DArray) =
-        (this :> IMzLiteDataWriter).InsertMass(runID, spectrum, peaks)
+        (this :> IMzIODataWriter).InsertMass(runID, spectrum, peaks)
 
     member this.Insert(runID: string, chromatogram: Chromatogram, peaks: Peak2DArray) =
-        (this :> IMzLiteDataWriter).InsertChrom(runID, chromatogram, peaks)
+        (this :> IMzIODataWriter).InsertChrom(runID, chromatogram, peaks)
 
     member this.InsertAsync(runID: string, spectrum: MassSpectrum, peaks: Peak1DArray) =
-        (this :> IMzLiteDataWriter).InsertAsyncMass(runID, spectrum, peaks)
+        (this :> IMzIODataWriter).InsertAsyncMass(runID, spectrum, peaks)
 
     member this.InsertAsync(runID: string, chromatogram: Chromatogram, peaks: Peak2DArray) =
-        (this :> IMzLiteDataWriter).InsertAsyncChrom(runID, chromatogram, peaks)
+        (this :> IMzIODataWriter).InsertAsyncChrom(runID, chromatogram, peaks)
 
-    interface IMzLiteDataReader with
+    interface IMzIODataReader with
 
         member this.ReadMassSpectra(runID: string) =
             this.RaiseDisposed()
@@ -531,7 +531,7 @@ and MzLiteSQL(encoder:BinaryDataEncoder,decoder:BinaryDataDecoder, model:MzLiteM
             else failwith (String.Format("Spectrum with id '{0}' not found.", spectrumID))
 
         member this.ReadMassSpectrumAsync(spectrumID:string) =        
-            //let tmp = this :> IMzLiteDataReader
+            //let tmp = this :> IMzIODataReader
             //async
             //    {
             //        return tmp.ReadMassSpectrum(spectrumID)
@@ -540,7 +540,7 @@ and MzLiteSQL(encoder:BinaryDataEncoder,decoder:BinaryDataDecoder, model:MzLiteM
             Task<MzIO.Model.MassSpectrum>.Run(fun () -> this.ReadMassSpectrum(spectrumID))
 
         member this.ReadSpectrumPeaksAsync(spectrumID:string) =            
-            //let tmp = this :> IMzLiteDataReader
+            //let tmp = this :> IMzIODataReader
             //async
             //    {
             //        return tmp.ReadSpectrumPeaks(spectrumID)
@@ -576,31 +576,31 @@ and MzLiteSQL(encoder:BinaryDataEncoder,decoder:BinaryDataDecoder, model:MzLiteM
            async {return this.ReadChromatogramPeaks(spectrumID)}
 
     member this.ReadMassSpectra(runID: string) =
-        (this :> IMzLiteDataReader).ReadMassSpectra(runID)
+        (this :> IMzIODataReader).ReadMassSpectra(runID)
 
     member this.ReadMassSpectrum(spectrumID: string) =
-        (this :> IMzLiteDataReader).ReadMassSpectrum(spectrumID)
+        (this :> IMzIODataReader).ReadMassSpectrum(spectrumID)
 
     member this.ReadSpectrumPeaks(spectrumID: string) =
-        (this :> IMzLiteDataReader).ReadSpectrumPeaks(spectrumID)
+        (this :> IMzIODataReader).ReadSpectrumPeaks(spectrumID)
 
     member this.ReadMassSpectrumAsync(spectrumID: string) =
-        (this :> IMzLiteDataReader).ReadMassSpectrumAsync(spectrumID)
+        (this :> IMzIODataReader).ReadMassSpectrumAsync(spectrumID)
 
     member this.ReadSpectrumPeaksAsync(spectrumID: string) =
-        (this :> IMzLiteDataReader).ReadSpectrumPeaksAsync(spectrumID)
+        (this :> IMzIODataReader).ReadSpectrumPeaksAsync(spectrumID)
 
     member this.ReadChromatograms(runID: string) =
-        (this :> IMzLiteDataReader).ReadChromatograms(runID)
+        (this :> IMzIODataReader).ReadChromatograms(runID)
 
     member this.ReadChromatogram(spectrumID: string) =
-        (this :> IMzLiteDataReader).ReadChromatogram(spectrumID)
+        (this :> IMzIODataReader).ReadChromatogram(spectrumID)
 
     member this.ReadChromatogramPeaks(spectrumID: string) =
-        (this :> IMzLiteDataReader).ReadChromatogramPeaks(spectrumID)
+        (this :> IMzIODataReader).ReadChromatogramPeaks(spectrumID)
 
     member this.ReadChromatogramAsync(spectrumID: string) =
-        (this :> IMzLiteDataReader).ReadChromatogramAsync(spectrumID)
+        (this :> IMzIODataReader).ReadChromatogramAsync(spectrumID)
 
     member this.ReadChromatogramPeaksAsync(spectrumID: string) =
-        (this :> IMzLiteDataReader).ReadChromatogramPeaksAsync(spectrumID)
+        (this :> IMzIODataReader).ReadChromatogramPeaksAsync(spectrumID)

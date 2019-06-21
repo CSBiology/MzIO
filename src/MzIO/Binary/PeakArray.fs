@@ -74,7 +74,7 @@ type PeakArray<'TPeak when 'TPeak :> Peak>() =
 
     inherit DynamicObj()
 
-    //let peaks = ArrayWrapper<'TPeak>() :> IMzLiteArray<'TPeak>
+    //let peaks = ArrayWrapper<'TPeak>() :> IMzIOArray<'TPeak>
 
     //let mutable intensityDataType' = intensityDataType
 
@@ -95,13 +95,13 @@ type PeakArray<'TPeak when 'TPeak :> Peak>() =
         //and private set(value) = compressionType' <- value
 
     [<JsonIgnore>]
-    abstract member Peaks : IMzLiteArray<'TPeak> with get, set
+    abstract member Peaks : IMzIOArray<'TPeak> with get, set
         //with get() = peaks'
         //and private set(value) = peaks' <- value
 
 [<Sealed>]
 [<JsonObject(MemberSerialization.OptIn)>]
-type Peak1DArray(compressionDataType:BinaryDataCompressionType, intensityDataType:BinaryDataType, mzDataType:BinaryDataType, peaks:IMzLiteArray<Peak1D>) =
+type Peak1DArray(compressionDataType:BinaryDataCompressionType, intensityDataType:BinaryDataType, mzDataType:BinaryDataType, peaks:IMzIOArray<Peak1D>) =
 
     inherit PeakArray<Peak1D>()
 
@@ -139,7 +139,7 @@ type Peak1DArray(compressionDataType:BinaryDataCompressionType, intensityDataTyp
 
 [<Sealed>]
 [<JsonObject(MemberSerialization.OptIn)>]
-type Peak2DArray(compressionDataType:BinaryDataCompressionType, intensityDataType:BinaryDataType, mzDataType:BinaryDataType, rtDataType:BinaryDataType, peaks:IMzLiteArray<Peak2D>) =
+type Peak2DArray(compressionDataType:BinaryDataCompressionType, intensityDataType:BinaryDataType, mzDataType:BinaryDataType, rtDataType:BinaryDataType, peaks:IMzIOArray<Peak2D>) =
 
     inherit PeakArray<Peak2D>()
 

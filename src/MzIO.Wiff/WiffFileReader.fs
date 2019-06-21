@@ -39,7 +39,7 @@ type WiffPeaksArray(wiffSpectrum:Clearcore2.Data.MassSpectrum) =
 
     //let wiffSpectrum = new Clearcore2.Data.MassSpectrum(
 
-    interface IMzLiteArray<Peak1D> with
+    interface IMzIOArray<Peak1D> with
 
         member this.Length = wiffSpectrum.NumDataPoints
 
@@ -53,11 +53,11 @@ type WiffPeaksArray(wiffSpectrum:Clearcore2.Data.MassSpectrum) =
 
     member this.Length =
 
-        (this :> IMzLiteArray<Peak1D>).Length
+        (this :> IMzIOArray<Peak1D>).Length
 
     member this.Item(idx:int) =
 
-        (this :> IMzLiteArray<Peak1D>).Item(idx)
+        (this :> IMzIOArray<Peak1D>).Item(idx)
 
     static member private Yield(wiffSpectrum:Clearcore2.Data.MassSpectrum) =
 
@@ -147,7 +147,7 @@ type WiffFileReader(dataProvider:AnalystWiffDataProvider, disposed:Boolean, wiff
                 new AnalystWiffDataProvider(true), false, wiffFilePath, licenseFilePath
             )
 
-    //new() = new WiffFileReader(new AnalystWiffDataProvider(), null, false, @"wiffFilePath", @"licenseFilePath", new MzLiteModel())
+    //new() = new WiffFileReader(new AnalystWiffDataProvider(), null, false, @"wiffFilePath", @"licenseFilePath", new MzIOModel())
 
     //static member private regexID =
     //    new Regex(@"sample=(\d+) experiment=(\d+) scan=(\d+)", RegexOptions.Compiled ||| RegexOptions.ECMAScript)
@@ -218,21 +218,21 @@ type WiffFileReader(dataProvider:AnalystWiffDataProvider, disposed:Boolean, wiff
     static member private GetSpectrum(batch:Batch, sample:MassSpectrometerSample, msExp:MSExperiment, sampleIndex:int, experimentIndex:int, scanIndex:int) =
 
         let mutable wiffSpectrum    = msExp.GetMassSpectrumInfo(scanIndex)
-        let mutable mzLiteSpectrum  = new MassSpectrum(WiffFileReader.ToSpectrumID(sampleIndex, experimentIndex, scanIndex))
+        let mutable MzIOSpectrum  = new MassSpectrum(WiffFileReader.ToSpectrumID(sampleIndex, experimentIndex, scanIndex))
 
         // spectrum
 
-        mzLiteSpectrum.SetMsLevel(wiffSpectrum.MSLevel) |> ignore
+        MzIOSpectrum.SetMsLevel(wiffSpectrum.MSLevel) |> ignore
 
         if wiffSpectrum.CentroidMode=true then
-            mzLiteSpectrum.SetCentroidSpectrum()        |> ignore
+            MzIOSpectrum.SetCentroidSpectrum()        |> ignore
         else
-            mzLiteSpectrum.SetProfileSpectrum()         |> ignore
+            MzIOSpectrum.SetProfileSpectrum()         |> ignore
 
         // scan
         let mutable scan = new Scan()
         scan.SetScanStartTime(wiffSpectrum.StartRT).UO_Minute |> ignore
-        mzLiteSpectrum.Scans.Add(scan)
+        MzIOSpectrum.Scans.Add(scan)
 
         // precursor
         let precursor = new Precursor()
@@ -250,11 +250,11 @@ type WiffFileReader(dataProvider:AnalystWiffDataProvider, disposed:Boolean, wiff
             selectedIon.SetChargeState(wiffSpectrum.ParentChargeState)              |> ignore
             precursor.SelectedIons.Add(selectedIon)
             precursor.Activation.SetCollisionEnergy(wiffSpectrum.CollisionEnergy)   |> ignore
-            mzLiteSpectrum.Precursors.Add(precursor)
-            mzLiteSpectrum
+            MzIOSpectrum.Precursors.Add(precursor)
+            MzIOSpectrum
 
         else
-            mzLiteSpectrum
+            MzIOSpectrum
 
     static member private ToRunID(sample: int) =
             String.Format("sample={0}", sample)
@@ -305,7 +305,7 @@ type WiffFileReader(dataProvider:AnalystWiffDataProvider, disposed:Boolean, wiff
         (this :> IDisposable).Dispose()
 
     //potentiel failure due to exception
-    interface IMzLiteIO with
+    interface IMzIOIO with
 
         member this.BeginTransaction() =
             this.RaiseDisposed()
@@ -315,7 +315,7 @@ type WiffFileReader(dataProvider:AnalystWiffDataProvider, disposed:Boolean, wiff
 
             this.RaiseDisposed()
 
-            let model = new MzLiteModel(batch.Name)
+            let model = new MzIOModel(batch.Name)
 
             let sampleNames = batch.GetSampleNames()
 
@@ -325,13 +325,13 @@ type WiffFileReader(dataProvider:AnalystWiffDataProvider, disposed:Boolean, wiff
                     let sampleName = sampleNames.[sampleIdx].Trim()
                     let sampleID = WiffFileReader.ToRunID(sampleIdx)
                     let msSample = wiffSample.MassSpectrometerSample
-                    let mzLiteSample =
+                    let MzIOSample =
                         new Sample
                             (
                                 sampleID,
                                 sampleName
                             )
-                    model.Samples.Add(mzLiteSample.ID, mzLiteSample)
+                    model.Samples.Add(MzIOSample.ID, MzIOSample)
                     let softwareID = wiffSample.Details.SoftwareVersion.Trim()
                     let software = new Software(softwareID)
                     (
@@ -345,7 +345,7 @@ type WiffFileReader(dataProvider:AnalystWiffDataProvider, disposed:Boolean, wiff
                             model.Instruments.Add(instrument.ID, instrument)
                     )
                     let runID = String.Format("sample={0}", sampleIdx)
-                    let run = new Run(runID, mzLiteSample, instrument)
+                    let run = new Run(runID, MzIOSample, instrument)
                     model.Runs.Add(run.ID, run)
 
                 )
@@ -362,22 +362,22 @@ type WiffFileReader(dataProvider:AnalystWiffDataProvider, disposed:Boolean, wiff
 
     member this.BeginTransaction() =
 
-        (this :> IMzLiteIO).BeginTransaction()
+        (this :> IMzIOIO).BeginTransaction()
 
     member this.CreateDefaultModel() =
 
-        (this :> IMzLiteIO).CreateDefaultModel()
+        (this :> IMzIOIO).CreateDefaultModel()
 
     member this.SaveModel() =
 
-        (this :> IMzLiteIO).SaveModel()
+        (this :> IMzIOIO).SaveModel()
 
     member this.Model =
         let model = MzIOJson.HandleExternalModelFile(this, WiffFileReader.GetModelFilePath(wiffFilePath))
         model
 
     //potentiel failure due to exception
-    interface IMzLiteDataReader with
+    interface IMzIODataReader with
 
         member this.ReadMassSpectra(runID:string) =
             this.RaiseDisposed()
@@ -388,7 +388,7 @@ type WiffFileReader(dataProvider:AnalystWiffDataProvider, disposed:Boolean, wiff
             //let sampleIndex = WiffFileReader.GetSampleIndex runID
             WiffFileReader.Yield(batch, sampleIndex)
             //with
-            //    | :? Exception -> failwith (MzLiteIOException.MzLiteIOException(ex.Message, ex).ToString())
+            //    | :? Exception -> failwith (MzIOIOException.MzIOIOException(ex.Message, ex).ToString())
 
         //potentiel failure due to exception due to the use of use
         member this.ReadMassSpectrum(spectrumID:string) =
@@ -403,7 +403,7 @@ type WiffFileReader(dataProvider:AnalystWiffDataProvider, disposed:Boolean, wiff
             use msExp       = sample.GetMSExperiment(experimentIndex)
             (WiffFileReader.GetSpectrum(batch, sample, msExp, sampleIndex, experimentIndex, scanIndex))
             //with
-            //    | :? Exception -> failwith (MzLiteIOException.MzLiteIOException(ex.Message, ex).ToString())
+            //    | :? Exception -> failwith (MzIOIOException.MzIOIOException(ex.Message, ex).ToString())
 
         member this.ReadSpectrumPeaks(spectrumID:string) =
             this.RaiseDisposed()
@@ -423,10 +423,10 @@ type WiffFileReader(dataProvider:AnalystWiffDataProvider, disposed:Boolean, wiff
             pa
             //with
             //    | :? Exception
-            //        -> failwith (MzLiteIOException.MzLiteIOException(ex.Message, ex).ToString())
+            //        -> failwith (MzIOIOException.MzIOIOException(ex.Message, ex).ToString())
 
         member this.ReadMassSpectrumAsync(spectrumID:string) =        
-            //let tmp = this :> IMzLiteDataReader
+            //let tmp = this :> IMzIODataReader
             //async
             //    {
             //        return tmp.ReadMassSpectrum(spectrumID)
@@ -435,7 +435,7 @@ type WiffFileReader(dataProvider:AnalystWiffDataProvider, disposed:Boolean, wiff
             Task<MzIO.Model.MassSpectrum>.Run(fun () -> this.ReadMassSpectrum(spectrumID))
 
         member this.ReadSpectrumPeaksAsync(spectrumID:string) =            
-            //let tmp = this :> IMzLiteDataReader
+            //let tmp = this :> IMzIODataReader
             //async
             //    {
             //        return tmp.ReadSpectrumPeaks(spectrumID)
@@ -452,64 +452,64 @@ type WiffFileReader(dataProvider:AnalystWiffDataProvider, disposed:Boolean, wiff
                 raise (new NotSupportedException())
             with
                 | :? Exception as ex-> 
-                    raise (MzLiteIOException(ex.Message, ex))
+                    raise (MzIOIOException(ex.Message, ex))
 
         member this.ReadChromatogramPeaks(runID:string) =
             try
                 raise ((new NotSupportedException()))
             with
                 | :? Exception as ex -> 
-                    raise (MzLiteIOException(ex.Message, ex))
+                    raise (MzIOIOException(ex.Message, ex))
 
         member this.ReadChromatogramAsync(runID:string) =
             try
                 raise ((new NotSupportedException()))
             with
                 | :? Exception as ex -> 
-                    raise (MzLiteIOException(ex.Message, ex))
+                    raise (MzIOIOException(ex.Message, ex))
 
         member this.ReadChromatogramPeaksAsync(runID:string) =
             try
                 raise ((new NotSupportedException()))
             with
                 | :? Exception as ex -> 
-                    raise (MzLiteIOException(ex.Message, ex))
+                    raise (MzIOIOException(ex.Message, ex))
 
     member this.ReadMassSpectra(runID:string)               =
 
-        (this :> IMzLiteDataReader).ReadMassSpectra(runID)
+        (this :> IMzIODataReader).ReadMassSpectra(runID)
 
     member this.ReadMassSpectrum(spectrumID:string)         =
 
-        (this :> IMzLiteDataReader).ReadMassSpectrum(spectrumID)
+        (this :> IMzIODataReader).ReadMassSpectrum(spectrumID)
 
     member this.ReadSpectrumPeaks(spectrumID:string)        =
 
-        (this :> IMzLiteDataReader).ReadSpectrumPeaks(spectrumID)
+        (this :> IMzIODataReader).ReadSpectrumPeaks(spectrumID)
 
     member this.ReadMassSpectrumAsync(spectrumID:string)    =
 
-        (this :> IMzLiteDataReader).ReadMassSpectrumAsync(spectrumID)
+        (this :> IMzIODataReader).ReadMassSpectrumAsync(spectrumID)
 
     member this.ReadSpectrumPeaksAsync(spectrumID:string)   =
 
-        (this :> IMzLiteDataReader).ReadSpectrumPeaksAsync(spectrumID)
+        (this :> IMzIODataReader).ReadSpectrumPeaksAsync(spectrumID)
 
     member this.ReadChromatograms(runID:string)             =
 
-        (this :> IMzLiteDataReader).ReadChromatograms(runID)
+        (this :> IMzIODataReader).ReadChromatograms(runID)
 
     member this.ReadChromatogramPeaks(runID:string)         =
 
-        (this :> IMzLiteDataReader).ReadChromatogramPeaks(runID)
+        (this :> IMzIODataReader).ReadChromatogramPeaks(runID)
 
     member this.ReadChromatogramAsync(runID:string)         =
 
-        (this :> IMzLiteDataReader).ReadChromatogramAsync(runID)
+        (this :> IMzIODataReader).ReadChromatogramAsync(runID)
 
     member this.ReadChromatogramPeaksAsync(runID:string)    =
 
-        (this :> IMzLiteDataReader).ReadChromatogramPeaksAsync(runID)
+        (this :> IMzIODataReader).ReadChromatogramPeaksAsync(runID)
 
     //potential error source because text isn't splitted into several keys
     static member ReadWiffLicense(licensePath:string) =
@@ -520,4 +520,4 @@ type WiffFileReader(dataProvider:AnalystWiffDataProvider, disposed:Boolean, wiff
 
     static member GetModelFilePath(wiffFilePath) =
 
-        sprintf "%s%s" wiffFilePath ".mzlitemodel"
+        sprintf "%s%s" wiffFilePath ".MzIOmodel"
