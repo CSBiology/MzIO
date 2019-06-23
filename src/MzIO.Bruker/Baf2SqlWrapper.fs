@@ -95,7 +95,7 @@ module Baf2SqlWrapper =
             let len = baf2sql_get_last_error_string(buf, Convert.ToUInt32(0))
             buf.EnsureCapacity(int len + 1) |> ignore
             baf2sql_get_last_error_string(buf, len) |> ignore
-            failwith ((new Baf2SqlException(buf.ToString())).ToString())
+            raise (new Baf2SqlException(buf.ToString()))
 
         /// <summary>
         /// Find out the file name of the SQL cache corresponding to the specified BAF file.
@@ -106,12 +106,12 @@ module Baf2SqlWrapper =
             let buf = new StringBuilder("");
             let mutable len = baf2sql_get_sqlite_cache_filename(buf, uint32 0, baf_filename);
             if (len = Convert.ToUInt32(0)) then 
-                failwith ((Baf2SqlWrapper.ThrowLastBaf2SqlError()).ToString())
+                raise (Baf2SqlWrapper.ThrowLastBaf2SqlError())
             else 
                 buf.EnsureCapacity(int len + 1) |> ignore
                 len <- baf2sql_get_sqlite_cache_filename(buf, len, baf_filename)
                 if len = uint32 0 then
-                    failwith ((Baf2SqlWrapper.ThrowLastBaf2SqlError()).ToString())
+                    raise (Baf2SqlWrapper.ThrowLastBaf2SqlError())
                 else buf.ToString()
 
         /// <summary>
@@ -125,7 +125,7 @@ module Baf2SqlWrapper =
             let myArray = Array.zeroCreate<float> (int n)
             let rc = baf2sql_array_read_double(handle, id, myArray)
             if rc = 0 then 
-                failwith ((Baf2SqlWrapper.ThrowLastBaf2SqlError()).ToString())
+                raise (Baf2SqlWrapper.ThrowLastBaf2SqlError())
             else myArray
 
         /// <summary>
@@ -138,7 +138,7 @@ module Baf2SqlWrapper =
             let myArray = Array.zeroCreate<float> (int n) 
             let rc = baf2sql_array_read_float(handle, id, myArray)
             if rc = 0 then 
-                failwith ((Baf2SqlWrapper.ThrowLastBaf2SqlError()).ToString())
+                raise (Baf2SqlWrapper.ThrowLastBaf2SqlError())
             else myArray
 
         /// <summary>
@@ -151,6 +151,6 @@ module Baf2SqlWrapper =
             let myArray = Array.zeroCreate<UInt32> (int n) 
             let rc = baf2sql_array_read_uint32(handle, id, myArray);
             if rc = 0 then 
-                failwith ((Baf2SqlWrapper.ThrowLastBaf2SqlError()).ToString())
+                raise (Baf2SqlWrapper.ThrowLastBaf2SqlError())
             else myArray
 

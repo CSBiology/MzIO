@@ -34,7 +34,7 @@ type BinaryDataEncoder(?initialBufferSize: int) =
         | BinaryDataType.Int64      ->  writer.Write(int64 value)
         | BinaryDataType.Float32    ->  writer.Write(single value)
         | BinaryDataType.Float64    ->  writer.Write(double value)
-        | _     -> failwith ("BinaryDataType not supported: " + (binaryDataType.ToString()))
+        | _     -> failwith (sprintf "%s%s" "BinaryDataType not supported: " (binaryDataType.ToString()))
 
     static member private NoCompression(memoryStream:Stream, binaryDataType:BinaryDataType, values:double[]) =
 
@@ -218,7 +218,7 @@ type BinaryDataEncoder(?initialBufferSize: int) =
         | BinaryDataCompressionType.ZLib            -> BinaryDataEncoder.ZLib2(this.memoryStream, peakArray)
         | BinaryDataCompressionType.NumPress        -> BinaryDataEncoder.Numpress(this.memoryStream, peakArray)
         | BinaryDataCompressionType.NumPressZLib    -> BinaryDataEncoder.NumpressDeflate(this.memoryStream, peakArray)
-        | _ -> failwith ("Compression type not supported: " + (peakArray.CompressionType.ToString()))
+        | _ -> failwith (sprintf "%s%s" "Compression type not supported: " (peakArray.CompressionType.ToString()))
 
         //this.memoryStream.Seek(int64 0, SeekOrigin.Begin) |> ignore
         this.memoryStream.ToArray()
@@ -232,7 +232,7 @@ type BinaryDataEncoder(?initialBufferSize: int) =
         | BinaryDataCompressionType.ZLib            -> BinaryDataEncoder.ZLib(this.memoryStream, peakArray)
         | BinaryDataCompressionType.NumPress        -> BinaryDataEncoder.Numpress(this.memoryStream, peakArray)
         | BinaryDataCompressionType.NumPressZLib    -> BinaryDataEncoder.NumpressDeflate(this.memoryStream, peakArray)
-        | _ -> failwith ("Compression type not supported: " + (peakArray.CompressionType.ToString()))
+        | _ -> failwith (sprintf "%s%s" "Compression type not supported: " (peakArray.CompressionType.ToString()))
 
         //this.memoryStream.Seek(int64 0, SeekOrigin.Begin) |> ignore
         this.memoryStream.ToArray()
@@ -244,7 +244,7 @@ type BinaryDataEncoder(?initialBufferSize: int) =
         match compressionType with
         | BinaryDataCompressionType.NoCompression   -> BinaryDataEncoder.NoCompression(this.memoryStream, binaryDataType, values)
         | BinaryDataCompressionType.ZLib            -> BinaryDataEncoder.ZLib(this.memoryStream, binaryDataType, values)
-        | _ -> failwith ("Compression type not supported: " + (compressionType.ToString()))
+        | _ -> failwith (sprintf "%s%s" "Compression type not supported: " (compressionType.ToString()))
 
         //this.memoryStream.Seek(int64 0, SeekOrigin.Begin) |> ignore
         Convert.ToBase64String(this.memoryStream.ToArray())      

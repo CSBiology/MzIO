@@ -14,7 +14,8 @@ open MzIO.Processing.MzIOLinq
 type SwathQuery(targetMz:double, rtRange:RangeQuery, ms2Masses:RangeQuery[]) =
 
         let failCheck =
-            if Array.isEmpty ms2Masses then failwith ((ArgumentNullException("ms2Masses")).ToString())
+            if Array.isEmpty ms2Masses then 
+                raise (ArgumentNullException("ms2Masses"))
             else ()
 
         member this.TargetMz = targetMz
@@ -205,11 +206,10 @@ module SwathIndexer =
         static member Create(dataReader:IMzIODataReader, runID:string) =
 
             let mutable runID =
-                match runID with
-                | null  -> failwith (ArgumentNullException("runID").ToString())
-                | ""    -> failwith (ArgumentNullException("runID").ToString())
-                | " "   -> failwith (ArgumentNullException("runID").ToString())
-                |   _   -> runID
+                if String.IsNullOrWhiteSpace(runID) then
+                    raise (ArgumentNullException("runID"))
+                else
+                    runID
 
             let spectra = SwathSpectrumEntry.Scan(dataReader.ReadMassSpectra(runID))
             let groups = (spectra.GroupBy(keySelector = (fun spectrum -> spectrum.SwathWindow), comparer = new SwathWindowGroupingComparer())).ToArray()

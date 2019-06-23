@@ -16,11 +16,9 @@ type RunReference [<JsonConstructor>] (sourceFile:SourceFile, runID:string) =
 
     [<JsonProperty("RunID")>]
     let mutable runID' =
-        match runID with
-        | null  -> failwith (ArgumentNullException("runID").ToString())
-        | ""    -> failwith (ArgumentNullException("runID").ToString())
-        | " "   -> failwith (ArgumentNullException("runID").ToString())
-        |   _   -> runID
+        if String.IsNullOrWhiteSpace(runID) then
+            raise (ArgumentNullException("runID"))
+        else runID
 
     new() = RunReference(new SourceFile(), "rundID")
 
@@ -36,7 +34,7 @@ type RunReference [<JsonConstructor>] (sourceFile:SourceFile, runID:string) =
             let other = 
                 match obj with
                 | :? RunReference as obj -> obj
-                | null                   -> failwith (NullReferenceException().ToString())
+                //| null                   -> failwith (NullReferenceException().ToString())
                 | _                      -> failwith "Wrong type"
             this.RunID.Equals(other.RunID) && this.SourceFile.Equals(other.SourceFile)
     

@@ -22,7 +22,7 @@ module MzIOLinq =
         member this.ItemAtMin<'T, 'TValue when 'TValue :> IComparable<'TValue>> (valFunc: Func<'T, 'TValue>) =
             let enumerator =  this.GetEnumerator()
             if not (enumerator.MoveNext()) then
-                failwith ((new InvalidOperationException("Sequence contains no elements.")).ToString())
+                raise (new InvalidOperationException("Sequence contains no elements."))
             let rec loop min =
                 if enumerator.MoveNext() then
                     let item = enumerator.Current
@@ -42,7 +42,7 @@ module MzIOLinq =
         member this.ItemAtMax<'T, 'TValue when 'TValue :> IComparable<'TValue>> (valFunc: Func<'T, 'TValue>) =
             let enumerator =  this.GetEnumerator()
             if not (enumerator.MoveNext()) then
-                failwith ((new InvalidOperationException("Sequence contains no elements.")).ToString())
+                raise (new InvalidOperationException("Sequence contains no elements."))
             let rec loop max =
                 if enumerator.MoveNext() then
                     let item = enumerator.Current
@@ -58,11 +58,10 @@ module MzIOLinq =
     type RtIndexEntry(rt:float, spectrumID:string) =
 
         let spectrumID =
-            match spectrumID with
-            | null  -> failwith (ArgumentNullException("runID").ToString())
-            | ""    -> failwith (ArgumentNullException("runID").ToString())
-            | " "   -> failwith (ArgumentNullException("runID").ToString())
-            |   _   -> spectrumID
+            if String.IsNullOrWhiteSpace(spectrumID) then
+                raise (ArgumentNullException("runID"))
+            else 
+                spectrumID
 
         member this.Rt = rt
 
@@ -170,11 +169,11 @@ module MzIOLinq =
 
             let msLevel = defaultArg msLevel 1
             let runID =
-                match runID with
-                | null  -> failwith (ArgumentNullException("runID").ToString())
-                | ""    -> failwith (ArgumentNullException("runID").ToString())
-                | " "   -> failwith (ArgumentNullException("runID").ToString())
-                |   _   -> runID
+                if String.IsNullOrWhiteSpace(runID) then
+                    raise (ArgumentNullException("runID"))
+                else
+                    runID
+
             let massSpectra   = this.ReadMassSpectra(runID)
             let entries       = new List<RtIndexEntry>()
             let mutable entry = new RtIndexEntry()

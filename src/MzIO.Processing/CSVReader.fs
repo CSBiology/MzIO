@@ -22,16 +22,15 @@ type CSVRecord(columnIndexer:IDictionary<string, int>, lineNumber:int, culture:C
         let mutable idx = -1
         if columnIndexer.TryGetValue(columnName, & idx) then values.[idx]
         else
-            failwith ((new KeyNotFoundException(String.Format("Column: '{0}' not found in record at line number: {1}.", columnName, this.LineNumber))).ToString())
+            raise (new KeyNotFoundException(String.Format("Column: '{0}' not found in record at line number: {1}.", columnName, this.LineNumber)))
 
     member this.GetValueNotNullOrEmpty(columnName:string) =
         
         let mutable value = columnName
-        match value with
-        | null  -> failwith ((new FormatException(String.Format("Value in column: '{0}' in record at line number: {1} is empty.", columnName, this.LineNumber))).ToString())
-        | ""    -> failwith ((new FormatException(String.Format("Value in column: '{0}' in record at line number: {1} is empty.", columnName, this.LineNumber))).ToString())
-        | " "   -> failwith ((new FormatException(String.Format("Value in column: '{0}' in record at line number: {1} is empty.", columnName, this.LineNumber))).ToString())
-        |   _   -> value
+        if String.IsNullOrWhiteSpace(value) then
+            raise (new FormatException(String.Format("Value in column: '{0}' in record at line number: {1} is empty.", columnName, this.LineNumber)))
+        else
+            value
 
     /// <summary>
     /// Parse a bool value.
@@ -70,7 +69,7 @@ type CSVRecord(columnIndexer:IDictionary<string, int>, lineNumber:int, culture:C
 
         with
             | :? FormatException ->
-                failwith ((new FormatException(String.Format("Number format error in column: '{0}' at line number: {1}.", columnName, this.LineNumber))).ToString())
+                raise (new FormatException(String.Format("Number format error in column: '{0}' at line number: {1}.", columnName, this.LineNumber)))
 
     /// <summary>
     /// Parse an double value.
@@ -123,7 +122,7 @@ type CSVRecord(columnIndexer:IDictionary<string, int>, lineNumber:int, culture:C
 
         with
             | :? FormatException ->
-                failwith ((new FormatException(String.Format("Number format error in column: '{0}' at line number: {1}.", columnName, this.LineNumber))).ToString())
+                raise (new FormatException(String.Format("Number format error in column: '{0}' at line number: {1}.", columnName, this.LineNumber)))
 
     /// <summary>
     /// Parse an int value.
@@ -132,11 +131,10 @@ type CSVRecord(columnIndexer:IDictionary<string, int>, lineNumber:int, culture:C
     member this.getIntOrNull(columnName:string) =
 
         let mutable value = this.GetValue(columnName)
-        match value with
-        | null  -> None
-        | ""    -> None
-        | " "   -> None
-        |   _   -> Some (this.ParseInt(columnName, value))
+        if String.IsNullOrWhiteSpace(value) then
+            None
+        else
+            Some (this.ParseInt(columnName, value))
 
     /// <summary>
     /// Parse an int value.
@@ -165,12 +163,11 @@ type CSVReader(filePath:string, separator:char, culture:CultureInfo) =
     let mutable culture = new CultureInfo("en-US")
 
     let mutable check =
-        match filePath with
-        | null  -> failwith (ArgumentNullException("filePath").ToString())
-        | ""    -> failwith (ArgumentNullException("filePath").ToString())
-        | " "   -> failwith (ArgumentNullException("filePath").ToString())
-        |   _   -> 
-            if File.Exists(filePath) = false then failwith (FileNotFoundException("filePath").ToString())
+        if String.IsNullOrWhiteSpace(filePath) then
+            raise (ArgumentNullException("filePath"))
+        else
+            if File.Exists(filePath) = false then 
+                raise (FileNotFoundException("filePath"))
             else ()
 
     let fi = new FileInfo(filePath)
@@ -201,11 +198,13 @@ type CSVReader(filePath:string, separator:char, culture:CultureInfo) =
         // read column names
         let line = reader.ReadLine();
 
-        if line = null then failwith (IOException("Unexpected end of file.").ToString())
+        if line = null then 
+            raise (IOException("Unexpected end of file."))
         else
             let columns = line.Split(separator)
             for c = 0 to columns.Length-1 do
-                if columnIndex.ContainsKey(columns.[c]) then failwith (IOException("Unexpected end of file.").ToString())
+                if columnIndex.ContainsKey(columns.[c]) then 
+                    raise (IOException("Unexpected end of file."))
                 else 
                     columnIndex.Item(columns.[c]) <- c
             columnIndex
@@ -219,7 +218,8 @@ type CSVReader(filePath:string, separator:char, culture:CultureInfo) =
     /// <returns>Next record or null at EOF.</returns>
     member this.ReadNext() =
         
-        if isDisposed = true then failwith (ObjectDisposedException("Can't read record at disposed reader.").ToString())
+        if isDisposed = true then 
+            raise (ObjectDisposedException("Can't read record at disposed reader."))
         else 
             try
                 
@@ -231,8 +231,8 @@ type CSVReader(filePath:string, separator:char, culture:CultureInfo) =
                     Some (new CSVRecord(columnIndex, lineNumber, culture, values))
 
             with
-                | :? Exception ->
-                    failwith ((new IOException(String.Format("Parse error at line {0}.", lineNumber))).ToString())
+                | :? Exception as ex ->
+                    raise (new IOException(String.Format("Parse error at line {0}.", lineNumber, ex)))
 
     /// <summary>
     /// Read all records.
@@ -254,7 +254,8 @@ type CSVReader(filePath:string, separator:char, culture:CultureInfo) =
     member this.ReadNextAsync() =
         async 
             {
-                if isDisposed = true then failwith ((new ObjectDisposedException("Can't read record at disposed reader.")).ToString())
+                if isDisposed = true then 
+                    raise (new ObjectDisposedException("Can't read record at disposed reader."))
                 else
             
                     try
@@ -267,6 +268,6 @@ type CSVReader(filePath:string, separator:char, culture:CultureInfo) =
                             let mutable values = line.Split(this.separator)
                             Some (new CSVRecord(columnIndex, lineNumber, culture, values))
                     with
-                        | :? Exception ->
-                            failwith ((new IOException(String.Format("Parse error at line {0}.", lineNumber))).ToString())
+                        | :? Exception as ex ->
+                            raise (new IOException(String.Format("Parse error at line {0}.", lineNumber, ex)))
             }

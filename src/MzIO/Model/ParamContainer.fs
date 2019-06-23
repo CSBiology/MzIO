@@ -243,7 +243,7 @@ module CvParam =
                 | null  -> ParamValue.CvValue(Unchecked.defaultof<IConvertible>)
                 | _     -> ParamValue.CvValue(item.["Values"].First.ToString() :> IConvertible)
                 
-            | _     -> failwith ((new JsonSerializationException("Could not determine concrete param type.")).ToString())
+            | _     -> raise (new JsonSerializationException("Could not determine concrete param type."))
 
         static member private createJsonParam<'T when 'T :> IConvertible>(param:Object) =
             match param with
@@ -255,11 +255,11 @@ module CvParam =
                 let tmpID = sprintf "{\"%s\":\"%s\",\"Name\":\"%s\"," "$id" "1" item.Name
                 let tmpValue = ParamBaseConverter.createJsonValue(if item.Value.IsSome then item.Value.Value.ToString() else "None")
                 JObject.Parse(sprintf "%s%s" tmpID tmpValue)
-            | _     -> failwith ((new JsonSerializationException("Could not determine concrete param type.")).ToString())
+            | _     -> raise (new JsonSerializationException("Could not determine concrete param type."))
         
         override this.CanConvert(objectType:Type) =
 
-            failwith ((new NotSupportedException("JsonConverter.CanConvert()")).ToString())
+            raise (new NotSupportedException("JsonConverter.CanConvert()"))
 
         override this.ReadJson(reader:JsonReader, objectType:Type, existingValue:Object, serializer:JsonSerializer) =
             let jt = JToken.Load(reader)
@@ -269,7 +269,7 @@ module CvParam =
                         let jo = jt.ToObject<JObject>()
                         if jo.["CvAccession"] = null then
                             if jo.["Name"] = null then
-                                failwith ((new JsonSerializationException("Could not determine concrete param type.")).ToString())
+                                raise (new JsonSerializationException("Could not determine concrete param type."))
                             else
                                 let values = ParamBaseConverter.createParamValue jo
                                 new UserParam<IConvertible>(jo.["Name"].ToString(), values) :> Object
@@ -277,7 +277,7 @@ module CvParam =
                             let values = ParamBaseConverter.createParamValue jo
                             new CvParam<IConvertible>(jo.["CvAccession"].ToString(), values) :> Object
                     else 
-                        failwith ((new JsonSerializationException("Object token expected.")).ToString())
+                        raise (new JsonSerializationException("Object token expected."))
 
         override this.WriteJson(writer: JsonWriter, value: Object, serializer: JsonSerializer) =
 
@@ -325,7 +325,7 @@ module CvParam =
                 //| :? UserParam<UInt32>  as value -> serializer.Serialize(writer, ParamBaseConverter.createJsonParam value)
                 //| :? UserParam<UInt64>  as value -> serializer.Serialize(writer, ParamBaseConverter.createJsonParam value)
                 //| :? UserParam<IConvertible>  as value -> serializer.Serialize(writer, ParamBaseConverter.createJsonParam value)
-                //| _     -> failwith ((new JsonSerializationException("Type not supported: " + value.GetType().FullName)).ToString())
+                //| _     -> raise (new JsonSerializationException("Type not supported: " + value.GetType().FullName))
 
 
     let getCvAccessionOrName (param:#IParamBase<_>) =
@@ -558,7 +558,7 @@ module CvParam =
 
         override this.CanConvert(objectType:Type) =
 
-            failwith ((new NotSupportedException("JsonConverter.CanConvert()")).ToString())
+            raise (new NotSupportedException("JsonConverter.CanConvert()"))
 
         override this.ReadJson(reader:JsonReader, objectType:Type, existingValue:Object, serializer:JsonSerializer) =            
             let jt = JToken.Load(reader)
@@ -571,7 +571,7 @@ module CvParam =
                             jo.ToObject<DynamicObj>(serializer) :> Object
                     //    if jo.["CvAccession"] = null then
                     //        if jo.["Name"] = null then
-                    //            failwith ((new JsonSerializationException("Could not determine concrete param type.")).ToString())
+                    //            raise ((new JsonSerializationException("Could not determine concrete param type.")).ToString())
                     //        else
                     //            let values = ParamBaseConverter.createParamValue jo
                     //            new UserParam<IConvertible>(jo.["Name"].ToString(), values) :> Object
@@ -579,9 +579,9 @@ module CvParam =
                     //        let values = ParamBaseConverter.createParamValue jo
                     //        new CvParam<IConvertible>(jo.["CvAccession"].ToString(), values) :> Object
                         else 
-                            failwith ((new JsonSerializationException("Object token expected.")).ToString())
+                            raise (new JsonSerializationException("Object token expected."))
                     else 
-                        failwith ((new JsonSerializationException("Object token expected.")).ToString())
+                        raise (new JsonSerializationException("Object token expected."))
 
         override this.WriteJson(writer: JsonWriter, value: Object, serializer: JsonSerializer) =
             if value = null then
@@ -590,7 +590,7 @@ module CvParam =
                 match value with
                 | :? DynamicObj -> serializer.Serialize(writer, value.ToString())
                 //| :? CvParam<byte>  as value -> serializer.Serialize(writer, ParamBaseConverter.createJsonParam value)
-                //| _     -> failwith ((new JsonSerializationException("Type not supported: " + value.GetType().FullName)).ToString())
+                //| _     -> raise (new JsonSerializationException("Type not supported: " + value.GetType().FullName))
                 | _ -> serializer.Serialize(writer, value.ToString())
     
 

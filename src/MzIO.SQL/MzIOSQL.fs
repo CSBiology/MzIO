@@ -109,12 +109,11 @@ and MzIOSQL(encoder:BinaryDataEncoder,decoder:BinaryDataDecoder, model:MzIOModel
     //Added to improve speed
     //let mutable cmd = new SQLiteCommand()
 
-    let path =        
-        match sqlFilePath with
-        | null  -> failwith (ArgumentNullException("sqlFilePath").ToString())      
-        | ""    -> failwith (ArgumentNullException("sqlFilePath").ToString())      
-        | " "   -> failwith (ArgumentNullException("sqlFilePath").ToString())      
-        |   _   -> sqlFilePath
+    let path = 
+        if String.IsNullOrWhiteSpace(sqlFilePath) then
+            raise (ArgumentNullException("sqlFilePath"))
+        else
+            sqlFilePath
 
     let connection = MzIOSQL.GetConnection(path)
         
@@ -200,8 +199,8 @@ and MzIOSQL(encoder:BinaryDataEncoder,decoder:BinaryDataDecoder, model:MzIOModel
   
     static member private RaiseDisposed(disposed:byref<bool>) =
 
-            if disposed = true then failwith ((new ObjectDisposedException("MzIOSQL")).ToString())
-
+            if disposed = true then 
+                raise (new ObjectDisposedException("MzIOSQL"))
             else ()
 
     member private this.RaiseDisposed() =
@@ -521,14 +520,16 @@ and MzIOSQL(encoder:BinaryDataEncoder,decoder:BinaryDataDecoder, model:MzIOModel
             this.RaiseNotInScope()
             let mutable ms = new MassSpectrum()
             if (this.SqlTrySelect(spectrumID, & ms)) then ms
-            else failwith (String.Format("Spectrum for id '{0}' not found.", spectrumID))
+            else 
+                failwith (String.Format("Spectrum for id '{0}' not found.", spectrumID))
 
         member this.ReadSpectrumPeaks(spectrumID: string) =
             this.RaiseDisposed()
             this.RaiseNotInScope()
             let mutable peaks = new Peak1DArray()
             if this.SqlTrySelect(spectrumID, & peaks) then peaks
-            else failwith (String.Format("Spectrum with id '{0}' not found.", spectrumID))
+            else 
+                failwith (String.Format("Spectrum with id '{0}' not found.", spectrumID))
 
         member this.ReadMassSpectrumAsync(spectrumID:string) =        
             //let tmp = this :> IMzIODataReader

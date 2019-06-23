@@ -47,7 +47,7 @@ type WiffPeaksArray(wiffSpectrum:Clearcore2.Data.MassSpectrum) =
         member this.Item
             with get (idx:int) =
                 if (idx < 0 || idx >= this.Length) then
-                    failwith ((new IndexOutOfRangeException()).ToString())
+                    raise (new IndexOutOfRangeException())
                 else
                     new Peak1D(wiffSpectrum.GetYValue(idx), wiffSpectrum.GetXValue(idx))
 
@@ -82,7 +82,7 @@ type WiffPeaksArray(wiffSpectrum:Clearcore2.Data.MassSpectrum) =
 
     //member this.Peak1D (idx:int) =
     //    if (idx < 0 || idx >= this.Length) then
-    //        failwith ((new IndexOutOfRangeException()).ToString())
+    //        raise (new IndexOutOfRangeException())
     //    else new Peak1D(wiffSpectrum.GetYValue(idx), wiffSpectrum.GetXValue(idx))
 
 type WiffTransactionScope() =
@@ -141,7 +141,7 @@ type WiffFileReader(dataProvider:AnalystWiffDataProvider, disposed:Boolean, wiff
     //let mutable wiffFilePath =
     //    if wiffFilePath<>"wiffFilePath" then
     //        if not (File.Exists(wiffFilePath)) then
-    //            failwith  ((new FileNotFoundException("Wiff file not exists.")).ToString())
+    //            raise  (new FileNotFoundException("Wiff file not exists."))
     //        else
     //            match wiffFilePath with
     //            | null  -> failwith (ArgumentNullException("WiffFilePath").ToString())
@@ -184,9 +184,9 @@ type WiffFileReader(dataProvider:AnalystWiffDataProvider, disposed:Boolean, wiff
 
             //with
             //    | :? FormatException ->
-            //        failwith ((new FormatException("Error parsing wiff sample index: " + runID)).ToString())
+            //        raise (new FormatException(sprintf "%s%s" "Error parsing wiff sample index: " runID))
         else
-            failwith ((new FormatException("Not a valid wiff sample index format: " + runID)).ToString())
+            raise (new FormatException("Not a valid wiff sample index format: " + runID))
 
     static member private ParseBySpectrumID(spectrumID:string, sampleIndex:byref<int>, experimentIndex:byref<int>, scanIndex:byref<int>) =
 
@@ -202,9 +202,9 @@ type WiffFileReader(dataProvider:AnalystWiffDataProvider, disposed:Boolean, wiff
             scanIndex       <- (int (groups.[3].Value))
 
             //with
-            //    | :? FormatException -> failwith ((new FormatException("Error parsing wiff spectrum id format: " + spectrumID)).ToString())
+            //    | :? FormatException -> raise (new FormatException(sprintf "%s%s" "Error parsing wiff spectrum id format: " spectrumID)).ToString())
         else
-            failwith ((new FormatException("Not a valid wiff spectrum id format: " + spectrumID)).ToString())
+            raise (new FormatException(sprintf "%s%s" "Not a valid wiff spectrum id format: " spectrumID))
 
     static member GetIsolationWindow(exp:MSExperiment, isoWidth:byref<double>, targetMz:byref<double>) =
 

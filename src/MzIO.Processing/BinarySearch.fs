@@ -12,10 +12,12 @@ open MzIO.IO
 [<Sealed>]
 type IndexRange(low: int, high: int) =
     let mutable low' =
-        if low < 0 then failwith ((new ArgumentOutOfRangeException( "low may not be < 0")).ToString())
+        if low < 0 then 
+            raise (new ArgumentOutOfRangeException( "low may not be < 0"))
         else low
     let mutable high' =
-        if high < low then failwith ((new ArgumentOutOfRangeException( "high >= low expected")).ToString())
+        if high < low then 
+            raise (new ArgumentOutOfRangeException( "high >= low expected"))
         else high
     new() = IndexRange(0,0)
     member this.Low
@@ -33,7 +35,8 @@ type IndexRange(low: int, high: int) =
     /// <returns>Low + i</returns>
 
     member this.GetSourceIndex(i: int) =
-        if i < 0 then failwith ((new ArgumentOutOfRangeException( "i >= 0 expected")).ToString())
+        if i < 0 then 
+            raise (new ArgumentOutOfRangeException( "i >= 0 expected"))
         else this.Low + i
 
     static member EnumRange<'TItem>(items: IMzIOArray<'TItem>, range: IndexRange) =

@@ -216,53 +216,53 @@ module ParamEditExtension =
             if tmp.IsSome then 
                 tmp.Value.ToString(new CultureInfo("en-US"))
             else
-                failwith (InvalidOperationException("Param value not set.").ToString())
+                raise (InvalidOperationException("Param value not set."))
 
         member this.GetBoolean() =
             let tmp = (tryGetValue this)
             if tmp.IsSome then 
                 tmp.Value.ToBoolean(new CultureInfo("en-US"))
             else
-                failwith (InvalidOperationException("Param value not set.").ToString())
+                raise (InvalidOperationException("Param value not set."))
 
         member this.GetByte() =
             let tmp = (tryGetValue this)
             if tmp.IsSome then 
                 tmp.Value.ToByte(new CultureInfo("en-US"))
             else
-                failwith (InvalidOperationException("Param value not set.").ToString())
+                raise (InvalidOperationException("Param value not set."))
 
         member this.GetChar() =
             let tmp = (tryGetValue this)
             if tmp.IsSome then 
                 tmp.Value.ToChar(new CultureInfo("en-US"))
             else
-                failwith (InvalidOperationException("Param value not set.").ToString())
+                raise (InvalidOperationException("Param value not set."))
 
         member this.GetInt32() =
             let tmp = (tryGetValue this)
             if tmp.IsSome then 
                 tmp.Value.ToInt32(new CultureInfo("en-US"))
             else
-                failwith (InvalidOperationException("Param value not set.").ToString())
+                raise (InvalidOperationException("Param value not set."))
 
         member this.GetInt64() =
             let tmp = (tryGetValue this)
             if tmp.IsSome then 
                 tmp.Value.ToInt64(new CultureInfo("en-US"))
             else
-                failwith (InvalidOperationException("Param value not set.").ToString())
+                raise (InvalidOperationException("Param value not set."))
 
         member this.GetSingle() =
             let tmp = (tryGetValue this)
             if tmp.IsSome then 
                 tmp.Value.ToSingle(new CultureInfo("en-US"))
             else
-                failwith (InvalidOperationException("Param value not set.").ToString())
+                raise (InvalidOperationException("Param value not set."))
 
         member this.GetDouble() =
             let tmp = (tryGetValue this)
             if tmp.IsSome then 
                 tmp.Value.ToDouble(new CultureInfo("en-US"))
             else
-                failwith (InvalidOperationException("Param value not set.").ToString())
+                raise (InvalidOperationException("Param value not set."))

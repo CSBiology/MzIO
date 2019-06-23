@@ -11,7 +11,7 @@ type ConvertibleConverter() =
     inherit JsonConverter()
 
     override this.CanConvert(objectType:Type) = 
-        failwith ((new NotSupportedException("JsonConverter.CanConvert()")).ToString())
+        raise (new NotSupportedException("JsonConverter.CanConvert()"))
 
     member this.ReadValue(reader:JsonReader, tc:TypeCode, jtval:JToken, serializer:JsonSerializer) =
         
@@ -27,14 +27,14 @@ type ConvertibleConverter() =
         | TypeCode.Int16    -> jtval.ToObject<Int16>(serializer)    :> IConvertible
         | TypeCode.Int32    -> jtval.ToObject<Int32>(serializer)    :> IConvertible
         | TypeCode.Int64    -> jtval.ToObject<Int64>(serializer)    :> IConvertible
-        | TypeCode.Object   -> failwith ((new JsonSerializationException("Object type not supported.")).ToString())
+        | TypeCode.Object   -> raise (new JsonSerializationException("Object type not supported."))
         | TypeCode.SByte    -> jtval.ToObject<sbyte>(serializer)    :> IConvertible
         | TypeCode.Single   -> jtval.ToObject<float>(serializer)    :> IConvertible
         | TypeCode.String   -> jtval.ToObject<string>(serializer)   :> IConvertible
         | TypeCode.UInt16   -> jtval.ToObject<UInt16>(serializer)   :> IConvertible
         | TypeCode.UInt32   -> jtval.ToObject<UInt32>(serializer)   :> IConvertible
         | TypeCode.UInt64   -> jtval.ToObject<UInt64>(serializer)   :> IConvertible
-        |   _               -> failwith ((new JsonSerializationException("Type not supported: " + tc.ToString())).ToString())
+        |   _               -> raise (new JsonSerializationException(sprintf "%s%s" "Type not supported: " (tc.ToString())))
 
     override this.ReadJson(reader:JsonReader, objectType:Type, existingValue:Object, serializer:JsonSerializer) =
         
@@ -50,11 +50,11 @@ type ConvertibleConverter() =
                     if jo.TryGetValue("$val", & jtval) then
                         this.ReadValue(reader, tc, jtval, serializer) :> Object
                     else
-                        failwith ((new JsonSerializationException("$val property expected.")).ToString())
+                        raise (new JsonSerializationException("$val property expected."))
                 else   
-                    failwith ((new JsonSerializationException("$tc property expected.")).ToString())
+                    raise (new JsonSerializationException("$tc property expected."))
             else
-                failwith ((new JsonSerializationException("Object token expected.")).ToString())
+                raise (new JsonSerializationException("Object token expected."))
 
     override this.WriteJson(writer: JsonWriter, value: Object, serializer: JsonSerializer) =
         if value = null then

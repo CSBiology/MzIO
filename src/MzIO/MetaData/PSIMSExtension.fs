@@ -77,7 +77,7 @@ module PSIMSExtension =
 
         member this.SetMsLevel (level:int) =
             if level < 1 then
-                failwith ((ArgumentOutOfRangeException("level")).ToString())
+                raise (ArgumentOutOfRangeException("level"))
             (this.SetCvParam(PSIMS_Spectrum.MsLevel, level) :> IHasUnit<DynamicObj>).NoUnit() |> ignore
             this
 
@@ -144,7 +144,7 @@ module PSIMSExtension =
 
         member this.SetIsolationWindowTargetMz(mz: double) =
             if mz < 0. then
-                failwith ((ArgumentOutOfRangeException("mz")).ToString())
+                raise (ArgumentOutOfRangeException("mz"))
             this.SetCvParam(PSIMS_IsolationWindow.IsolationWindowTargetMz).PSIMS_Mz() |> ignore
             this
 
@@ -170,7 +170,7 @@ module PSIMSExtension =
 
         member this.SetIsolationWindowLowerOffset(offset: double) =
             if offset < 0. then
-                failwith ((ArgumentOutOfRangeException("offset")).ToString())
+                raise (ArgumentOutOfRangeException("offset"))
             this.SetCvParam(PSIMS_IsolationWindow.IsolationWindowLowerOffset).PSIMS_Mz() |> ignore
             this
 
@@ -197,7 +197,7 @@ module PSIMSExtension =
 
         member this.SetIsolationWindowUpperOffset(offset: double) =
             if offset < 0. then
-                failwith ((ArgumentOutOfRangeException("offset")).ToString())
+                raise (ArgumentOutOfRangeException("offset"))
             this.SetCvParam(PSIMS_IsolationWindow.IsolationWindowUpperOffset).PSIMS_Mz() |> ignore
             this
 
@@ -231,7 +231,7 @@ module PSIMSExtension =
 
         member this.SetSelectedIonMz(mz: double) =
             if mz < 0. then
-                failwith ((ArgumentOutOfRangeException("mz")).ToString())
+                raise (ArgumentOutOfRangeException("mz"))
             this.SetCvParam(PSIMS_Precursor.SelectedIonMz).PSIMS_Mz() |> ignore
             this
 
@@ -266,7 +266,7 @@ module PSIMSExtension =
 
         member this.SetCollisionEnergy (ce: double) =
             if ce < 0. then
-                failwith ((ArgumentOutOfRangeException("ce")).ToString())
+                raise (ArgumentOutOfRangeException("ce"))
             this.SetCvParam(PSIMS_Precursor.CollisionEnergy).UO_Electronvolt() |> ignore
             this
 
@@ -305,12 +305,11 @@ module PSIMSExtension =
         /// </summary>
 
         member this.SetFilterString(filterString:string) =
-            match filterString with
-            | null  -> failwith (ArgumentNullException("filterString","filterString may not be null or empty.").ToString())
-            | ""    -> failwith (ArgumentNullException("filterString","filterString may not be null or empty.").ToString())
-            | " "   -> failwith (ArgumentNullException("filterString","filterString may not be null or empty.").ToString())
-            |   _   -> (this.SetCvParam(PSIMS_Scan.FilterString, filterString) :> IHasUnit<DynamicObj>).NoUnit()    |> ignore
-            this
+            if String.IsNullOrWhiteSpace(filterString) then                
+                raise (ArgumentNullException("filterString","filterString may not be null or empty."))
+            else
+                (this.SetCvParam(PSIMS_Scan.FilterString, filterString) :> IHasUnit<DynamicObj>).NoUnit()    |> ignore
+
 
         /// <summary>
         /// A string unique to Thermo instrument describing instrument settings for the scan. [PSI:MS]
@@ -409,7 +408,7 @@ module PSIMSExtension =
             | BinaryDataCompressionType.ZLib            -> this.SetZlibCompression()
             | BinaryDataCompressionType.NumPressPic     -> this.SetMSNumpressPositiveIntegerCompression()
             | BinaryDataCompressionType.NumPressLin     -> this.SetMSNumpressLinearPredictionCompression()
-            |   _                                       -> failwith ((NotSupportedException("Compression type not supported: " + compressionType.ToString())).ToString())
+            |   _                                       -> raise (NotSupportedException(sprintf "%s%s" "Compression type not supported: " (compressionType.ToString())))
 
         /// <summary>
         /// 64-bit precision little-endian floating point conforming to IEEE-754. [PSI:MS]
@@ -457,4 +456,4 @@ module PSIMSExtension =
             | BinaryDataType.Float64    -> this.Set64BitFloat()
             | BinaryDataType.Int32      -> this.Set32BitInteger()
             | BinaryDataType.Int64      -> this.Set64BitInteger()
-            | _                         -> failwith ((NotSupportedException("Data type not supported: " + binaryDataType.ToString())).ToString())
+            | _                         -> raise (NotSupportedException(sprintf "%s%s" "Data type not supported: " (binaryDataType.ToString())))

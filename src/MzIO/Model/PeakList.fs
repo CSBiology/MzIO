@@ -218,7 +218,7 @@ and DynamicObjectConverter() =
 
         override this.CanConvert(objectType:Type) =
 
-            failwith ((new NotSupportedException("JsonConverter.CanConvert()")).ToString())
+            raise (new NotSupportedException("JsonConverter.CanConvert()"))
 
         override this.ReadJson(reader:JsonReader, objectType:Type, existingValue:Object, serializer:JsonSerializer) =           
             let jt = JToken.Load(reader)
@@ -231,7 +231,7 @@ and DynamicObjectConverter() =
                             jo.ToObject<MassSpectrum>(serializer) :> Object
                     //    if jo.["CvAccession"] = null then
                     //        if jo.["Name"] = null then
-                    //            failwith ((new JsonSerializationException("Could not determine concrete param type.")).ToString())
+                    //            raise (new JsonSerializationException("Could not determine concrete param type."))
                     //        else
                     //            let values = ParamBaseConverter.createParamValue jo
                     //            new UserParam<IConvertible>(jo.["Name"].ToString(), values) :> Object
@@ -239,9 +239,9 @@ and DynamicObjectConverter() =
                     //        let values = ParamBaseConverter.createParamValue jo
                     //        new CvParam<IConvertible>(jo.["CvAccession"].ToString(), values) :> Object
                         else 
-                            failwith ((new JsonSerializationException("Object token expected.")).ToString())
+                            raise (new JsonSerializationException("Object token expected."))
                     else 
-                        failwith ((new JsonSerializationException("Object token expected.")).ToString())
+                        raise (new JsonSerializationException("Object token expected."))
 
         override this.WriteJson(writer: JsonWriter, value: Object, serializer: JsonSerializer) =
             if value = null then
@@ -250,7 +250,7 @@ and DynamicObjectConverter() =
                 match value with
                 | :? MassSpectrum -> serializer.Serialize(writer, value.ToString())
                 //| :? CvParam<byte>  as value -> serializer.Serialize(writer, ParamBaseConverter.createJsonParam value)
-                //| _     -> failwith ((new JsonSerializationException("Type not supported: " + value.GetType().FullName)).ToString())
+                //| _     -> raise ((new JsonSerializationException("Type not supported: " + value.GetType().FullName))
                 | _ -> serializer.Serialize(writer, value.ToString())
 
 [<Sealed>]

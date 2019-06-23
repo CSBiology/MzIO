@@ -15,7 +15,7 @@ type BinaryDataDecoder() =
         | BinaryDataType.Int64      ->  float (reader.ReadInt64())
         | BinaryDataType.Float32    ->  float (reader.ReadSingle())
         | BinaryDataType.Float64    ->  float (reader.ReadDouble())
-        | _     -> failwith ("BinaryDataType not supported: " + (binaryDataType.ToString()))
+        | _     -> failwith (sprintf "%s%s" "BinaryDataType not supported: " (binaryDataType.ToString()))
 
     static member private NoCompression(stream:Stream, peakArray:Peak1DArray) =
 
@@ -197,7 +197,7 @@ type BinaryDataDecoder() =
         | BinaryDataCompressionType.ZLib            ->  BinaryDataDecoder.ZLib2(stream, peakArray)
         | BinaryDataCompressionType.NumPress        ->  BinaryDataDecoder.Numpress1D(stream, peakArray)
         | BinaryDataCompressionType.NumPressZLib    ->  BinaryDataDecoder.NumpressDeflate1D(stream, peakArray)
-        |   _   -> failwith ("Compression type not supported: " + (peakArray.CompressionType.ToString()))
+        |   _   -> failwith (sprintf "%s%s" "Compression type not supported: " (peakArray.CompressionType.ToString()))
 
             ////////////////////////////////////////////////////\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
     ///////////////////////////////////////////////////////DIFFERENCE\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
@@ -216,7 +216,7 @@ type BinaryDataDecoder() =
         | BinaryDataCompressionType.ZLib            ->  BinaryDataDecoder.ZLib(stream, peakArray)
         | BinaryDataCompressionType.NumPress        ->  BinaryDataDecoder.Numpress2D(stream, peakArray)
         | BinaryDataCompressionType.NumPressZLib    ->  BinaryDataDecoder.NumpressDeflate2D(stream, peakArray)
-        |   _   -> failwith ("Compression type not supported: " + (peakArray.CompressionType.ToString()))
+        |   _   -> failwith (sprintf "%s%s" "Compression type not supported: " (peakArray.CompressionType.ToString()))
 
     member this.Decode(peakArray:Peak2DArray, bytes:byte[]) =
 

@@ -13,7 +13,7 @@ type ParamBaseConverter =
 
     ///This function takes an object type and returns a boolean. The boolean indicates whether this instance can convert the specified object type.
     override this.CanConvert(objectType:Type) = 
-        failwith ((new NotSupportedException("JsonConverter.CanConvert()")).ToString())
+        raise (new NotSupportedException("JsonConverter.CanConvert()"))
 
     ///This function takes a JSON reader, an object type, the JSON representation of an object and a JSON serializer. It returns an object, which is read from the JSON representation.
     override this.ReadJson(reader:JsonReader, objectType:Type, existingValue:Object, serializer:JsonSerializer) =
@@ -31,9 +31,9 @@ type ParamBaseConverter =
                         if jo.TryGetValue("CvAccession", & jtval) then
                             jo.ToObject<CvParam<string>>(serializer) :> Object
                         else 
-                            failwith ((new JsonSerializationException("Could not determine concrete param type.")).ToString())
+                            raise (new JsonSerializationException("Could not determine concrete param type."))
                 else 
-                    failwith ((new JsonSerializationException("Object token expected.")).ToString())
+                    raise (new JsonSerializationException("Object token expected."))
 
     ///This function takes a JSOn writer, an object and a JSON serializer. It returns the JSON representation of the object.
     override this.WriteJson(writer: JsonWriter, value: Object, serializer: JsonSerializer) =
@@ -44,4 +44,4 @@ type ParamBaseConverter =
             match value with
             | :? CvParam<'T>    as value -> serializer.Serialize(writer, value)
             | :? UserParam<'T>  as value -> serializer.Serialize(writer, value)
-            | _     -> failwith ((new JsonSerializationException("Type not supported: " + value.GetType().FullName)).ToString())
+            | _     -> raise (new JsonSerializationException("Type not supported: " + value.GetType().FullName))

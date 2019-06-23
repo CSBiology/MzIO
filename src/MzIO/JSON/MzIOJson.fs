@@ -40,7 +40,7 @@ type MzIOJson =
 
     static member ReadJsonFile<'T>(path:string) =
         if File.Exists(path) = false then 
-            failwith ((new FileNotFoundException(path)).ToString())
+            raise (new FileNotFoundException(path))
 
         use reader = File.OpenText(path)
         use jsonReader = new JsonTextReader(reader)
@@ -56,11 +56,10 @@ type MzIOJson =
         //to be safe it is false
         let mutable throwExceptionIfFileCouldNotRead = false
 
-        match path with
-        | null  -> failwith (ArgumentNullException("path").ToString())
-        | ""    -> failwith (ArgumentNullException("path").ToString())
-        | " "   -> failwith (ArgumentNullException("path").ToString())
-        |   _   -> ()
+        if String.IsNullOrWhiteSpace(path) then 
+            raise (ArgumentNullException("path"))
+        else
+            ()
 
         if not (File.Exists(path)) then
             let model = io.CreateDefaultModel()
@@ -68,14 +67,13 @@ type MzIOJson =
             model
         
         else
-            let ex = new Exception()
             try
                 MzIOJson.ReadJsonFile<MzIOModel>(path)
             with
-                | :? Exception
+                | :? Exception as ex
                     -> 
                         match throwExceptionIfFileCouldNotRead with
-                        | true   -> failwith (ex.ToString())
+                        | true   -> raise ex
                         | false  ->
                             let mutable causalException = ex.InnerException
                             //let mutable backFile = String.Format("{0}.back", path)
@@ -106,11 +104,10 @@ type MzIOJson =
                             model
 
     static member FromJson<'T>(json: string) =
-        match json with
-        | null  -> failwith (ArgumentNullException("json").ToString())      
-        | ""    -> failwith (ArgumentNullException("json").ToString())      
-        | " "   -> failwith (ArgumentNullException("json").ToString())      
-        |   _   -> (*JsonConvert.DeserializeObject<'T>(json)*)
+        if String.IsNullOrWhiteSpace(json) then 
+            raise (ArgumentNullException("json"))
+        else
+            (*JsonConvert.DeserializeObject<'T>(json)*)
             let tmp = JsonConvert.DeserializeObject<'T>(json)
             match tmp :> Object with
             | :? DynamicObj as item -> MzIOJson.deserializeJObject(item, tmp :> Object)
