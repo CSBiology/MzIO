@@ -1722,9 +1722,9 @@ module MzML =
                     outerLoop (reader.Read())
             outerLoop false
 
-        member private this.model = MzIOJson.HandleExternalModelFile(this, this.GetModelFilePath())
+        member private this.model = MzIOJson.HandleExternalModelFile(this, MzMLReader.GetModelFilePath(filePath))
 
-        member this.GetModelFilePath() =
+        static member private GetModelFilePath(filePath) =
 
             sprintf "%s%s" filePath ".MzIOmodel"
 
@@ -1766,7 +1766,7 @@ module MzML =
             member this.SaveModel() =
 
                 try
-                    MzIOJson.SaveJsonFile(this.model, this.GetModelFilePath())
+                    MzIOJson.SaveJsonFile(this.model, MzMLReader.GetModelFilePath(filePath))
                 with
                     | :? Exception as ex ->
                         raise (new MzIOIOException(ex.Message, ex))
@@ -1774,6 +1774,21 @@ module MzML =
             member this.BeginTransaction() =
 
                 new MzMLReaderTransactionScope() :> ITransactionScope
+
+        member this.BeginTransaction() =
+
+            (this :> IMzIOIO).BeginTransaction()
+
+        member this.CreateDefaultModel() =
+
+            (this :> IMzIOIO).CreateDefaultModel()
+
+        member this.SaveModel() =
+
+            (this :> IMzIOIO).SaveModel()
+
+        member this.Model =
+            (this :> IMzIOIO).Model
 
         interface IMzIODataReader with
     

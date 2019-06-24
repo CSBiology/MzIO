@@ -215,31 +215,32 @@ let getSpectrumPeaks (path:string) (spectrumID:string) =
 
 
 #time
-let wiffFileReader =
-    getWiffFileReader wiffTestUni
+let wiffFileReader = getWiffFileReader wiffTestUni
 
-let massSpectra =
-    getMassSpectra wiffFileReader
+wiffFileReader.Model
 
-wiffFileReader.Model.Runs.GetProperties false
-|> (fun item -> (Seq.head item).Key)
+//let massSpectra =
+//    getMassSpectra wiffFileReader
 
-wiffFileReader.ReadMassSpectra("sample=0")
-|> Seq.item 1
+//wiffFileReader.Model.Runs.GetProperties false
+//|> (fun item -> (Seq.head item).Key)
 
-wiffFileReader.ReadSpectrumPeaks
+//wiffFileReader.ReadMassSpectra("sample=0")
+//|> Seq.item 1
 
-massSpectra
-|> Seq.length
+//wiffFileReader.ReadSpectrumPeaks
+
+//massSpectra
+//|> Seq.length
 
 //let helper = getMzIOHelper wiffTestUni BinaryDataCompressionType.NoCompression
 
 //let peak1DArrays = getPeak1DArrays wiffFileReader
 
-let wiffPeaks = wiffFileReader.ReadSpectrumPeaks("sample=0 experiment=0 scan=0")
+//let wiffPeaks = wiffFileReader.ReadSpectrumPeaks("sample=0 experiment=0 scan=0")
 
-wiffPeaks.Peaks
-|> Seq.length
+//wiffPeaks.Peaks
+//|> Seq.length
 
 //peak1DArrays
 //|> Seq.length
@@ -249,16 +250,17 @@ wiffPeaks.Peaks
 //    |> (fun wiffFileReader -> insertIntoDB 100 wiffFileReader)
 
 let mzMLReader = new MzMLReader(mzMLOfWiffUni)
+mzMLReader.Model
 
 //let spectrum    = mzMLReader.getSpectrum("sample=1 period=1 cycle=2 experiment=1")
-let spectra     = mzMLReader.ReadMassSpectra("_x0032_0171129_x0020_FW_x0020_LWagg001")
+//let spectra     = mzMLReader.ReadMassSpectra("_x0032_0171129_x0020_FW_x0020_LWagg001")
 //let peak1DArray = mzMLReader.ReadSpectrumPeaks("sample=1 period=1 cycle=1 experiment=1")
 
-spectra
-|> Seq.length
+//spectra
+//|> Seq.length
 
-mzMLReader.ReadChromatograms("_x0032_0171129_x0020_FW_x0020_LWagg001")
-|> Seq.length
+//mzMLReader.ReadChromatograms("_x0032_0171129_x0020_FW_x0020_LWagg001")
+//|> Seq.length
 
 //let Peak1DArray =
 //    mzMLReader.getMzIOModel().Runs.GetProperties false
@@ -341,8 +343,9 @@ mzMLReader.ReadChromatograms("_x0032_0171129_x0020_FW_x0020_LWagg001")
 
 //////xI.Scans.Count
 
-//let brukerReader = new BafFileReader(bafTestFile)
+let brukerReader = new BafFileReader(bafTestFile)
 
+brukerReader
 
 
 //open ThermoFisher

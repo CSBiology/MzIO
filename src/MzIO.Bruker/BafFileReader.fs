@@ -166,12 +166,15 @@ type BafFileReader(bafFilePath:string) =
         Baf2SqlWrapper.baf2sql_array_open_storage(1, bafFilePath)
 
     let baf2SqlHandle =
-        if baf2SqlHandle = Convert.ToUInt64 0 then Baf2SqlWrapper.ThrowLastBaf2SqlError()
+        if baf2SqlHandle = Convert.ToUInt64 0 then 
+            Baf2SqlWrapper.ThrowLastBaf2SqlError()
         else baf2SqlHandle
     let mutable linq2BafSql = new Linq2BafSql(sqlFilePath)
 
     let supportedVariables =
         SupportedVariablesCollection.ReadSupportedVariables(linq2BafSql)
+
+    member private this.model = MzIOJson.HandleExternalModelFile(this, BafFileReader.GetModelFilePath(bafFilePath))
 
     interface IMzIOIO with
 
@@ -200,7 +203,7 @@ type BafFileReader(bafFilePath:string) =
             this.RaiseDisposed()
 
             try
-                MzIOJson.SaveJsonFile(this.model, this.GetModelFilePath())
+                MzIOJson.SaveJsonFile(this.model, BafFileReader.GetModelFilePath(bafFilePath))
             with
                 | :? Exception as ex ->
                     raise (new MzIOIOException(ex.Message, ex))
@@ -210,6 +213,22 @@ type BafFileReader(bafFilePath:string) =
             this.RaiseDisposed()
 
             new BafFileTransactionScope() :> ITransactionScope
+
+    member this.BeginTransaction() =
+
+        (this :> IMzIOIO).BeginTransaction()
+
+    member this.CreateDefaultModel() =
+
+        (this :> IMzIOIO).CreateDefaultModel()
+
+    member this.SaveModel() =
+
+        (this :> IMzIOIO).SaveModel()
+
+    member this.Model =
+        
+        (this :> IMzIOIO).Model
 
     interface IDisposable with
 
@@ -231,8 +250,6 @@ type BafFileReader(bafFilePath:string) =
                     //else
                         disposed <- true
 
-
-    member private this.model = MzIOJson.HandleExternalModelFile(this, this.GetModelFilePath())
         //let model = MzIOJson.HandleExternalModelFile(this, this.GetModelFilePath())
 
     //let supportedVariables = SupportedVariablesCollection.ReadSupportedVariables(linq2BafSql)
@@ -245,9 +262,9 @@ type BafFileReader(bafFilePath:string) =
 
     member this.BafFilePath = bafFilePath
 
-    member private this.GetModelFilePath() =
+    static member private GetModelFilePath(bafFilePath:string) =
         
-        bafFilePath + ".MzIOmodel"
+        sprintf "%s%s" bafFilePath ".MzIOmodel"
 
     member private this.RaiseDisposed() =
 
