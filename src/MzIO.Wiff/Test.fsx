@@ -19,6 +19,7 @@
 
 open System
 open System.Collections.Generic
+open System.Runtime.InteropServices
 open Newtonsoft.Json
 open Newtonsoft.Json.Linq
 open MzIO.Binary
@@ -34,7 +35,6 @@ open MzIO.Json
 open MzIO.Bruker
 open MzIO.IO.MzML
 open MzIO.IO.MzML.MzML
-open System.Runtime.InteropServices
 //open ThermoFisher
 //open ThermoFisher.CommonCore
 //open ThermoFisher.CommonCore.RawFileReader

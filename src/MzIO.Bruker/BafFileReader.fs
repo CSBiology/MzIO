@@ -555,3 +555,39 @@ type BafFileReader(bafFilePath:string) =
 
         pa.Peaks <- new BafPeaksArray(masses, intensities)
         pa
+
+    member this.ReadMassSpectra(runID:string)               =
+
+        (this :> IMzIODataReader).ReadMassSpectra(runID)
+
+    member this.ReadMassSpectrum(spectrumID:string)         =
+
+        (this :> IMzIODataReader).ReadMassSpectrum(spectrumID)
+
+    member this.ReadSpectrumPeaks(spectrumID:string)        =
+
+        (this :> IMzIODataReader).ReadSpectrumPeaks(spectrumID)
+
+    member this.ReadMassSpectrumAsync(spectrumID:string)    =
+
+        (this :> IMzIODataReader).ReadMassSpectrumAsync(spectrumID)
+
+    member this.ReadSpectrumPeaksAsync(spectrumID:string)   =
+
+        (this :> IMzIODataReader).ReadSpectrumPeaksAsync(spectrumID)
+
+    member this.ReadChromatograms(runID:string)             =
+
+        (this :> IMzIODataReader).ReadChromatograms(runID)
+
+    member this.ReadChromatogramPeaks(runID:string)         =
+
+        (this :> IMzIODataReader).ReadChromatogramPeaks(runID)
+
+    member this.ReadChromatogramAsync(runID:string)         =
+
+        (this :> IMzIODataReader).ReadChromatogramAsync(runID)
+
+    member this.ReadChromatogramPeaksAsync(runID:string)    =
+
+        (this :> IMzIODataReader).ReadChromatogramPeaksAsync(runID)
