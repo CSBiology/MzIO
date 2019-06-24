@@ -10,6 +10,7 @@
 #r @"../MzIO.SQL\bin\Release\net45\MzIO.SQL.dll"
 #r @"../MzIO.Processing\bin\Release\net45\MzIO.Processing.dll"
 #r @"../MzIO.Bruker\bin\Release\net45\MzIO.Bruker.dll"
+#r @"../MzIO.MzML\bin\Release\net45\MzIO.MzML.dll"
 //#r @"../MzIO.Thermo\bin\Release\net451\ThermoFisher.CommonCore.BackgroundSubtraction.dll"
 //#r @"../MzIO.Thermo\bin\Release\net451\ThermoFisher.CommonCore.Data.dll"
 //#r @"../MzIO.Thermo\bin\Release\net451\ThermoFisher.CommonCore.MassPrecisionEstimator.dll"
@@ -31,6 +32,8 @@ open MzIO.MetaData.UO.UO
 open MzIO.Processing.MzIOLinq
 open MzIO.Json
 open MzIO.Bruker
+open MzIO.IO.MzML
+open MzIO.IO.MzML.MzML
 open System.Runtime.InteropServices
 //open ThermoFisher
 //open ThermoFisher.CommonCore
@@ -58,7 +61,7 @@ open System.Runtime.InteropServices
 
 
 let fileDir             = __SOURCE_DIRECTORY__
-let licensePath         = @"C:\Users\Patrick\source\repos\MzLiteFSharp\src\MzLiteFSharp.Wiff\License\Clearcore2.license.xml"
+let licensePath         = @"C:\Users\Student\source\repos\MzLiteFSharp\src\MzLiteFSharp.Wiff\License\Clearcore2.license.xml"
 
 let wiffTestFileStudent = @"C:\Users\Student\OneDrive\MP_Biotech\VP_Timo\MassSpecFiles\wiffTestFiles\20171129 FW LWagg001.wiff"
 let mzIOFileStudent     = @"C:\Users\Student\source\repos\wiffTestFiles\20171129 FW LWagg001.wiff.mzIO"
@@ -69,12 +72,13 @@ let jonWiff             = @"C:\Users\jonat\OneDrive\MP_Biotech\VP_Timo\MassSpecF
 let wiffTestPaeddetor   = @"D:\Users\Patrick\Desktop\BioInformatik\MzLiteTestFiles\WiffTestFiles\20180301_MS_JT88mutID122.wiff"
 let paddeTestPath       = @"D:\Users\Patrick\Desktop\BioInformatik\MzLiteTestFiles\WiffTestFiles\20180301_MS_JT88mutID122.wiff.mzIO"
 
-let wiffTestUni         = @"C:\Users\Student\source\repos\wiffTestFiles\20171129 FW LWagg001.wiff"
-let uniTestPath         = @"C:\Users\Student\source\repos\wiffTestFiles\20171129 FW LWagg001.wiff.mzIO"
+let wiffTestUni         = @"C:\Users\Student\source\repos\wiffTestFiles\WiffFiles\20171129 FW LWagg001.wiff"
+let mzMLOfWiffUni       = @"C:\Users\Student\source\repos\wiffTestFiles\WiffFiles\20171129 FW LWagg001.mzML"
+let uniTestPath         = @"C:\Users\Student\source\repos\wiffTestFiles\WiffFiles\20171129 FW LWagg001.wiff.mzIO"
 
 let bafTestFile         = @"C:\Users\Student\source\repos\wiffTestFiles\Bruker\170922_4597.d\analysis.baf" 
 
-let mzIOFSharpDBPath  = @"C:\Users\Student\source\repos\wiffTestFiles\Databases\MzLiteFSHarpLWagg001.mzIO"
+let mzIOFSharpDBPath    = @"C:\Users\Student\source\repos\wiffTestFiles\Databases\MzLiteFSHarpLWagg001.mzIO"
 
 
 type MzIOHelper =
@@ -94,7 +98,7 @@ let createMzIOHelper (runID:string) (path:string) (spectrum:seq<MzIO.Model.MassS
     }
 
 
-//let wiffFileReader = new WiffFileReader(wiffTestPaeddetor, licensePath)
+//let wiffFileReader = new WiffFileReader(wiffTestUni, licensePath)
 //let massSpectra = 
 //    wiffFileReader.Model.Runs.GetProperties false
 //    |> Seq.map (fun run -> wiffFileReader.ReadMassSpectra run.Key)
@@ -113,7 +117,7 @@ let createMzIOHelper (runID:string) (path:string) (spectrum:seq<MzIO.Model.MassS
 
 //model.Runs.GetProperties false
 
-//let testii = (new MzIOSQL(paddeTestPath))
+//let testii = (new MzIOSQL(uniTestPath))
 //let testiii = testii.MzIOSQL()
 
 //let testVI = testii.BeginTransaction()
@@ -212,30 +216,71 @@ let getSpectrumPeaks (path:string) (spectrumID:string) =
 
 #time
 let wiffFileReader =
-    getWiffFileReader wiffTestPaeddetor
+    getWiffFileReader wiffTestUni
 
 let massSpectra =
     getMassSpectra wiffFileReader
 
-let helper = getMzIOHelper wiffTestPaeddetor BinaryDataCompressionType.NoCompression
+wiffFileReader.Model.Runs.GetProperties false
+|> (fun item -> (Seq.head item).Key)
 
-let peak1DArrays = getPeak1DArrays wiffFileReader
+wiffFileReader.ReadMassSpectra("sample=0")
+|> Seq.item 1
 
-let insertDB =
-    getMzIOHelper wiffTestPaeddetor BinaryDataCompressionType.NoCompression
-    |> (fun wiffFileReader -> insertIntoDB 100 wiffFileReader)
+wiffFileReader.ReadSpectrumPeaks
+
+massSpectra
+|> Seq.length
+
+//let helper = getMzIOHelper wiffTestUni BinaryDataCompressionType.NoCompression
+
+//let peak1DArrays = getPeak1DArrays wiffFileReader
+
+let wiffPeaks = wiffFileReader.ReadSpectrumPeaks("sample=0 experiment=0 scan=0")
+
+wiffPeaks.Peaks
+|> Seq.length
+
+//peak1DArrays
+//|> Seq.length
+
+//let insertDB =
+//    getMzIOHelper wiffTestUni BinaryDataCompressionType.NoCompression
+//    |> (fun wiffFileReader -> insertIntoDB 100 wiffFileReader)
+
+let mzMLReader = new MzMLReader(mzMLOfWiffUni)
+
+//let spectrum    = mzMLReader.getSpectrum("sample=1 period=1 cycle=2 experiment=1")
+let spectra     = mzMLReader.ReadMassSpectra("_x0032_0171129_x0020_FW_x0020_LWagg001")
+//let peak1DArray = mzMLReader.ReadSpectrumPeaks("sample=1 period=1 cycle=1 experiment=1")
+
+spectra
+|> Seq.length
+
+mzMLReader.ReadChromatograms("_x0032_0171129_x0020_FW_x0020_LWagg001")
+|> Seq.length
+
+//let Peak1DArray =
+//    mzMLReader.getMzIOModel().Runs.GetProperties false
+//    //mzMLReader.Model.Runs.GetProperties false
+//    //|> Seq.collect (fun (run:KeyValuePair<string, obj>) -> mzMLReader.ReadMassSpectra run.Key)
+
+//Peak1DArray
+//|> Seq.length
+
+//mzMLReader.getSpectrum("sample=1 period=1 cycle=2 experiment=1")
 
 //let spectrum =
-//    getSpectrum paddeTestPath "sample=0 experiment=0 scan=0"
+//    getSpectrum uniTestPath "sample=0 experiment=0 scan=0"
 
 //let spectra =
-//    getMzIOHelper wiffTestPaeddetor BinaryDataCompressionType.ZLib
-//    |> getSpectra paddeTestPath 
+//    getMzIOHelper wiffTestUni BinaryDataCompressionType.NoCompression
+//    |> getSpectra uniTestPath 
 
 //let peaks =
-//    //spectra
-//    //|> Seq.map (fun item -> getSpectrumPeaks paddeTestPath item.ID)
-//    getSpectrumPeaks paddeTestPath "sample=0 experiment=0 scan=0"
+//    spectra
+//    |> Seq.map (fun item -> getSpectrumPeaks uniTestPath item.ID)
+    //getSpectrumPeaks uniTestPath "sample=0 experiment=0 scan=0"
 
 //Seq.length peaks
 
@@ -248,126 +293,25 @@ let insertDB =
 //    helper.MassSpectrum |> List.ofSeq
 //    |> List.head
 
+//let mzsqlreader = new MzIOSQL(uniTestPath)
 
-//let mutable idx = 0
-//tmp.TryGetMsLevel(& idx)
-//idx
-//tmp.TryGetValue(PSIMS_Spectrum.MsLevel).Value
+//let tr = mzsqlreader.BeginTransaction()
 
+//let tmpX = mzsqlreader.ReadMassSpectra("sample=0") |> List.ofSeq |> List.head
 
-//let y = new CvParam<int>("test", ParamValue.WithCvUnitAccession(5, "SOME TEST"))
-//let yIII = new CvParam<int>("testI")
-//let text = MzIOJson.ToJson(y)
-//MzIOJson.ToJson(yIII)
-//MzIOJson.FromJson(text) :> CvParam<IConvertible>
-////MzIOJson.ToJson(yIII)
+//let mutable idx1 = 0
+//tmpX.TryGetMsLevel(& idx1)
+//idx1
 
-//MzIOJson.ToJson(ParamValue.WithCvUnitAccession(5, "SOME TEST").ToString())
-//JsonConvert.SerializeObject(ParamValue.WithCvUnitAccession(5, "SOME TEST").ToString())
+//tmpX.TryGetValue(PSIMS_Spectrum.MsLevel)
 
-//"WithCvUnitAccession (5,\"SOME TEST\")"
+////tmpX.TryGetTypedValue<CvParam<IConvertible>>(PSIMS_Spectrum.MsLevel)
 
-//let cvTest = sprintf "{\"%s\":\"%s\",%s}" "$id" "1" "\"Type\":\"WithCvUnitAccession\",\"Values\":[5,\"SOME TEST\"]"
-//let jsonX = JsonConvert.DeserializeObject<JObject>(cvTest)
-//jsonX.ToString()
-//jsonX.["Type"]
-//jsonX.["Values"] :?> JArray
+//tmpX.Scans.GetProperties true
 
+//let rtIndexEntry = mzsqlreader.BuildRtIndex("sample=0")
 
-
-//"WithCvUnitAccession".Length
-//"CvValue".Length
-//let tmp = new MassSpectrum()
-
-//tmp.AddCvParam(y)
-//tmp.AddCvParam(yIII)
-//tmp.AddCvParam(new CvParam<string>("testII", ParamValue.WithCvUnitAccession(null, "SOME TEST")))
-//tmp.AddCvParam(new CvParam<string>("testIII", ParamValue.CvValue("SOME VAlue")))
-//tmp.TryGetValue("test")
-//tmp.TryGetValue("testI")
-//tmp.TryGetValue("testII")
-//tmp.TryGetValue("testIII")
-
-//let tmpIII = MzIOJson.FromJson(MzIOJson.ToJson(tmp)) :> MassSpectrum
-
-//for i in tmpIII.GetDynamicMemberNames() do
-//    printfn "%s" i
-
-//tmpIII.TryGetValue("test")
-//tmpIII.TryGetValue("testI")
-//tmpIII.TryGetValue("testII")
-//tmpIII.TryGetValue("testIII")
-
-////let text2 = MzIOJson.ToJson(tmp)
-////let tmp2 = MzIOJson.FromJson(text2) :> DynamicObj
-
-////MzIOJson.ToJson(y)
-////|> (fun item -> MzIOJson.FromJson(item)) :> CvParam<int>
-
-////let x = ((Seq.head (tmp2.GetProperties false)).Value.ToString())
-////MzIOJson.FromJson(x) :> CvParam<int64>
-
-////let jObj = tmp2.TryGetValue("test").Value :?> JObject
-
-////MzIOJson.FromJson(jObj.ToString()) :> CvParam<int>
-////jObj.First.ToString()
-//////MzIOJson.FromJson(jObj.First.Next.ToString())
-
-////jObj.ToString()
-
-////let xI = jObj.["Value"] :?> JObject
-
-////xI.["Case"].ToString()
-////let yI = xI.["Fields"]
-
-////y.ToString()
-
-////xI.Count
-////xI.First.ToString()
-////yI.First.["Case"].ToString()
-////yI.First.["Fields"].First.ToString()
-////yI.First.["Fields"].Last.ToString()
-////xI.Last.ToString()
-
-////deSerializeInPlaceParamValues tmp2
-
-////tmp2.TryGetValue("test")
-////tmp2.TryGetValue("testI")
-////tmp2.TryGetValue("testII")
-////tmp2.TryGetValue("testIII")
-
-
-////tmp.AddCvParam y
-////tmp.SetCvParam("test").UO_Liter()
-////let zy = tryGetCvUnitAccession (tmp.TryGetTypedValue<CvParam<IConvertible>>("test").Value)
-////zy
-
-
-////JObject.Parse(text).First.Next.ToString()
-////JObject.Parse(text).First.Next.Next.ToString()
-
-
-//////let dbPath = @"C:\Users\Student\OneDrive\MP_Biotech\VP_Timo\MassSpecFiles\wiffTestFiles\20171129 FW LWagg001_testMzIO.mzIO"
-
-let mzsqlreader = new MzIOSQL(paddeTestPath)
-
-let tr = mzsqlreader.BeginTransaction()
-
-let tmpX = mzsqlreader.ReadMassSpectra("sample=0") |> List.ofSeq |> List.head
-
-let mutable idx1 = 0
-tmpX.TryGetMsLevel(& idx1)
-idx1
-
-tmpX.TryGetValue(PSIMS_Spectrum.MsLevel)
-
-//tmpX.TryGetTypedValue<CvParam<IConvertible>>(PSIMS_Spectrum.MsLevel)
-
-tmpX.Scans.GetProperties true
-
-let rtIndexEntry = mzsqlreader.BuildRtIndex("sample=0")
-
-let rtProfile = mzsqlreader.RtProfile (rtIndexEntry, (new MzIO.Processing.RangeQuery(1., 300., 600.)), (new MzIO.Processing.RangeQuery(1., 300., 600.)))
+//let rtProfile = mzsqlreader.RtProfile (rtIndexEntry, (new MzIO.Processing.RangeQuery(1., 300., 600.)), (new MzIO.Processing.RangeQuery(1., 300., 600.)))
 
 //let tmpXY = (new Scan())
 //tmpXY.AddCvParam(new CvParam<string>("Test)"))
@@ -398,6 +342,8 @@ let rtProfile = mzsqlreader.RtProfile (rtIndexEntry, (new MzIO.Processing.RangeQ
 //////xI.Scans.Count
 
 //let brukerReader = new BafFileReader(bafTestFile)
+
+
 
 //open ThermoFisher
 //open ThermoFisher.CommonCore

@@ -1,9 +1,11 @@
 ﻿namespace MzIO.IO.MzML
 
+
 open System
 open System.IO
 open System.IO.Compression
 open System.Xml
+open System.Threading.Tasks
 open FSharp.Core
 open MzIO.Model
 open MzIO.Model.Helper
@@ -11,8 +13,25 @@ open MzIO.Model.CvParam
 open MzIO.Commons.Arrays
 open MzIO.Binary
 open MzIO.IO
+open MzIO.Json
+
 
 module MzML =
+
+    type private MzMLReaderTransactionScope() =
+
+        interface ITransactionScope with
+
+            member this.Commit() =
+                ()
+
+            member this.Rollback() =
+                ()
+
+        interface IDisposable with
+        
+            member this.Dispose() =
+                ()
 
     type MzMLReader(filePath: string) =
 
@@ -244,25 +263,25 @@ module MzML =
                             |> (fun bytes -> MzMLReader.byteToDoubles false bytes)
                         let peaks = Array.map2 (fun mz int -> new Peak1D(int, float mz)) mzs intensities
                         peakArray.Peaks <- ArrayWrapper(peaks)
-                     | _ -> failwith "No compelement Type"
+                    | _ -> failwith "No compelement Type"
                 | BinaryDataType.Float64 ->
                     let mzs =
                         Convert.FromBase64String(peaks.[1])
                         |> (fun bytes -> MzMLReader.byteToDoubles false bytes)
                     match peakArray.IntensityDataType with
-                    | BinaryDataType.Float64 ->
-                        let intensities =
-                            Convert.FromBase64String(peaks.[0])
-                            |> (fun bytes -> MzMLReader.byteToDoubles false bytes)
-                        let peaks = Array.map2 (fun mz int -> new Peak1D(int, mz)) mzs intensities
-                        peakArray.Peaks <- ArrayWrapper(peaks)
                     | BinaryDataType.Float32 ->
                         let intensities =
                             Convert.FromBase64String(peaks.[0])
                             |> (fun bytes -> MzMLReader.byteToSingles false bytes)
                         let peaks = Array.map2 (fun mz int -> new Peak1D(float int, mz)) mzs intensities
                         peakArray.Peaks <- ArrayWrapper(peaks)
-                     | _ -> failwith "No compelement Type"
+                    | BinaryDataType.Float64 ->
+                        let intensities =
+                            Convert.FromBase64String(peaks.[0])
+                            |> (fun bytes -> MzMLReader.byteToDoubles false bytes)
+                        let peaks = Array.map2 (fun mz int -> new Peak1D(int, mz)) mzs intensities
+                        peakArray.Peaks <- ArrayWrapper(peaks)
+                    | _ -> failwith "No compelement Type"
                 | _ -> failwith "No compelement Type"
             | BinaryDataCompressionType.ZLib ->
                 match peakArray.MzDataType with
@@ -771,20 +790,20 @@ module MzML =
                 loop false
             let readOp = readSubtree.Read
             let mutable spectrum = new MassSpectrum()
-            let rec loop id sourceRef cvParams userParams scans precs products peaks read =
+            let rec loop id sourceRef cvParams userParams scans precs products read =
                 if readSubtree.NodeType=XmlNodeType.Element then
                     match readSubtree.Name with
                     | "spectrum"                    -> loop
                                                         (this.getAttribute ("id", readSubtree))
                                                         (this.tryGetAttribute ("sourceFileRef", readSubtree))
-                                                        cvParams userParams scans precs products peaks
+                                                        cvParams userParams scans precs products
                                                         (readOp() |> ignore)
-                    | "referenceableParamGroupRef"  -> loop id sourceRef cvParams userParams scans precs products peaks (readOp() |> ignore)
-                    | "cvParam"                     -> loop id sourceRef ((this.getCVParam readSubtree)::cvParams) userParams scans precs products peaks (readOp() |> ignore)
-                    | "userParam"                   -> loop id sourceRef cvParams ((this.getUserParam readSubtree)::userParams) scans precs products peaks   (readOp() |> ignore)
-                    | "scanList"                    -> loop id sourceRef cvParams userParams (this.getScanList readSubtree) precs products peaks read
-                    | "precursorList"               -> loop id sourceRef cvParams userParams scans (this.getPrecursorList readSubtree) products peaks read
-                    | "productList"                 -> loop id sourceRef cvParams userParams scans precs (this.getProductList readSubtree) peaks read
+                    | "referenceableParamGroupRef"  -> loop id sourceRef cvParams userParams scans precs products (readOp() |> ignore)
+                    | "cvParam"                     -> loop id sourceRef ((this.getCVParam readSubtree)::cvParams) userParams scans precs products (readOp() |> ignore)
+                    | "userParam"                   -> loop id sourceRef cvParams ((this.getUserParam readSubtree)::userParams) scans precs products   (readOp() |> ignore)
+                    | "scanList"                    -> loop id sourceRef cvParams userParams (this.getScanList readSubtree) precs products read
+                    | "precursorList"               -> loop id sourceRef cvParams userParams scans (this.getPrecursorList readSubtree) products read
+                    | "productList"                 -> loop id sourceRef cvParams userParams scans precs (this.getProductList readSubtree) read
                     | "binaryDataArrayList"         -> spectrum <- new MassSpectrum(id, precs, scans, products, if sourceRef.IsSome then sourceRef.Value else null)
                                                        (this.getDataProcessingReference (spectrum, readSubtree))
                                                        cvParams
@@ -794,48 +813,9 @@ module MzML =
                                                        spectrum
                     |   _                           -> spectrum
                 else
-                    if readOp()=true then loop id sourceRef cvParams userParams scans precs products peaks read
+                    if readOp()=true then loop id sourceRef cvParams userParams scans precs products read
                     else spectrum
-            loop null None [] [] (new ScanList()) (new PrecursorList()) (new ProductList()) Seq.empty ()
-
-        member this.getSpectrum(spectrumID: string) =
-            let readSubtree =
-                let rec loop acc =
-                    if reader.NodeType=XmlNodeType.Element && reader.Name="spectrum" then
-                        reader.ReadSubtree()
-                    else loop (reader.Read())
-                loop false
-            let readOp = readSubtree.Read
-            let mutable spectrum = new MassSpectrum()
-            let rec loop id sourceRef cvParams userParams scans precs products peaks read =
-                if readSubtree.NodeType=XmlNodeType.Element then
-                    match readSubtree.Name with
-                    | "spectrum"                    -> if (this.getAttribute ("id", readSubtree)) = spectrumID then
-                                                            loop
-                                                                (this.getAttribute ("id", readSubtree))
-                                                                (this.tryGetAttribute ("sourceFileRef", readSubtree))
-                                                                cvParams userParams scans precs products peaks
-                                                                (readOp() |> ignore)
-                                                       else 
-                                                            None
-                    | "referenceableParamGroupRef"  -> loop id sourceRef cvParams userParams scans precs products peaks (readOp() |> ignore)
-                    | "cvParam"                     -> loop id sourceRef ((this.getCVParam readSubtree)::cvParams) userParams scans precs products peaks (readOp() |> ignore)
-                    | "userParam"                   -> loop id sourceRef cvParams ((this.getUserParam readSubtree)::userParams) scans precs products peaks   (readOp() |> ignore)
-                    | "scanList"                    -> loop id sourceRef cvParams userParams (this.getScanList readSubtree) precs products peaks read
-                    | "precursorList"               -> loop id sourceRef cvParams userParams scans (this.getPrecursorList readSubtree) products peaks read
-                    | "productList"                 -> loop id sourceRef cvParams userParams scans precs (this.getProductList readSubtree) peaks read
-                    | "binaryDataArrayList"         -> spectrum <- new MassSpectrum(id, precs, scans, products, if sourceRef.IsSome then sourceRef.Value else null)
-                                                       (this.getDataProcessingReference (spectrum, readSubtree))
-                                                       cvParams
-                                                       |> List.iter(fun cvParam -> spectrum.AddCvParam cvParam)
-                                                       userParams
-                                                       |> List.iter(fun userParam -> spectrum.AddUserParam userParam)
-                                                       Some spectrum
-                    |   _                           -> Some spectrum
-                else
-                    if readOp()=true then loop id sourceRef cvParams userParams scans precs products peaks read
-                    else Some spectrum
-            loop null None [] [] (new ScanList()) (new PrecursorList()) (new ProductList()) Seq.empty ()
+            loop null None [] [] (new ScanList()) (new PrecursorList()) (new ProductList()) ()
 
         member this.getSpectra() =
             let rec outerLoop acc =
@@ -861,43 +841,63 @@ module MzML =
                     outerLoop (reader.Read())
             outerLoop false
 
-        //member this.getSpectra() =
-        //    let rec outerLoop acc =
-        //        if reader.Name = "spectrumList" then
-        //            let readSubtree = reader.ReadSubtree()
-        //            let readOp = readSubtree.Read
-        //            let rec loop (acc:seq<MassSpectrum>) =
-        //                seq
-        //                    {
-        //                        if readSubtree.NodeType=XmlNodeType.Element then
-        //                            match readSubtree.Name with
-        //                            | "spectrum"    ->  yield this.getSpectrum readSubtree
-        //                                                (readOp()) |> ignore
-        //                                                yield! loop acc
-        //                            |   _           ->  (readOp()) |> ignore
-        //                                                yield! loop acc
-        //                        else
-        //                            if readOp()=true then yield! loop acc
-        //                            else yield! acc
-        //                    }
-        //            loop Seq.empty
-        //        else
-        //            outerLoop (reader.Read())
-        //    outerLoop false
+        member this.getChromatogram(?xmlReader: XmlReader) =
+            let xmlReader = defaultArg xmlReader reader
+            let readSubtree =
+                let rec loop acc =
+                    if xmlReader.NodeType=XmlNodeType.Element && xmlReader.Name="spectrum" then
+                        xmlReader.ReadSubtree()
+                    else loop (xmlReader.Read())
+                loop false
+            let readOp = readSubtree.Read
+            let mutable chromatogram = new Chromatogram()
+            let rec loop id cvParams userParams precs products read =
+                if readSubtree.NodeType=XmlNodeType.Element then
+                    match readSubtree.Name with
+                    | "chromatogram"                -> loop
+                                                        (this.getAttribute ("id", readSubtree))
+                                                        cvParams userParams precs products
+                                                        (readOp() |> ignore)
+                    | "cvParam"                     -> loop id ((this.getCVParam readSubtree)::cvParams) userParams precs products (readOp() |> ignore)
+                    | "userParam"                   -> loop id cvParams ((this.getUserParam readSubtree)::userParams) precs products   (readOp() |> ignore)
+                    | "scanList"                    -> loop id cvParams userParams precs products read
+                    | "precursor"                   -> loop id cvParams userParams (this.getPrecursor readSubtree) products read
+                    | "product"                     -> loop id cvParams userParams precs (this.getProduct readSubtree) read
+                    | "binaryDataArrayList"         -> chromatogram <- new Chromatogram(id, precs, products)
+                                                       cvParams
+                                                       |> List.iter(fun cvParam -> chromatogram.AddCvParam cvParam)
+                                                       userParams
+                                                       |> List.iter(fun userParam -> chromatogram.AddUserParam userParam)
+                                                       chromatogram
+                    |   _                           -> chromatogram
+                else
+                    if readOp()=true then loop id cvParams userParams precs products read
+                    else chromatogram
+            loop null [] [] (new Precursor()) (new Product()) ()
 
-        //let readSpectra (reader:XmlReader) =
-        //    let readOp = reader.Read
-        //    let rec loop acc =
-        //        if reader.NodeType=XmlNodeType.Element then
-        //            if reader.Name = "spectrumList" then
-        //                getSpectra reader
-        //            else
-        //                readOp() |> ignore
-        //                loop acc
-        //        else
-        //            readOp() |> ignore
-        //            loop acc
-        //    loop Seq.empty
+        member this.getChromatogramms() =
+            let rec outerLoop acc =
+                if reader.Name = "chromatogramList" then
+                    let readSubtree = reader.ReadSubtree()
+                    let readOp = readSubtree.Read
+                    let rec loop (acc:seq<Chromatogram>) =
+                        seq
+                            {
+                                if readSubtree.NodeType=XmlNodeType.Element then
+                                    match readSubtree.Name with
+                                    | "chromatogram"    ->  yield this.getChromatogram readSubtree
+                                                            (readOp()) |> ignore
+                                                            yield! loop acc
+                                    |   _               ->  (readOp()) |> ignore
+                                                            yield! loop acc
+                                else
+                                    if readOp()=true then yield! loop acc
+                                    else yield! acc
+                            }
+                    loop Seq.empty
+                else
+                    outerLoop (reader.Read())
+            outerLoop false
 
         member this.getPeak1DArray(?xmlReader: XmlReader) =
             let xmlReader = defaultArg xmlReader reader
@@ -1445,18 +1445,408 @@ module MzML =
                     outerLoop (reader.Read())
             outerLoop false
 
-        //interface IMzIODataReader with
+        member this.getSpectra(runID) =
+            let rec outerLoop acc =
+                if reader.Name = "run" then
+                    let readSubtree = reader.ReadSubtree()
+                    let readOp = readSubtree.Read
+                    let rec loop (acc:seq<MassSpectrum>) =
+                        seq
+                            {
+                                if readSubtree.NodeType=XmlNodeType.Element then
+                                    match readSubtree.Name with
+                                    | "run"         ->  
+                                        if (this.getAttribute ("id", readSubtree)) = runID then
+                                            (readOp()) |> ignore
+                                            yield! loop acc
+                                        else
+                                            failwith "Invalid runID"
+                                    | "spectrum"    ->  yield this.getSpectrum readSubtree
+                                                        (readOp()) |> ignore
+                                                        yield! loop acc
+                                    |   _           ->  (readOp()) |> ignore
+                                                        yield! loop acc
+                                else
+                                    if readOp()=true then yield! loop acc
+                                    else yield! acc
+                            }
+                    loop Seq.empty
+                else
+                    outerLoop (reader.Read())
+            outerLoop false
+
+        member private this.tryGetSpectrum(spectrumID: string) =
+            let readSubtree =
+                let rec loop acc =
+                    if reader.NodeType=XmlNodeType.Element && reader.Name="spectrum" then
+                        reader.ReadSubtree()
+                    else loop (reader.Read())
+                loop false
+            let readOp = readSubtree.Read
+            let mutable spectrum = new MassSpectrum()
+            let rec loop id sourceRef cvParams userParams scans precs products read =
+                if readSubtree.NodeType=XmlNodeType.Element then
+                    match readSubtree.Name with
+                    | "spectrum"                    -> if (this.getAttribute ("id", readSubtree)) = spectrumID then
+                                                            loop
+                                                                (this.getAttribute ("id", readSubtree))
+                                                                (this.tryGetAttribute ("sourceFileRef", readSubtree))
+                                                                cvParams userParams scans precs products
+                                                                (readOp() |> ignore)
+                                                       else 
+                                                            None
+                    | "referenceableParamGroupRef"  -> loop id sourceRef cvParams userParams scans precs products (readOp() |> ignore)
+                    | "cvParam"                     -> loop id sourceRef ((this.getCVParam readSubtree)::cvParams) userParams scans precs products (readOp() |> ignore)
+                    | "userParam"                   -> loop id sourceRef cvParams ((this.getUserParam readSubtree)::userParams) scans precs products   (readOp() |> ignore)
+                    | "scanList"                    -> loop id sourceRef cvParams userParams (this.getScanList readSubtree) precs products read
+                    | "precursorList"               -> loop id sourceRef cvParams userParams scans (this.getPrecursorList readSubtree) products read
+                    | "productList"                 -> loop id sourceRef cvParams userParams scans precs (this.getProductList readSubtree) read
+                    | "binaryDataArrayList"         -> spectrum <- new MassSpectrum(id, precs, scans, products, if sourceRef.IsSome then sourceRef.Value else null)
+                                                       (this.getDataProcessingReference (spectrum, readSubtree))
+                                                       cvParams
+                                                       |> List.iter(fun cvParam -> spectrum.AddCvParam cvParam)
+                                                       userParams
+                                                       |> List.iter(fun userParam -> spectrum.AddUserParam userParam)
+                                                       Some spectrum
+                    |   _                           -> Some spectrum
+                else
+                    if readOp()=true then loop id sourceRef cvParams userParams scans precs products read
+                    else Some spectrum
+
+            loop null None [] [] (new ScanList()) (new PrecursorList()) (new ProductList()) ()
+
+        member this.getSpectrum(spectrumID: string) =
+            let rec outerLoop acc =
+                if reader.Name = "spectrumList" then
+                    let readSubtree = reader.ReadSubtree()
+                    let readOp = readSubtree.Read
+                    let rec loop (acc) =
+                        if readSubtree.NodeType=XmlNodeType.Element then
+                            match readSubtree.Name with
+                            | "spectrum"    ->  match this.tryGetSpectrum spectrumID with
+                                                | Some spectrum -> spectrum
+                                                | None          -> 
+                                                    (readOp()) |> ignore
+                                                    loop acc
+                            |   _           ->  (readOp()) |> ignore
+                                                loop acc
+                        else
+                            if readOp()=true then loop acc
+                            else failwith "No valid spectrumID"
+                    loop ()
+                else
+                    outerLoop (reader.Read())
+            outerLoop false
+
+        member private this.tryGetPeak1DArray(spectrumID: string) =
+            let readSubtree =
+                let rec loop acc =
+                    if reader.NodeType=XmlNodeType.Element && reader.Name="spectrum" then
+                        reader.ReadSubtree()
+                    else loop (reader.Read())
+                loop false
+            let readOp = readSubtree.Read
+            let rec loop read =
+                if readSubtree.NodeType=XmlNodeType.Element then
+                    match readSubtree.Name with
+                    | "spectrum"            ->  if (this.getAttribute ("id", readSubtree)) = spectrumID then
+                                                    loop (readOp() |> ignore)
+                                                else
+                                                    None
+                    | "binaryDataArrayList" ->  Some (this.translatePeak1DArray readSubtree)
+                    |   _                   ->  loop (readOp() |> ignore)
+                else
+                    if readOp()=true then loop read
+                    else None
+            loop ()
+
+        member private this.getSpecificPeak1DArray(spectrumID:string) =
+            let rec outerLoop acc =
+                if reader.Name = "spectrumList" then
+                    let readSubtree = reader.ReadSubtree()
+                    let readOp = readSubtree.Read
+                    let rec loop acc =
+                                if readSubtree.NodeType=XmlNodeType.Element then
+                                    match readSubtree.Name with
+                                    | "spectrum"    ->  match this.tryGetPeak1DArray spectrumID with
+                                                        | Some peak1DArray  -> peak1DArray
+                                                        | None              ->
+                                                            (readOp()) |> ignore
+                                                            loop acc
+                                    |   _           ->  (readOp()) |> ignore
+                                                        loop acc
+                                else
+                                    if readOp()=true then loop acc
+                                    else 
+                                        failwith "Invalid spectrumID"
+                    loop ()
+                else
+                    outerLoop (reader.Read())
+            outerLoop false
+
+        member this.ReadChromatogramms(runID) =
+            let rec outerLoop acc =
+                if reader.Name = "run" then
+                    let readSubtree = reader.ReadSubtree()
+                    let readOp = readSubtree.Read
+                    let rec loop (acc:seq<Chromatogram>) =
+                        seq
+                            {
+                                if readSubtree.NodeType=XmlNodeType.Element then
+                                    match readSubtree.Name with
+                                    | "run"         ->  
+                                        if (this.getAttribute ("id", readSubtree)) = runID then
+                                            (readOp()) |> ignore
+                                            yield! loop acc
+                                        else
+                                            failwith "Invalid runID"
+                                    | "spectrum"    ->  yield this.getChromatogram readSubtree
+                                                        (readOp()) |> ignore
+                                                        yield! loop acc
+                                    |   _           ->  (readOp()) |> ignore
+                                                        yield! loop acc
+                                else
+                                    if readOp()=true then yield! loop acc
+                                    else yield! acc
+                            }
+                    loop Seq.empty
+                else
+                    outerLoop (reader.Read())
+            outerLoop false
+
+        member private this.tryGetChromatogram(chromatogramID: string) =
+            let readSubtree =
+                let rec loop acc =
+                    if reader.NodeType=XmlNodeType.Element && reader.Name="spectrum" then
+                        reader.ReadSubtree()
+                    else loop (reader.Read())
+                loop false
+            let readOp = reader.Read
+            let mutable chromatogram = new Chromatogram()
+            let rec loop id cvParams userParams precs products read =
+                if reader.NodeType=XmlNodeType.Element then
+                    match reader.Name with
+                    | "chromatogram"                ->  if this.getAttribute ("id", readSubtree) = chromatogramID then                                                        
+                                                            loop
+                                                                (this.getAttribute ("id", readSubtree))
+                                                                cvParams userParams precs products
+                                                                (readOp() |> ignore)
+                                                        else None
+                    | "cvParam"                     ->  loop id ((this.getCVParam readSubtree)::cvParams) userParams precs products (readOp() |> ignore)
+                    | "userParam"                   ->  loop id cvParams ((this.getUserParam readSubtree)::userParams) precs products   (readOp() |> ignore)
+                    | "scanList"                    ->  loop id cvParams userParams precs products read
+                    | "precursor"                   ->  loop id cvParams userParams (this.getPrecursor readSubtree) products read
+                    | "product"                     ->  loop id cvParams userParams precs (this.getProduct readSubtree) read
+                    | "binaryDataArrayList"         ->  chromatogram <- new Chromatogram(id, precs, products)
+                                                        cvParams
+                                                        |> List.iter(fun cvParam -> chromatogram.AddCvParam cvParam)
+                                                        userParams
+                                                        |> List.iter(fun userParam -> chromatogram.AddUserParam userParam)
+                                                        Some chromatogram
+                    |   _                           ->  Some chromatogram
+                else
+                    if readOp()=true then loop id cvParams userParams precs products read
+                    else Some chromatogram
+            loop null [] [] (new Precursor()) (new Product()) ()
+
+        member private this.getSpecificChromatogram(chromatogramID: string) =
+            let rec outerLoop acc =
+                if reader.Name = "chromatogramList" then
+                    let readSubtree = reader.ReadSubtree()
+                    let readOp = readSubtree.Read
+                    let rec loop acc =
+                                if readSubtree.NodeType=XmlNodeType.Element then
+                                    match readSubtree.Name with
+                                    | "chromatogram"    ->  match this.tryGetChromatogram chromatogramID with
+                                                            | Some chromatogram -> chromatogram
+                                                            | None              ->
+                                                                (readOp()) |> ignore
+                                                                loop acc
+                                    |   _               ->  (readOp()) |> ignore
+                                                            loop acc
+                                else
+                                    if readOp()=true then 
+                                        loop acc
+                                    else 
+                                        failwith "Invalid chromatogramID"
+                    loop Seq.empty
+                else
+                    outerLoop (reader.Read())
+            outerLoop false
+
+        member this.tryGetPeak2DArray(chromatogramID:string) =
+            let readSubtree =
+                let rec loop acc =
+                    if reader.NodeType=XmlNodeType.Element && reader.Name="chromatogram" then
+                        reader.ReadSubtree()
+                    else loop (reader.Read())
+                loop false
+            let readOp = readSubtree.Read
+            //let mutable peakArray = new Peak2DArray()
+            let rec loop read =
+                if readSubtree.NodeType=XmlNodeType.Element then
+                    match readSubtree.Name with
+                    | "chromatogram"        -> 
+                        if (this.getAttribute ("id", readSubtree)) = chromatogramID then
+                            loop (readOp() |> ignore)
+                        else
+                            None
+                    | "binaryDataArrayList" -> Some (this.translatePeak2DArray readSubtree)
+                    |   _                   -> loop (readOp() |> ignore)
+                else
+                    if readOp()=true then loop read
+                    else None
+            loop ()
+
+        member this.getPeak2DArrays(chromatogramID:string) =
+            let rec outerLoop acc =
+                if reader.Name = "chromatogramList" then
+                    let readSubtree = reader.ReadSubtree()
+                    let readOp = readSubtree.Read
+                    let rec loop acc =
+                                if readSubtree.NodeType=XmlNodeType.Element then
+                                    match readSubtree.Name with
+                                    | "chromatogram" -> match this.tryGetPeak2DArray chromatogramID with
+                                                        | Some chromatogram -> chromatogram
+                                                        | None ->
+                                                             (readOp()) |> ignore
+                                                             loop acc
+                                    |   _            ->  (readOp()) |> ignore
+                                                         loop acc
+                                else
+                                    if readOp()=true then loop acc
+                                    else 
+                                        failwith "Invalid chromatogramID"
+                    loop ()
+                else
+                    outerLoop (reader.Read())
+            outerLoop false
+
+        member private this.model = MzIOJson.HandleExternalModelFile(this, this.GetModelFilePath())
+
+        member this.GetModelFilePath() =
+
+            sprintf "%s%s" filePath ".MzIOmodel"
+
+        interface IDisposable with
+
+            member this.Dispose() =
+                //if disposed = true then
+                //    ()
+                //else
+                //    if dataProvider<>null then
+                //        dataProvider.Close()
+                //    disposed <- true
+                ()
+
+        member this.Dispose() =
+
+            (this :> IDisposable).Dispose()
+
+        interface IMzIOIO with
+
+            member this.CreateDefaultModel() =
+
+                let modelName = Path.GetFileNameWithoutExtension(filePath)
+                let model = new MzIOModel(modelName)
+
+                let sampleName = Path.GetFileNameWithoutExtension(filePath)
+                let sample = new Sample("sample_1", sampleName);
+                model.Samples.Add(sample)
+
+                let run = new Run("run_1")
+                run.Sample <- sample
+                model.Runs.Add(run)
+                model
+
+            member this.Model =
+                //this.RaiseDisposed()
+                this.model
+
+            member this.SaveModel() =
+
+                try
+                    MzIOJson.SaveJsonFile(this.model, this.GetModelFilePath())
+                with
+                    | :? Exception as ex ->
+                        raise (new MzIOIOException(ex.Message, ex))
+
+            member this.BeginTransaction() =
+
+                new MzMLReaderTransactionScope() :> ITransactionScope
+
+        interface IMzIODataReader with
     
-        //    member this.ReadMassSpectra(runID: string) = 
-        //        this.getSpectra()
+            member this.ReadMassSpectra(runID: string) = 
+                this.getSpectra(runID)
 
-        //    member this. ReadMassSpectrum(spectrumID: string) =
-        //        match this.getSpectrum(spectrumID) with
-        //        | Some x -> x
-        //        | None   -> failwith "%s is not a valid SpectrumID" spectrumID
+            member this. ReadMassSpectrum(spectrumID: string) =
+                this.getSpectrum(spectrumID)
 
-        //    //member this.ReadMassSPectrumAsync(spectrumID: string) =
-        //    //    Task<MzIO.Model.MassSpectrum>.Run(fun () -> this.ReadMassSpectrum())
-            
-        //    member this.ReadSpectrumPeaks(spectrumID: string) =
-        //        this.translatePeak1DArray()
+            member this.ReadSpectrumPeaks(spectrumID: string) =
+                this.getSpecificPeak1DArray(spectrumID)
+
+            member this.ReadMassSpectrumAsync(spectrumID: string) =
+                Task<MzIO.Model.MassSpectrum>.Run(fun () -> this.ReadMassSpectrum(spectrumID))
+
+            member this.ReadSpectrumPeaksAsync(spectrumID: string) =
+                Task<MzIO.Model.MassSpectrum>.Run(fun () -> this.ReadSpectrumPeaks(spectrumID))
+
+            member this.ReadChromatograms(runID:string) =
+                this.ReadChromatogramms(runID)
+
+            member this.ReadChromatogram(chromatogramID:string) =
+                this.getSpecificChromatogram(chromatogramID)
+
+            member this.ReadChromatogramPeaks(chromatgramID:string) =
+                this.getPeak2DArrays(chromatgramID)
+
+            member this.ReadChromatogramAsync(runID:string) =
+                try
+                    raise ((new NotSupportedException()))
+                with
+                    | :? Exception as ex -> 
+                        raise (MzIOIOException(ex.Message, ex))
+
+            member this.ReadChromatogramPeaksAsync(runID:string) =
+                try
+                    raise ((new NotSupportedException()))
+                with
+                    | :? Exception as ex -> 
+                        raise (MzIOIOException(ex.Message, ex))
+
+        member this.ReadMassSpectra(runID:string)               =
+
+            (this :> IMzIODataReader).ReadMassSpectra(runID)
+
+        member this.ReadMassSpectrum(spectrumID:string)         =
+
+            (this :> IMzIODataReader).ReadMassSpectrum(spectrumID)
+
+        member this.ReadSpectrumPeaks(spectrumID:string)        =
+
+            (this :> IMzIODataReader).ReadSpectrumPeaks(spectrumID)
+
+        member this.ReadMassSpectrumAsync(spectrumID:string)    =
+
+            (this :> IMzIODataReader).ReadMassSpectrumAsync(spectrumID)
+
+        member this.ReadSpectrumPeaksAsync(spectrumID:string)   =
+
+            (this :> IMzIODataReader).ReadSpectrumPeaksAsync(spectrumID)
+
+        member this.ReadChromatograms(runID:string)             =
+
+            (this :> IMzIODataReader).ReadChromatograms(runID)
+
+        member this.ReadChromatogramPeaks(runID:string)         =
+
+            (this :> IMzIODataReader).ReadChromatogramPeaks(runID)
+
+        member this.ReadChromatogramAsync(runID:string)         =
+
+            (this :> IMzIODataReader).ReadChromatogramAsync(runID)
+
+        member this.ReadChromatogramPeaksAsync(runID:string)    =
+
+            (this :> IMzIODataReader).ReadChromatogramPeaksAsync(runID)

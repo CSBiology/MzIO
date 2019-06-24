@@ -304,7 +304,8 @@ type WiffFileReader(dataProvider:AnalystWiffDataProvider, disposed:Boolean, wiff
 
     member private this.RaiseDisposed() =
 
-        if disposed = true then printfn "%s" ((new ObjectDisposedException(this.GetType().Name)).ToString())
+        if disposed = true then 
+            raise (new ObjectDisposedException(this.GetType().Name))
         else ()
 
     interface IDisposable with

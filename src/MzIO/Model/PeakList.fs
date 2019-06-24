@@ -255,20 +255,20 @@ and DynamicObjectConverter() =
 
 [<Sealed>]
 [<JsonObject(MemberSerialization.OptIn)>]
-type Chromatogram [<JsonConstructor>] (id: string) =
+type Chromatogram [<JsonConstructor>] (id: string, precursor:Precursor, product:Product) =
 
     inherit PeakList(id)
 
-    let precursor = new Precursor()
+    //let precursor = precursor
 
-    let product = new Product()
+    //let product = product
 
-    new() = Chromatogram("id")
+    new() = Chromatogram("id", new Precursor(), new Product())
 
-    member this.Chromatogram = base.ID
-
-    [<JsonProperty>]
-    member this.Product = product
+    //member this.Chromatogram = base.ID
 
     [<JsonProperty>]
     member this.Precursor = precursor
+
+    [<JsonProperty>]
+    member this.Product = product
