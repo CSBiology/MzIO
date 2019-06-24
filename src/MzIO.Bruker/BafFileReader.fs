@@ -281,11 +281,16 @@ type BafFileReader(bafFilePath:string) =
 
         let mutable ids = linq2BafSql.Spectra.Where(fun x -> x.Id.HasValue).OrderBy(fun x -> x.Rt).Select(fun x -> x.Id)
 
-        printfn "Yield2"
-        ids
-        |> Seq.iter (fun id -> printfn "%A" (id.Value))
-        ids
-        |> Seq.map (fun id -> this.ReadMassSpectrum(id.Value))
+        [|for id in ids do
+
+            yield! [|this.ReadMassSpectrum(id.Value)|]|]
+        :> IEnumerable<MassSpectrum>
+
+        //printfn "Yield2"
+        //ids
+        //|> Seq.iter (fun id -> printfn "%A" (id.Value))
+        //ids
+        //|> Seq.map (fun id -> this.ReadMassSpectrum(id.Value))
         //|> (fun item -> item :> IEnumerable<MassSpectrum>)
             
 

@@ -339,7 +339,7 @@ let mzMLReader = new MzMLReader(mzMLOfWiffUni)
 
 //////xI.Scans.Count
 
-let brukerReader = new BafFileReader(bafTestFile)
+let brukerReader = new BafFileReader(@"C:\Users\jonat\OneDrive\MP_Biotech\VP_Timo\MassSpecFiles\170922_4597.d\analysis.baf")
 
 brukerReader.Model.Runs.GetProperties false
 |> Seq.collect (fun (run:KeyValuePair<string, obj>) -> brukerReader.ReadMassSpectra run.Key)
