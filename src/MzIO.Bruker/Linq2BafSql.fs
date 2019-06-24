@@ -13,26 +13,36 @@ module Linq2BafSql =
 
     [<Sealed>]
     [<Table(Name = "Spectra")>]
-    type BafSqlSpectrum() =
+    type BafSqlSpectrum(id:Nullable<UInt64>, rt:Nullable<float>, seg:Nullable<UInt64>, aqk:Nullable<UInt64>, parent:Nullable<UInt64>, mzAqRL:Nullable<UInt64> ,
+                        mzAqRUpper:Nullable<UInt64>, sumInt:Nullable<float>, maxInt:Nullable<float>, tranForId:Nullable<UInt64>, profMzId:Nullable<UInt64>, 
+                        profIntId:Nullable<UInt64>, lineIndexId:Nullable<UInt64>, lineMzId:Nullable<UInt64>, lineIntId:Nullable<UInt64>,
+                        lineIdxWithId:Nullable<UInt64>, linePeakAreaId:Nullable<UInt64>, lineSnrId:Nullable<UInt64>
+                       ) =
         
-        let mutable id              = Unchecked.defaultof<Nullable<UInt64>>
-        let mutable rt              = Unchecked.defaultof<Nullable<float>>
-        let mutable seg             = Unchecked.defaultof<Nullable<UInt64>>
-        let mutable aqk             = Unchecked.defaultof<Nullable<UInt64>>
-        let mutable parent          = Unchecked.defaultof<Nullable<UInt64>>
-        let mutable mzAqRL          = Unchecked.defaultof<Nullable<UInt64>>
-        let mutable mzAqRUpper      = Unchecked.defaultof<Nullable<UInt64>>
-        let mutable sumInt          = Unchecked.defaultof<Nullable<float>>
-        let mutable maxInt          = Unchecked.defaultof<Nullable<float>>
-        let mutable tranForId       = Unchecked.defaultof<Nullable<UInt64>>
-        let mutable profMzId        = Unchecked.defaultof<Nullable<UInt64>>
-        let mutable profIntId       = Unchecked.defaultof<Nullable<UInt64>>
-        let mutable lineIndexId     = Unchecked.defaultof<Nullable<UInt64>>
-        let mutable lineMzId        = Unchecked.defaultof<Nullable<UInt64>>
-        let mutable lineIntId       = Unchecked.defaultof<Nullable<UInt64>>
-        let mutable lineIdxWithId   = Unchecked.defaultof<Nullable<UInt64>>
-        let mutable linePeakAreaId  = Unchecked.defaultof<Nullable<UInt64>>
-        let mutable lineSnrId       = Unchecked.defaultof<Nullable<UInt64>>
+        let mutable id              = id            (*Unchecked.defaultof<Nullable<UInt64>>*)
+        let mutable rt              = rt            (*Unchecked.defaultof<Nullable<float>>*)
+        let mutable seg             = seg           (*Unchecked.defaultof<Nullable<UInt64>>*)
+        let mutable aqk             = aqk           (*Unchecked.defaultof<Nullable<UInt64>>*)
+        let mutable parent          = parent        (*Unchecked.defaultof<Nullable<UInt64>>*)
+        let mutable mzAqRL          = mzAqRL        (*Unchecked.defaultof<Nullable<UInt64>>*)
+        let mutable mzAqRUpper      = mzAqRUpper    (*Unchecked.defaultof<Nullable<UInt64>>*)
+        let mutable sumInt          = sumInt        (*Unchecked.defaultof<Nullable<float>>*)
+        let mutable maxInt          = maxInt        (*Unchecked.defaultof<Nullable<float>>*)
+        let mutable tranForId       = tranForId     (*Unchecked.defaultof<Nullable<UInt64>>*)
+        let mutable profMzId        = profMzId      (*Unchecked.defaultof<Nullable<UInt64>>*)
+        let mutable profIntId       = profIntId     (*Unchecked.defaultof<Nullable<UInt64>>*)
+        let mutable lineIndexId     = lineIndexId   (*Unchecked.defaultof<Nullable<UInt64>>*)
+        let mutable lineMzId        = lineMzId      (*Unchecked.defaultof<Nullable<UInt64>>*)
+        let mutable lineIntId       = lineIntId     (*Unchecked.defaultof<Nullable<UInt64>>*)
+        let mutable lineIdxWithId   = lineIdxWithId (*Unchecked.defaultof<Nullable<UInt64>>*)
+        let mutable linePeakAreaId  = linePeakAreaId(*Unchecked.defaultof<Nullable<UInt64>>*)
+        let mutable lineSnrId       = lineSnrId     (*Unchecked.defaultof<Nullable<UInt64>>*)
+
+        new() = new BafSqlSpectrum(
+                                   System.Nullable(), System.Nullable(), System.Nullable(), System.Nullable(), System.Nullable(), System.Nullable(), System.Nullable(), 
+                                   System.Nullable(), System.Nullable(), System.Nullable(), System.Nullable(), System.Nullable(), System.Nullable(), System.Nullable(), 
+                                   System.Nullable(), System.Nullable(), System.Nullable(), System.Nullable()
+                                  )
 
         [<Column(IsPrimaryKey = true)>]
         member this.Id 
@@ -248,7 +258,7 @@ module Linq2BafSql =
 
         let mapping = new AttributeMappingSource()
         let mutable isDisposed = false
-        let cn = new SQLiteConnection("Data Source=" + sqlFilePath + ";Version=3")
+        let cn = new SQLiteConnection(sprintf "%s%s%s" "Data Source=" sqlFilePath ";Version=3")
         let core = new DataContext(cn, mapping)
         let mutable changes =
             core.DeferredLoadingEnabled <- false
@@ -295,18 +305,17 @@ module Linq2BafSql =
 
         member this.Steps = core.GetTable<BafSqlStep>()
 
-        member this.GetBafSqlSpectrum(context, id) =
-            CompiledQuery.Compile(fun db id -> db.GetTable<BafSqlSpectrum>().Where(fun x -> x.Id = id).SingleOrDefault())
+        member this.GetBafSqlSpectrum(context:#DataContext, id:Nullable<UInt64>) =
+            CompiledQuery.Compile(fun _ -> context.GetTable<BafSqlSpectrum>().Where(fun x -> x.Id = id).SingleOrDefault())
 
-        member this.GetBafSqlAcquisitionKey(context, id) =
-            CompiledQuery.Compile(fun db id -> db.GetTable<BafSqlAcquisitionKey>().Where(fun x -> x.Id = id).SingleOrDefault())
+        member this.GetBafSqlAcquisitionKey(context:#DataContext, id) =
+            CompiledQuery.Compile(fun _ -> context.GetTable<BafSqlAcquisitionKey>().Where(fun x -> x.Id = id).SingleOrDefault())
 
-        member this.GetBafSqlSteps(context, id) =
-            CompiledQuery.Compile(fun db id -> db.GetTable<BafSqlStep>().Where(fun x -> x.TargetSpectrum = id).SingleOrDefault())
+        member this.GetBafSqlSteps(context:#DataContext, id) =
+            CompiledQuery.Compile(fun _ -> context.GetTable<BafSqlStep>().Where(fun x -> x.TargetSpectrum = id).SingleOrDefault())
 
         //member this.GetPerSpectrumVariables(context, id) =
         //    CompiledQuery.Compile(fun db id -> db.GetTable<BafSqlPerSpectrumVariable>().Where(fun x -> x.Spectrum = id).SingleOrDefault())
 
-        member this.GetPerSpectrumVariables(context, id) =
-            CompiledQuery.Compile(fun db id -> db.GetTable<BafSqlPerSpectrumVariable>().Where(fun x -> 
-                x.Spectrum = id && x.Variable<>System.Nullable() && x.Value<>System.Nullable()).SingleOrDefault())
+        member this.GetPerSpectrumVariables(context:#DataContext, id:UInt64) =
+            CompiledQuery.Compile(fun _ -> context.GetTable<BafSqlPerSpectrumVariable>().Where(fun x -> x.Spectrum.HasValue && x.Spectrum.Value = id).SingleOrDefault())

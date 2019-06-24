@@ -217,10 +217,7 @@ let getSpectrumPeaks (path:string) (spectrumID:string) =
 #time
 let wiffFileReader = getWiffFileReader wiffTestUni
 
-wiffFileReader.Model
-
-//let massSpectra =
-//    getMassSpectra wiffFileReader
+//let massSpectra = getMassSpectra wiffFileReader
 
 //wiffFileReader.Model.Runs.GetProperties false
 //|> (fun item -> (Seq.head item).Key)
@@ -250,7 +247,6 @@ wiffFileReader.Model
 //    |> (fun wiffFileReader -> insertIntoDB 100 wiffFileReader)
 
 let mzMLReader = new MzMLReader(mzMLOfWiffUni)
-mzMLReader.Model
 
 //let spectrum    = mzMLReader.getSpectrum("sample=1 period=1 cycle=2 experiment=1")
 //let spectra     = mzMLReader.ReadMassSpectra("_x0032_0171129_x0020_FW_x0020_LWagg001")
@@ -345,7 +341,10 @@ mzMLReader.Model
 
 let brukerReader = new BafFileReader(bafTestFile)
 
-brukerReader
+brukerReader.Model.Runs.GetProperties false
+|> Seq.collect (fun (run:KeyValuePair<string, obj>) -> brukerReader.ReadMassSpectra run.Key)
+|> Seq.length
+//|> Seq.map (fun spectrum -> brukerReader.ReadSpectrumPeaks spectrum.ID)
 
 
 //open ThermoFisher
