@@ -279,18 +279,15 @@ type BafFileReader(bafFilePath:string) =
 
         printfn "Yield"
 
-        let mutable ids = linq2BafSql.Spectra.Where(fun x -> x.Id.HasValue).OrderBy(fun x -> x.Rt).Select(fun x -> x.Id)
+        let mutable ids = linq2BafSql.Spectra(*.Where<BafSqlSpectrum>(fun x -> x.Id.HasValue)*).OrderBy(fun x -> x.Rt).Select(fun x -> x.Id)
+        //let massSpecArr = Array.zeroCreate<MassSpectrum> ids.Length
 
-        [|for id in ids do
+        printfn "Yield2"
 
-            yield! [|this.ReadMassSpectrum(id.Value)|]|]
-        :> IEnumerable<MassSpectrum>
-
-        //printfn "Yield2"
-        //ids
-        //|> Seq.iter (fun id -> printfn "%A" (id.Value))
-        //ids
-        //|> Seq.map (fun id -> this.ReadMassSpectrum(id.Value))
+        //massSpecArr :> IEnumerable<MassSpectrum
+        //printfn "%A" (Seq.item 0 ids)
+        ids
+        |> Seq.map (fun id -> this.ReadMassSpectrum(id.Value))
         //|> (fun item -> item :> IEnumerable<MassSpectrum>)
             
 
@@ -418,23 +415,27 @@ type BafFileReader(bafFilePath:string) =
         
     member private this.ReadMassSpectrum(spectrumId:UInt64) =
         printfn "1"
-        let bafSpec = linq2BafSql.GetBafSqlSpectrum(this.linq2BafSql.Core, Nullable(spectrumId)).Target :?> BafSqlSpectrum
-
+        let bafSpec =
+            (linq2BafSql.GetBafSqlSpectrum(this.linq2BafSql.Core, Nullable(spectrumId)))
+            |> (Seq.takeWhile(fun item -> snd item = true))
+            |> Seq.head
+            |> (fun item -> fst item)
+        printfn "2"
         //if bafSpec = null then
             
         //    raise (new MzIOIOException("No spectrum found for id: " + spectrumId.ToString()))
 
         let ms = new MassSpectrum(spectrumId.ToString())
-
+        printfn "3"
         // determine ms level
         let aqKey = linq2BafSql.GetBafSqlAcquisitionKey(this.linq2BafSql.Core, bafSpec.AcquisitionKey).Target :?> BafSqlAcquisitionKey
         let mutable msLevel = None
-        
+        printfn "4"
         if (*aqKey <> null && *)aqKey.MsLevel.HasValue then
             // bruker starts ms level by 0, must be added by 1
             msLevel <- Some (aqKey.MsLevel.Value + 1)
             ms.SetMsLevel(msLevel.Value) |> ignore
-
+        printfn "5"
         // determine type of spectrum and read peak data
         // if profile data available we prefer to get profile data otherwise centroided data (line spectra)
         if bafSpec.ProfileMzId.HasValue&& bafSpec.ProfileIntensityId.HasValue then
@@ -447,7 +448,7 @@ type BafFileReader(bafFilePath:string) =
                     ms.SetCentroidSpectrum() |> ignore
             else
                 ms |> ignore
-
+        printfn "6"
         if msLevel.IsSome then
             if msLevel.Value = 1 then
 
@@ -458,7 +459,7 @@ type BafFileReader(bafFilePath:string) =
                     ms.SetMSnSpectrum() |> ignore
                 else
                     ms.SetMSnSpectrum() |> ignore
-
+        printfn "7"
         // scan
         if bafSpec.Rt.HasValue then
             let scan = new Scan()
@@ -466,7 +467,7 @@ type BafFileReader(bafFilePath:string) =
             ms.Scans.Add(scan)
         else 
             ()
-
+        printfn "8"
         // precursor
         if msLevel.IsSome then
 
@@ -543,7 +544,7 @@ type BafFileReader(bafFilePath:string) =
 
     member this.ReadSpectrumPeaks(spectrumId:UInt64, getCentroids:bool) =
         
-        let bafSpec = linq2BafSql.GetBafSqlSpectrum(this.linq2BafSql.Core, Nullable(spectrumId)).Target :?> BafSqlSpectrum
+        let bafSpec = fst (Seq.head ((linq2BafSql.GetBafSqlSpectrum(this.linq2BafSql.Core, Nullable(spectrumId)))))
 
         let pa = new Peak1DArray(BinaryDataCompressionType.NoCompression, BinaryDataType.Float32, BinaryDataType.Float32)
 

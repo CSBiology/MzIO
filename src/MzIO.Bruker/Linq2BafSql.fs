@@ -13,30 +13,31 @@ module Linq2BafSql =
 
     [<Sealed>]
     [<Table(Name = "Spectra")>]
-    type BafSqlSpectrum(id:Nullable<UInt64>, rt:Nullable<float>, seg:Nullable<UInt64>, aqk:Nullable<UInt64>, parent:Nullable<UInt64>, mzAqRL:Nullable<UInt64> ,
+    type BafSqlSpectrum(
+                        id:Nullable<UInt64>, rt:Nullable<float>, seg:Nullable<UInt64>, aqk:Nullable<UInt64>, parent:Nullable<UInt64>, mzAqRL:Nullable<UInt64>,
                         mzAqRUpper:Nullable<UInt64>, sumInt:Nullable<float>, maxInt:Nullable<float>, tranForId:Nullable<UInt64>, profMzId:Nullable<UInt64>, 
                         profIntId:Nullable<UInt64>, lineIndexId:Nullable<UInt64>, lineMzId:Nullable<UInt64>, lineIntId:Nullable<UInt64>,
                         lineIdxWithId:Nullable<UInt64>, linePeakAreaId:Nullable<UInt64>, lineSnrId:Nullable<UInt64>
                        ) =
         
-        let mutable id              = id            (*Unchecked.defaultof<Nullable<UInt64>>*)
-        let mutable rt              = rt            (*Unchecked.defaultof<Nullable<float>>*)
-        let mutable seg             = seg           (*Unchecked.defaultof<Nullable<UInt64>>*)
-        let mutable aqk             = aqk           (*Unchecked.defaultof<Nullable<UInt64>>*)
-        let mutable parent          = parent        (*Unchecked.defaultof<Nullable<UInt64>>*)
-        let mutable mzAqRL          = mzAqRL        (*Unchecked.defaultof<Nullable<UInt64>>*)
-        let mutable mzAqRUpper      = mzAqRUpper    (*Unchecked.defaultof<Nullable<UInt64>>*)
-        let mutable sumInt          = sumInt        (*Unchecked.defaultof<Nullable<float>>*)
-        let mutable maxInt          = maxInt        (*Unchecked.defaultof<Nullable<float>>*)
-        let mutable tranForId       = tranForId     (*Unchecked.defaultof<Nullable<UInt64>>*)
-        let mutable profMzId        = profMzId      (*Unchecked.defaultof<Nullable<UInt64>>*)
-        let mutable profIntId       = profIntId     (*Unchecked.defaultof<Nullable<UInt64>>*)
-        let mutable lineIndexId     = lineIndexId   (*Unchecked.defaultof<Nullable<UInt64>>*)
-        let mutable lineMzId        = lineMzId      (*Unchecked.defaultof<Nullable<UInt64>>*)
-        let mutable lineIntId       = lineIntId     (*Unchecked.defaultof<Nullable<UInt64>>*)
-        let mutable lineIdxWithId   = lineIdxWithId (*Unchecked.defaultof<Nullable<UInt64>>*)
-        let mutable linePeakAreaId  = linePeakAreaId(*Unchecked.defaultof<Nullable<UInt64>>*)
-        let mutable lineSnrId       = lineSnrId     (*Unchecked.defaultof<Nullable<UInt64>>*)
+        let mutable id              = id                (*Unchecked.defaultof<Nullable<UInt64>>*)
+        let mutable rt              = rt                (*Unchecked.defaultof<Nullable<float>>*)
+        let mutable seg             = seg               (*Unchecked.defaultof<Nullable<UInt64>>*)
+        let mutable aqk             = aqk               (*Unchecked.defaultof<Nullable<UInt64>>*)
+        let mutable parent          = parent            (*Unchecked.defaultof<Nullable<UInt64>>*)
+        let mutable mzAqRL          = mzAqRL            (*Unchecked.defaultof<Nullable<UInt64>>*)
+        let mutable mzAqRUpper      = mzAqRUpper        (*Unchecked.defaultof<Nullable<UInt64>>*)
+        let mutable sumInt          = sumInt            (*Unchecked.defaultof<Nullable<float>>*)
+        let mutable maxInt          = maxInt            (*Unchecked.defaultof<Nullable<float>>*)
+        let mutable tranForId       = tranForId         (*Unchecked.defaultof<Nullable<UInt64>>*)
+        let mutable profMzId        = profMzId          (*Unchecked.defaultof<Nullable<UInt64>>*)
+        let mutable profIntId       = profIntId         (*Unchecked.defaultof<Nullable<UInt64>>*)
+        let mutable lineIndexId     = lineIndexId       (*Unchecked.defaultof<Nullable<UInt64>>*)
+        let mutable lineMzId        = lineMzId          (*Unchecked.defaultof<Nullable<UInt64>>*)
+        let mutable lineIntId       = lineIntId         (*Unchecked.defaultof<Nullable<UInt64>>*)
+        let mutable lineIdxWithId   = lineIdxWithId     (*Unchecked.defaultof<Nullable<UInt64>>*)
+        let mutable linePeakAreaId  = linePeakAreaId    (*Unchecked.defaultof<Nullable<UInt64>>*)
+        let mutable lineSnrId       = lineSnrId         (*Unchecked.defaultof<Nullable<UInt64>>*)
 
         new() = new BafSqlSpectrum(
                                    System.Nullable(), System.Nullable(), System.Nullable(), System.Nullable(), System.Nullable(), System.Nullable(), System.Nullable(), 
@@ -306,7 +307,8 @@ module Linq2BafSql =
         member this.Steps = core.GetTable<BafSqlStep>()
 
         member this.GetBafSqlSpectrum(context:#DataContext, id:Nullable<UInt64>) =
-            CompiledQuery.Compile(fun _ -> context.GetTable<BafSqlSpectrum>().Where(fun x -> x.Id = id).SingleOrDefault())
+            //CompiledQuery.Compile(fun db id -> db.GetTable<BafSqlSpectrum>().Where<BafSqlSpectrum>(fun x -> x.Id = id).SingleOrDefault<BafSqlSpectrum>()).Invoke(context, id)
+            CompiledQuery.Compile(fun db id -> db.GetTable<BafSqlSpectrum>().AsEnumerable<BafSqlSpectrum>().Select(fun x -> x, x.Id=id)).Invoke(context, id)
 
         member this.GetBafSqlAcquisitionKey(context:#DataContext, id) =
             CompiledQuery.Compile(fun _ -> context.GetTable<BafSqlAcquisitionKey>().Where(fun x -> x.Id = id).SingleOrDefault())

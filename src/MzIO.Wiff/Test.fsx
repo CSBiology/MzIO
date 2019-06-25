@@ -339,24 +339,16 @@ let mzMLReader = new MzMLReader(mzMLOfWiffUni)
 
 //////xI.Scans.Count
 
-let brukerReader = new BafFileReader(@"C:\Users\jonat\OneDrive\MP_Biotech\VP_Timo\MassSpecFiles\170922_4597.d\analysis.baf")
+let brukerReader = new BafFileReader(bafTestFile)
 
-brukerReader.Model.Runs.GetProperties false
-|> Seq.collect (fun (run:KeyValuePair<string, obj>) -> brukerReader.ReadMassSpectra run.Key)
+let brukerSpectra =
+    brukerReader.Model.Runs.GetProperties false
+    |> Seq.collect (fun (run:KeyValuePair<string, obj>) -> brukerReader.ReadMassSpectra run.Key)
+    //|> Seq.length
+    //|> Seq.map (fun spectrum -> brukerReader.ReadSpectrumPeaks spectrum.ID)
+
+brukerSpectra
 |> Seq.length
-//|> Seq.map (fun spectrum -> brukerReader.ReadSpectrumPeaks spectrum.ID)
-
-
-//open ThermoFisher
-//open ThermoFisher.CommonCore
-//open ThermoFisher.CommonCore.RawFileReader
-//open ThermoFisher.CommonCore.RawFileReader.Writers
-//open ThermoFisher.CommonCore.Data
-//open ThermoFisher.CommonCore.Data.Business
-//open ThermoFisher.CommonCore.Data.FilterEnums
-//open ThermoFisher.CommonCore.Data.Interfaces
-//open ThermoFisher.CommonCore.BackgroundSubtraction
-//open ThermoFisher.CommonCore.MassPrecisionEstimator
 
 //let rawtestFile = "D:\Users\Patrick\Desktop\BioInformatik\MzIOTestFiles\RawTestFiles\small.RAW"
 
