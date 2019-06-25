@@ -20,6 +20,7 @@ open System.Collections.ObjectModel
 open MzIO.Bruker
 open MzIO.Bruker.Baf2SqlWrapper
 open MzIO.Bruker.Linq2BafSql
+open System.Data.SQLite
 
 
 type private SupportedVariablesCollection() =
@@ -65,9 +66,13 @@ type private SpectrumVariableCollection() =
 
     inherit KeyedCollection<uint64, BafSqlPerSpectrumVariable>()
 
-    static member ReadSpectrumVariables(linq2BafSql:Linq2BafSql, ?spectrumId:UInt64) =
+    static member ReadSpectrumVariables(getPerSpectrumVariables, ?spectrumId:UInt64) =
+
         let spectrumId = defaultArg spectrumId Unchecked.defaultof<UInt64>
-        let variables = linq2BafSql.GetPerSpectrumVariables(linq2BafSql.Core, spectrumId).Target :?> IEnumerable<BafSqlPerSpectrumVariable>
+        let variables = 
+            //linq2BafSql.GetPerSpectrumVariables(linq2BafSql.Core, spectrumId).Target :?> IEnumerable<BafSqlPerSpectrumVariable>
+            getPerSpectrumVariables spectrumId
+
         let col = new SpectrumVariableCollection()
         variables
         |> Seq.iter (fun item -> col.Add(item))
@@ -159,8 +164,10 @@ type BafFileReader(bafFilePath:string) =
 
     //member this.Test =  
     //    try
-    let sqlFilePath = 
-        Baf2SqlWrapper.GetSQLiteCacheFilename(bafFilePath)
+    let sqlFilePath = Baf2SqlWrapper.GetSQLiteCacheFilename(bafFilePath)
+
+    let cn = new SQLiteConnection(sprintf "%s%s%s" "Data Source=" sqlFilePath ";Version=3")
+
     // First argument = 1, ignore contents of Calibrator.ami (if it exists)
     
     let baf2SqlHandle =
@@ -175,7 +182,7 @@ type BafFileReader(bafFilePath:string) =
     let supportedVariables =
         SupportedVariablesCollection.ReadSupportedVariables(linq2BafSql)
 
-    member private this.model = MzIOJson.HandleExternalModelFile(this, BafFileReader.GetModelFilePath(bafFilePath))
+    //member private this.model = MzIOJson.HandleExternalModelFile(this, BafFileReader.GetModelFilePath(bafFilePath))
 
     interface IMzIOIO with
 
@@ -197,14 +204,14 @@ type BafFileReader(bafFilePath:string) =
 
         member this.Model =
             this.RaiseDisposed()
-            this.model
+            MzIOJson.HandleExternalModelFile(this, BafFileReader.GetModelFilePath(bafFilePath))
 
         member this.SaveModel() =
 
             this.RaiseDisposed()
 
             try
-                MzIOJson.SaveJsonFile(this.model, BafFileReader.GetModelFilePath(bafFilePath))
+                MzIOJson.SaveJsonFile(this.Model, BafFileReader.GetModelFilePath(bafFilePath))
             with
                 | :? Exception as ex ->
                     raise (new MzIOIOException(ex.Message, ex))
@@ -277,25 +284,39 @@ type BafFileReader(bafFilePath:string) =
 
     member private this.YieldMassSpectra() =
 
-        printfn "Yield"
-
         let mutable ids = linq2BafSql.Spectra(*.Where<BafSqlSpectrum>(fun x -> x.Id.HasValue)*).OrderBy(fun x -> x.Rt).Select(fun x -> x.Id)
         //let massSpecArr = Array.zeroCreate<MassSpectrum> ids.Length
 
-        printfn "Yield2"
+        cn.Open()
 
-        //massSpecArr :> IEnumerable<MassSpectrum
-        //printfn "%A" (Seq.item 0 ids)
-        ids
-        |> Seq.map (fun id -> this.ReadMassSpectrum(id.Value))
-        //|> (fun item -> item :> IEnumerable<MassSpectrum>)
+        let getBafSqlSpectrum (spectrumId:Nullable<UInt64>) =
+        
+            (linq2BafSql.PrepareGetBafSqlSpectrum cn) spectrumId
+            |> List.head
+
+        let getBafSqlAcquisitionKey (spectrumId:Nullable<UInt64>) =
+        
+            (linq2BafSql.PrepareGetBafSqlAcquisitionKey cn) spectrumId
+            |> List.head
+
+        let getBafSqlSteps(spectrumId:Nullable<UInt64>) =
+
+            (linq2BafSql.PrepareGetBafSqlSteps cn) spectrumId
+
+        let getPerSpectrumVariables(spectrumId:UInt64) =
+
+                (linq2BafSql.PrepareGetPerSpectrumVariables cn) spectrumId
+
+        let tmp =
+            ids
+            |> Seq.map (fun id -> this.ReadMassSpectrum(getBafSqlSpectrum, getBafSqlAcquisitionKey, getBafSqlSteps, getPerSpectrumVariables, id.Value))
+        //cn.Close()
+        tmp
             
 
     interface IMzIODataReader with
 
         member this.ReadMassSpectra(runID:string) =
-
-            printfn "readMass"
 
             this.RaiseDisposed()
 
@@ -316,9 +337,29 @@ type BafFileReader(bafFilePath:string) =
 
             this.RaiseDisposed()
 
+            cn.Open()
+
+            let getBafSqlSpectrum (spectrumId:Nullable<UInt64>) =
+        
+                (linq2BafSql.PrepareGetBafSqlSpectrum cn) spectrumId
+                |> List.head
+
+            let getBafSqlAcquisitionKey (spectrumId:Nullable<UInt64>) =
+        
+                (linq2BafSql.PrepareGetBafSqlAcquisitionKey cn) spectrumId
+                |> List.head
+
+            let getBafSqlSteps(spectrumId:Nullable<UInt64>) =
+
+                (linq2BafSql.PrepareGetBafSqlSteps cn) spectrumId
+
+            let getPerSpectrumVariables(spectrumId:UInt64) =
+
+                (linq2BafSql.PrepareGetPerSpectrumVariables cn) spectrumId
+
             try 
                 let id = UInt64.Parse(spectrumID)
-                this.ReadMassSpectrum(id)
+                this.ReadMassSpectrum(getBafSqlSpectrum, getBafSqlAcquisitionKey, getBafSqlSteps, getPerSpectrumVariables, id)
 
             with
                 | :? MzIOIOException as ex ->
@@ -412,30 +453,37 @@ type BafFileReader(bafFilePath:string) =
             with
                 | :? Exception as ex ->
                     raise (new MzIOIOException(ex.Message, ex))
-        
-    member private this.ReadMassSpectrum(spectrumId:UInt64) =
-        printfn "1"
+
+    member private this.ReadMassSpectrum(getBafSqlSpectrum:Nullable<UInt64>->BafSqlSpectrum, getBafSqlAcquisitionKey:Nullable<UInt64>->BafSqlAcquisitionKey, 
+                                         getBafSqlSteps:Nullable<UInt64>->BafSqlStep list, getBafPerSpecVariables:UInt64->BafSqlPerSpectrumVariable list,
+                                         spectrumId:UInt64) =
+
         let bafSpec =
-            (linq2BafSql.GetBafSqlSpectrum(this.linq2BafSql.Core, Nullable(spectrumId)))
-            |> (Seq.takeWhile(fun item -> snd item = true))
-            |> Seq.head
-            |> (fun item -> fst item)
-        printfn "2"
+            //(linq2BafSql.GetBafSqlSpectrum(this.linq2BafSql.Core, Nullable(spectrumId)))
+            //|> (Seq.takeWhile(fun item -> snd item = true))
+            //|> Seq.head
+            //|> (fun item -> fst item)
+            getBafSqlSpectrum(Nullable(spectrumId))
+        
+
         //if bafSpec = null then
             
         //    raise (new MzIOIOException("No spectrum found for id: " + spectrumId.ToString()))
 
         let ms = new MassSpectrum(spectrumId.ToString())
-        printfn "3"
+
         // determine ms level
-        let aqKey = linq2BafSql.GetBafSqlAcquisitionKey(this.linq2BafSql.Core, bafSpec.AcquisitionKey).Target :?> BafSqlAcquisitionKey
+        let aqKey = 
+            //linq2BafSql.GetBafSqlAcquisitionKey(this.linq2BafSql.Core, bafSpec.AcquisitionKey).Target :?> BafSqlAcquisitionKey
+            getBafSqlAcquisitionKey bafSpec.AcquisitionKey
+
         let mutable msLevel = None
-        printfn "4"
+
         if (*aqKey <> null && *)aqKey.MsLevel.HasValue then
             // bruker starts ms level by 0, must be added by 1
-            msLevel <- Some (aqKey.MsLevel.Value + 1)
-            ms.SetMsLevel(msLevel.Value) |> ignore
-        printfn "5"
+            msLevel <- Some (aqKey.MsLevel.Value + (int64 1))
+            ms.SetMsLevel(int32 msLevel.Value) |> ignore
+
         // determine type of spectrum and read peak data
         // if profile data available we prefer to get profile data otherwise centroided data (line spectra)
         if bafSpec.ProfileMzId.HasValue&& bafSpec.ProfileIntensityId.HasValue then
@@ -448,18 +496,18 @@ type BafFileReader(bafFilePath:string) =
                     ms.SetCentroidSpectrum() |> ignore
             else
                 ms |> ignore
-        printfn "6"
+
         if msLevel.IsSome then
-            if msLevel.Value = 1 then
+            if msLevel.Value = int64 1 then
 
                 ms.SetMS1Spectrum() |> ignore
             else
-                if msLevel.Value > 1 then
+                if msLevel.Value > int64 1 then
 
                     ms.SetMSnSpectrum() |> ignore
                 else
                     ms.SetMSnSpectrum() |> ignore
-        printfn "7"
+
         // scan
         if bafSpec.Rt.HasValue then
             let scan = new Scan()
@@ -467,16 +515,16 @@ type BafFileReader(bafFilePath:string) =
             ms.Scans.Add(scan)
         else 
             ()
-        printfn "8"
+
         // precursor
         if msLevel.IsSome then
 
-            if msLevel.Value > 1 then
+            if msLevel.Value > int64 1 then
             
                 let spectrumVariables = 
                     if bafSpec.Id.HasValue then 
-                        SpectrumVariableCollection.ReadSpectrumVariables(linq2BafSql, Convert.ToUInt64(id))
-                    else SpectrumVariableCollection.ReadSpectrumVariables(linq2BafSql)
+                        SpectrumVariableCollection.ReadSpectrumVariables(getBafPerSpecVariables, bafSpec.Id.Value)
+                    else SpectrumVariableCollection.ReadSpectrumVariables(getBafPerSpecVariables)
 
                 let precursor = new Precursor()
                 let mutable value = decimal(0)
@@ -510,7 +558,9 @@ type BafFileReader(bafFilePath:string) =
 
                 else ()
 
-                let ions = linq2BafSql.GetBafSqlSteps(this.linq2BafSql.Core,bafSpec.Id).Target :?> IEnumerable<BafSqlStep>
+                let ions = 
+                    //linq2BafSql.GetBafSqlSteps(this.linq2BafSql.Core,bafSpec.Id).Target :?> IEnumerable<BafSqlStep>
+                    getBafSqlSteps bafSpec.Id
                 ions
                 |> Seq.map (fun ion ->
                                 if ion.Mass.HasValue then
@@ -544,7 +594,16 @@ type BafFileReader(bafFilePath:string) =
 
     member this.ReadSpectrumPeaks(spectrumId:UInt64, getCentroids:bool) =
         
-        let bafSpec = fst (Seq.head ((linq2BafSql.GetBafSqlSpectrum(this.linq2BafSql.Core, Nullable(spectrumId)))))
+        cn.Open()
+
+        let getBafSqlSpectrum (spectrumId:Nullable<UInt64>) =
+        
+            (linq2BafSql.PrepareGetBafSqlSpectrum cn) spectrumId
+            |> List.head
+
+        let bafSpec = 
+            //fst (Seq.head ((linq2BafSql.GetBafSqlSpectrum(this.linq2BafSql.Core, Nullable(spectrumId)))))
+            getBafSqlSpectrum(Nullable(spectrumId))
 
         let pa = new Peak1DArray(BinaryDataCompressionType.NoCompression, BinaryDataType.Float32, BinaryDataType.Float32)
 

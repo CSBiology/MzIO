@@ -121,13 +121,15 @@ module Linq2BafSql =
 
     [<Sealed>]
     [<Table(Name = "AcquisitionKeys")>]
-    type BafSqlAcquisitionKey() =
+    type BafSqlAcquisitionKey(id:Nullable<UInt64>, poalrity:Nullable<int64>, scanMode:Nullable<int64>, aqMode:Nullable<int64>, msLevel:Nullable<int64>) =
 
-        let mutable id          = Unchecked.defaultof<Nullable<UInt64>>
-        let mutable poalrity    = Unchecked.defaultof<Nullable<int>>
-        let mutable scanMode    = Unchecked.defaultof<Nullable<int>>
-        let mutable aqMode      = Unchecked.defaultof<Nullable<int>>
-        let mutable msLevel     = Unchecked.defaultof<Nullable<int>>
+        let mutable id          = id        (*Unchecked.defaultof<Nullable<UInt64>>*)
+        let mutable poalrity    = poalrity  (*Unchecked.defaultof<Nullable<int64>>*)
+        let mutable scanMode    = scanMode  (*Unchecked.defaultof<Nullable<int64>>*)
+        let mutable aqMode      = aqMode    (*Unchecked.defaultof<Nullable<int64>>*)
+        let mutable msLevel     = msLevel   (*Unchecked.defaultof<Nullable<int64>>*)
+
+        new() = new BafSqlAcquisitionKey(System.Nullable(), System.Nullable(),System.Nullable(), System.Nullable(), System.Nullable())
 
         [<Column(IsPrimaryKey = true)>]
         member this.Id
@@ -152,11 +154,11 @@ module Linq2BafSql =
 
     [<Sealed>]
     [<Table(Name = "PerSpectrumVariables")>]
-    type BafSqlPerSpectrumVariable() =
+    type BafSqlPerSpectrumVariable(spec:Nullable<UInt64>, var:Nullable<UInt64>, value':Nullable<Decimal>) =
 
-        let mutable spec    = Unchecked.defaultof<Nullable<UInt64>>
-        let mutable var     = Unchecked.defaultof<Nullable<UInt64>>
-        let mutable value'  = Unchecked.defaultof<Nullable<Decimal>>
+        let mutable spec    = spec      (*Unchecked.defaultof<Nullable<UInt64>>*)
+        let mutable var     = var       (*Unchecked.defaultof<Nullable<UInt64>>*)
+        let mutable value'  = value'    (*Unchecked.defaultof<Nullable<Decimal>>*)
 
         [<Column(IsPrimaryKey = true)>]
         member this.Spectrum
@@ -220,14 +222,14 @@ module Linq2BafSql =
 
     [<Sealed>]
     [<Table(Name = "Steps")>]
-    type BafSqlStep() =
+    type BafSqlStep(tarSpec:Nullable<UInt64>, num:Nullable<int64>, isoType:Nullable<int64>, reaType:Nullable<int64>, msLvl:Nullable<int64>, mass:Nullable<float>) =
         
-        let mutable tarSpec = Unchecked.defaultof<Nullable<UInt64>>
-        let mutable num     = Unchecked.defaultof<Nullable<int>>
-        let mutable isoType = Unchecked.defaultof<Nullable<int>>
-        let mutable reaType = Unchecked.defaultof<Nullable<int>>
-        let mutable msLvl   = Unchecked.defaultof<Nullable<int>>
-        let mutable mass    = Unchecked.defaultof<Nullable<float>>
+        let mutable tarSpec = tarSpec   (*Unchecked.defaultof<Nullable<UInt64>>*)
+        let mutable num     = num       (*Unchecked.defaultof<Nullable<int64>>*)
+        let mutable isoType = isoType   (*Unchecked.defaultof<Nullable<int64>>*)
+        let mutable reaType = reaType   (*Unchecked.defaultof<Nullable<int64>>*)
+        let mutable msLvl   = msLvl     (*Unchecked.defaultof<Nullable<int64>>*)
+        let mutable mass    = mass      (*Unchecked.defaultof<Nullable<float>>*)
 
         [<Column>]
         member this.TargetSpectrum
@@ -306,18 +308,109 @@ module Linq2BafSql =
 
         member this.Steps = core.GetTable<BafSqlStep>()
 
-        member this.GetBafSqlSpectrum(context:#DataContext, id:Nullable<UInt64>) =
-            //CompiledQuery.Compile(fun db id -> db.GetTable<BafSqlSpectrum>().Where<BafSqlSpectrum>(fun x -> x.Id = id).SingleOrDefault<BafSqlSpectrum>()).Invoke(context, id)
-            CompiledQuery.Compile(fun db id -> db.GetTable<BafSqlSpectrum>().AsEnumerable<BafSqlSpectrum>().Select(fun x -> x, x.Id=id)).Invoke(context, id)
+        //member this.GetBafSqlSpectrum(context:#DataContext, id:Nullable<UInt64>) =
+            ////CompiledQuery.Compile(fun db id -> db.GetTable<BafSqlSpectrum>().Where<BafSqlSpectrum>(fun x -> x.Id = id).SingleOrDefault<BafSqlSpectrum>()).Invoke(context, id)
+            //CompiledQuery.Compile(fun db id -> db.GetTable<BafSqlSpectrum>().AsEnumerable<BafSqlSpectrum>().Select(fun x -> x, x.Id=id)).Invoke(context, id)
 
-        member this.GetBafSqlAcquisitionKey(context:#DataContext, id) =
-            CompiledQuery.Compile(fun _ -> context.GetTable<BafSqlAcquisitionKey>().Where(fun x -> x.Id = id).SingleOrDefault())
+        static member private GetNullableUInt (reader:SQLiteDataReader) n =
 
-        member this.GetBafSqlSteps(context:#DataContext, id) =
-            CompiledQuery.Compile(fun _ -> context.GetTable<BafSqlStep>().Where(fun x -> x.TargetSpectrum = id).SingleOrDefault())
+            if reader.IsDBNull(n) then 
+                System.Nullable()
+            else
+                Nullable(Convert.ToUInt64(reader.GetInt64(n)))
+
+        ///Prepare function to select all ProteinList-entities by FKMzQuantMLDocument as records.
+        member this.PrepareGetBafSqlSpectrum (cn:SQLiteConnection) =
+            let querystring = 
+                "SELECT * FROM Spectra WHERE Id = @fk"
+            let cmd = new SQLiteCommand(querystring, cn(*, tr*))
+            cmd.Parameters.Add("@fk", Data.DbType.String) |> ignore
+            let rec readerloop (reader:SQLiteDataReader) (acc) =
+                match reader.Read() with
+                | true  -> 
+                    readerloop reader 
+                        (new BafSqlSpectrum(
+                            Linq2BafSql.GetNullableUInt reader 0, Nullable(reader.GetDouble(1)), Linq2BafSql.GetNullableUInt reader 2, 
+                            Linq2BafSql.GetNullableUInt reader 3, Linq2BafSql.GetNullableUInt reader 4, Linq2BafSql.GetNullableUInt reader 5, 
+                            Linq2BafSql.GetNullableUInt reader 6, Nullable(reader.GetDouble(7)), Nullable(reader.GetDouble(8)), 
+                            Linq2BafSql.GetNullableUInt reader 9, Linq2BafSql.GetNullableUInt reader 10, Linq2BafSql.GetNullableUInt reader 11, 
+                            Linq2BafSql.GetNullableUInt reader 12, Linq2BafSql.GetNullableUInt reader 13, Linq2BafSql.GetNullableUInt reader 14, 
+                            Linq2BafSql.GetNullableUInt reader 15, Linq2BafSql.GetNullableUInt reader 16, Linq2BafSql.GetNullableUInt reader 17):: acc
+                        )
+                | false -> acc 
+            fun fk ->
+            cmd.Parameters.["@fk"].Value <- fk
+            use reader = cmd.ExecuteReader()
+            //reader.Dispose()
+            readerloop reader []
+
+        member this.PrepareGetBafSqlAcquisitionKey (cn:SQLiteConnection) =
+
+            //CompiledQuery.Compile(fun _ -> context.GetTable<BafSqlAcquisitionKey>().Where(fun x -> x.Id = id).SingleOrDefault())
+
+            let querystring = 
+                "SELECT * FROM AcquisitionKeys WHERE Id = @fk"
+            let cmd = new SQLiteCommand(querystring, cn(*, tr*))
+            cmd.Parameters.Add("@fk", Data.DbType.String) |> ignore
+            let rec readerloop (reader:SQLiteDataReader) (acc) =
+                match reader.Read() with
+                | true  -> 
+                    readerloop reader 
+                        (new BafSqlAcquisitionKey(
+                            Linq2BafSql.GetNullableUInt reader 0, Nullable(reader.GetInt64(1)), Nullable(reader.GetInt64(2)), 
+                            Nullable(reader.GetInt64(3)), Nullable(reader.GetInt64(4))):: acc
+                        )
+                | false -> acc 
+            fun fk ->
+            cmd.Parameters.["@fk"].Value <- fk
+            use reader = cmd.ExecuteReader()
+            //reader.Dispose()
+            readerloop reader []
+
+        member this.PrepareGetBafSqlSteps (cn:SQLiteConnection) =
+
+            //CompiledQuery.Compile(fun _ -> context.GetTable<BafSqlStep>().Where(fun x -> x.TargetSpectrum = id))
+
+            let querystring = 
+                "SELECT * FROM Steps WHERE TargetSpectrum = @fk"
+            let cmd = new SQLiteCommand(querystring, cn(*, tr*))
+            cmd.Parameters.Add("@fk", Data.DbType.String) |> ignore
+            let rec readerloop (reader:SQLiteDataReader) (acc) =
+                match reader.Read() with
+                | true  -> 
+                    readerloop reader 
+                        (new BafSqlStep(
+                            Linq2BafSql.GetNullableUInt reader 0, Nullable(reader.GetInt64(1)), Nullable(reader.GetInt64(2)), 
+                            Nullable(reader.GetInt64(3)), Nullable(reader.GetInt64(4)), Nullable(reader.GetDouble(5))):: acc
+                        )
+                | false -> acc 
+            fun fk ->
+            cmd.Parameters.["@fk"].Value <- fk
+            use reader = cmd.ExecuteReader()
+            //reader.Dispose()
+            readerloop reader []
 
         //member this.GetPerSpectrumVariables(context, id) =
         //    CompiledQuery.Compile(fun db id -> db.GetTable<BafSqlPerSpectrumVariable>().Where(fun x -> x.Spectrum = id).SingleOrDefault())
 
-        member this.GetPerSpectrumVariables(context:#DataContext, id:UInt64) =
-            CompiledQuery.Compile(fun _ -> context.GetTable<BafSqlPerSpectrumVariable>().Where(fun x -> x.Spectrum.HasValue && x.Spectrum.Value = id).SingleOrDefault())
+        member this.PrepareGetPerSpectrumVariables(cn:SQLiteConnection) =
+
+            //CompiledQuery.Compile(fun _ -> context.GetTable<BafSqlPerSpectrumVariable>().Where(fun x -> x.Spectrum.HasValue && x.Spectrum.Value = id))
+
+            let querystring = 
+                "SELECT * FROM PerSpectrumVariables WHERE Spectrum = @fk"
+            let cmd = new SQLiteCommand(querystring, cn(*, tr*))
+            cmd.Parameters.Add("@fk", Data.DbType.String) |> ignore
+            let rec readerloop (reader:SQLiteDataReader) (acc) =
+                match reader.Read() with
+                | true  -> 
+                    readerloop reader 
+                        (new BafSqlPerSpectrumVariable(
+                            Linq2BafSql.GetNullableUInt reader 0, Linq2BafSql.GetNullableUInt reader 1, Nullable(reader.GetDecimal(2))):: acc
+                        )
+                | false -> acc 
+            fun fk ->
+            cmd.Parameters.["@fk"].Value <- fk
+            use reader = cmd.ExecuteReader()
+            //reader.Dispose()
+            readerloop reader []

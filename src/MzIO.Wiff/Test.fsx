@@ -215,7 +215,17 @@ let getSpectrumPeaks (path:string) (spectrumID:string) =
 
 
 #time
-let wiffFileReader = getWiffFileReader wiffTestUni
+//let wiffFileReader = getWiffFileReader wiffTestUni
+
+//let wiffSpectra =
+//    wiffFileReader.Model.Runs.GetProperties false
+//    |> Seq.collect (fun (run:KeyValuePair<string, obj>) -> wiffFileReader.ReadMassSpectra run.Key)
+
+//wiffSpectra
+//|> Seq.length
+
+//wiffFileReader.Model.Runs.GetProperties false
+//|> Seq.length
 
 //let massSpectra = getMassSpectra wiffFileReader
 
@@ -341,13 +351,13 @@ let mzMLReader = new MzMLReader(mzMLOfWiffUni)
 
 let brukerReader = new BafFileReader(bafTestFile)
 
-let brukerSpectra =
-    brukerReader.Model.Runs.GetProperties false
-    |> Seq.collect (fun (run:KeyValuePair<string, obj>) -> brukerReader.ReadMassSpectra run.Key)
+//let brukerSpectra =
+//    brukerReader.Model.Runs.GetProperties false
+//    |> Seq.collect (fun (run:KeyValuePair<string, obj>) -> brukerReader.ReadMassSpectra run.Key)
     //|> Seq.length
     //|> Seq.map (fun spectrum -> brukerReader.ReadSpectrumPeaks spectrum.ID)
 
-brukerSpectra
+brukerReader.Model.Runs.GetProperties false
 |> Seq.length
 
 //let rawtestFile = "D:\Users\Patrick\Desktop\BioInformatik\MzIOTestFiles\RawTestFiles\small.RAW"
