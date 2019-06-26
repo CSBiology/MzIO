@@ -548,7 +548,7 @@ module CvParam =
             else
                 this.SetValue(item.ToString(), item)
 
-        member this.Count =
+        member this.Count() =
             this.GetProperties false
             |> Seq.length
 
