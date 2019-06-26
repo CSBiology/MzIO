@@ -217,13 +217,20 @@ module MzIOLinq =
 
         member this.RtProfile(rtIndex: IMzIOArray<RtIndexEntry>, rtRange: RangeQuery, mzRange: RangeQuery) =
 
+
             let entries = RtIndexEntry.Search(rtIndex, rtRange).ToArray()
+
             let profile = Array.zeroCreate<Peak2D> entries.Length
+
             for rtIdx = 0 to entries.Length-1 do
+
                 let entry = entries.[rtIdx]
+
                 let peaks = this.ReadSpectrumPeaks(entry).Peaks
+
                 let p = (RtIndexEntry.MzSearch (peaks, mzRange)).DefaultIfEmpty(new Peak1D(0., mzRange.LockValue))
                         |> fun x -> RtIndexEntry.ClosestMz (x, mzRange.LockValue)
                         |> fun x -> RtIndexEntry.AsPeak2D (x, entry.Rt)
                 profile.[rtIdx] <- p
+
             profile

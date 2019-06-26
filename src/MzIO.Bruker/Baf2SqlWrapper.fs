@@ -36,7 +36,7 @@ module Baf2SqlWrapper =
     extern void baf2sql_array_close_storage(UInt64 handle)
     
     [<DllImport(@"baf2sql_c_32", CallingConvention = CallingConvention.Cdecl)>]
-    extern void baf2sql_array_get_num_elements(UInt64 , UInt64 id, (*ref*) UInt64 num_elements)
+    extern void baf2sql_array_get_num_elements(UInt64 , UInt64 id, (*ref*) UInt64& num_elements)
     
     [<DllImport(@"baf2sql_c_32", CallingConvention = CallingConvention.Cdecl)>]
     extern int baf2sql_array_read_double(UInt64 handle, UInt64 id, double[] buf)
@@ -64,7 +64,7 @@ module Baf2SqlWrapper =
     extern void baf2sql_array_close_storage(UInt64 handle)
     
     [<DllImport(@"baf2sql_c_64", CallingConvention = CallingConvention.Cdecl)>]
-    extern void baf2sql_array_get_num_elements(UInt64 , UInt64 id, (*ref*) UInt64 num_elements)
+    extern void baf2sql_array_get_num_elements(UInt64 handle, UInt64 id, (*ref*) UInt64& num_elements)
     
     [<DllImport(@"baf2sql_c_64", CallingConvention = CallingConvention.Cdecl)>]
     extern int baf2sql_array_read_double(UInt64 handle, UInt64 id, double[] buf)
@@ -120,13 +120,16 @@ module Baf2SqlWrapper =
         /// </summary>
         static member GetBafDoubleArray(handle:UInt64, id:UInt64) =
 
-            let mutable n = uint64 0
-            baf2sql_array_get_num_elements(handle, id, n)
+            let mutable n = (Convert.ToUInt64 0)
+            baf2sql_array_get_num_elements(handle, id, & n)
             let myArray = Array.zeroCreate<float> (int n)
             let rc = baf2sql_array_read_double(handle, id, myArray)
             if rc = 0 then 
                 raise (Baf2SqlWrapper.ThrowLastBaf2SqlError())
             else myArray
+
+        static member test(Test:int ref) =
+            Test
 
         /// <summary>
         /// Return array 'id', converting to float format.
@@ -134,7 +137,7 @@ module Baf2SqlWrapper =
         static member GetBafFloatArray(handle:UInt64, id:UInt64) =
 
             let mutable n = uint64 0
-            baf2sql_array_get_num_elements(handle, id, n);
+            baf2sql_array_get_num_elements(handle, id, & n);
             let myArray = Array.zeroCreate<float> (int n) 
             let rc = baf2sql_array_read_float(handle, id, myArray)
             if rc = 0 then 
@@ -146,7 +149,7 @@ module Baf2SqlWrapper =
         /// </summary>
         static member GetBafUInt32Array(handle:UInt64, id:UInt64) =
             let mutable n = uint64 0
-            baf2sql_array_get_num_elements(handle, id, n);
+            baf2sql_array_get_num_elements(handle, id, & n);
 
             let myArray = Array.zeroCreate<UInt32> (int n) 
             let rc = baf2sql_array_read_uint32(handle, id, myArray);

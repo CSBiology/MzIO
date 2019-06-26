@@ -393,6 +393,13 @@ module Linq2BafSql =
         //member this.GetPerSpectrumVariables(context, id) =
         //    CompiledQuery.Compile(fun db id -> db.GetTable<BafSqlPerSpectrumVariable>().Where(fun x -> x.Spectrum = id).SingleOrDefault())
 
+        static member private getDecimal(reader:SQLiteDataReader, n) =
+
+            if reader.IsDBNull(n) then 
+                System.Nullable() 
+            else 
+                Nullable(reader.GetDecimal(n))
+
         member this.PrepareGetPerSpectrumVariables(cn:SQLiteConnection) =
 
             //CompiledQuery.Compile(fun _ -> context.GetTable<BafSqlPerSpectrumVariable>().Where(fun x -> x.Spectrum.HasValue && x.Spectrum.Value = id))
@@ -406,7 +413,7 @@ module Linq2BafSql =
                 | true  -> 
                     readerloop reader 
                         (new BafSqlPerSpectrumVariable(
-                            Linq2BafSql.GetNullableUInt reader 0, Linq2BafSql.GetNullableUInt reader 1, Nullable(reader.GetDecimal(2))):: acc
+                            Linq2BafSql.GetNullableUInt reader 0, Linq2BafSql.GetNullableUInt reader 1, Linq2BafSql.getDecimal(reader, 2)):: acc
                         )
                 | false -> acc 
             fun fk ->

@@ -351,18 +351,17 @@ let mzMLReader = new MzMLReader(mzMLOfWiffUni)
 
 let brukerReader = new BafFileReader(bafTestFile)
 
-//let brukerSpectra =
-//    brukerReader.Model.Runs.GetProperties false
-//    |> Seq.collect (fun (run:KeyValuePair<string, obj>) -> brukerReader.ReadMassSpectra run.Key)
-    //|> Seq.length
-    //|> Seq.map (fun spectrum -> brukerReader.ReadSpectrumPeaks spectrum.ID)
+let spectra =
+    brukerReader.Model.Runs.GetProperties false
+    |> Seq.collect (fun (run:KeyValuePair<string, obj>) -> brukerReader.ReadMassSpectra run.Key)
+    //|> Seq.map (fun item -> brukerReader.RtProfile(item,  (new MzIO.Processing.RangeQuery(1., 300., 600.)), (new MzIO.Processing.RangeQuery(1., 300., 600.))))
 
-brukerReader.Model.Runs.GetProperties false
-|> Seq.length
 
-brukerReader.Model.Runs.GetProperties false
-|> Seq.head
-|> (fun item -> MzIOJson.FromJson(MzIOJson.ToJson(item.Value)) :> Run)
+let brukaRTIndex = brukerReader.BuildRtIndex("run_1")
+let brukaRT = brukerReader.RtProfile(brukaRTIndex, (new MzIO.Processing.RangeQuery(1., 300., 600.)), (new MzIO.Processing.RangeQuery(1., 300., 600.)))
+
+//for i in spectra do
+//    printfn "%A " (Seq.head spectra)
 
 //let rawtestFile = "D:\Users\Patrick\Desktop\BioInformatik\MzIOTestFiles\RawTestFiles\small.RAW"
 
