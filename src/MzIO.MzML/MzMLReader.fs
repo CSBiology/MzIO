@@ -35,7 +35,7 @@ module MzML =
 
     type MzMLReader(filePath: string) =
 
-        let reader = XmlReader.Create(filePath)
+        let mutable reader = XmlReader.Create(filePath)
 
         member this.tryGetAttribute (name:string, ?xmlReader: XmlReader) =
             let xmlReader = defaultArg xmlReader reader
@@ -1419,7 +1419,7 @@ module MzML =
                     else new FileDescription(contact, fileContent, sourceFileList)
             loop (new FileContent()) (new SourceFileList()) (new Contact()) ()
 
-        member this.getMzIOModel() =
+        member private this.getMzIOModel() =
             let rec outerLoop acc =
                 if reader.Name = "mzML" then
                     let readSubtree = reader.ReadSubtree()
@@ -1445,7 +1445,7 @@ module MzML =
                     outerLoop (reader.Read())
             outerLoop false
 
-        member this.getSpectra(runID) =
+        member private this.getSpectra(runID) =
             let rec outerLoop acc =
                 if reader.Name = "run" then
                     let readSubtree = reader.ReadSubtree()
@@ -1455,12 +1455,13 @@ module MzML =
                             {
                                 if readSubtree.NodeType=XmlNodeType.Element then
                                     match readSubtree.Name with
-                                    | "run"         ->  
+                                    | "run"         ->
                                         if (this.getAttribute ("id", readSubtree)) = runID then
                                             (readOp()) |> ignore
                                             yield! loop acc
                                         else
-                                            failwith "Invalid runID"
+                                            (readOp()) |> ignore
+                                            yield! loop acc
                                     | "spectrum"    ->  yield this.getSpectrum readSubtree
                                                         (readOp()) |> ignore
                                                         yield! loop acc
@@ -1515,7 +1516,7 @@ module MzML =
 
             loop null None [] [] (new ScanList()) (new PrecursorList()) (new ProductList()) ()
 
-        member this.getSpectrum(spectrumID: string) =
+        member private this.getSpectrum(spectrumID: string) =
             let rec outerLoop acc =
                 if reader.Name = "spectrumList" then
                     let readSubtree = reader.ReadSubtree()
@@ -1792,11 +1793,16 @@ module MzML =
 
         interface IMzIODataReader with
     
+            // Needs improbement
             member this.ReadMassSpectra(runID: string) = 
-                this.getSpectra(runID)
+                let tmp = this.getSpectra(runID)
+                reader <- XmlReader.Create(filePath)
+                tmp
 
             member this. ReadMassSpectrum(spectrumID: string) =
-                this.getSpectrum(spectrumID)
+                let tmp = this.getSpectrum(spectrumID)
+                reader <- XmlReader.Create(filePath)
+                tmp
 
             member this.ReadSpectrumPeaks(spectrumID: string) =
                 this.getSpecificPeak1DArray(spectrumID)

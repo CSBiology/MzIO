@@ -76,7 +76,8 @@ let wiffTestUni         = @"C:\Users\Student\source\repos\wiffTestFiles\WiffFile
 let mzMLOfWiffUni       = @"C:\Users\Student\source\repos\wiffTestFiles\WiffFiles\20171129 FW LWagg001.mzML"
 let uniTestPath         = @"C:\Users\Student\source\repos\wiffTestFiles\WiffFiles\20171129 FW LWagg001.wiff.mzIO"
 
-let bafTestFile         = @"C:\Users\Student\source\repos\wiffTestFiles\Bruker\170922_4597.d\analysis.baf" 
+let bafTestFile         = @"C:\Users\Student\source\repos\wiffTestFiles\Bruker\170922_4597.d\analysis.baf"
+let bafMzMLFile         = @"C:\Users\Student\source\repos\wiffTestFiles\Bruker\170922_4597.mzML"
 
 let mzIOFSharpDBPath    = @"C:\Users\Student\source\repos\wiffTestFiles\Databases\MzLiteFSHarpLWagg001.mzIO"
 
@@ -215,11 +216,12 @@ let getSpectrumPeaks (path:string) (spectrumID:string) =
 
 
 #time
-//let wiffFileReader = getWiffFileReader wiffTestUni
+let wiffFileReader = getWiffFileReader wiffTestUni
 
-//let wiffSpectra =
-//    wiffFileReader.Model.Runs.GetProperties false
-//    |> Seq.collect (fun (run:KeyValuePair<string, obj>) -> wiffFileReader.ReadMassSpectra run.Key)
+let wiffSpectra =
+    wiffFileReader.Model.Runs.GetProperties false
+    |> Seq.map (fun item -> MzIOJson.FromJson(item.Value.ToString()) :> Run)
+    //|> Seq.collect (fun (run:KeyValuePair<string, obj>) -> wiffFileReader.ReadMassSpectra run.Key)
 
 //wiffSpectra
 //|> Seq.length
@@ -257,10 +259,9 @@ let getSpectrumPeaks (path:string) (spectrumID:string) =
 //    |> (fun wiffFileReader -> insertIntoDB 100 wiffFileReader)
 
 let mzMLReader = new MzMLReader(mzMLOfWiffUni)
-
-//let spectrum    = mzMLReader.getSpectrum("sample=1 period=1 cycle=2 experiment=1")
-//let spectra     = mzMLReader.ReadMassSpectra("_x0032_0171129_x0020_FW_x0020_LWagg001")
-//let peak1DArray = mzMLReader.ReadSpectrumPeaks("sample=1 period=1 cycle=1 experiment=1")
+mzMLReader.Model.Runs.GetProperties false
+|> Seq.map (fun item -> MzIOJson.FromJson(item.Value.ToString()) :> Run)
+|> Seq.head
 
 //spectra
 //|> Seq.length
@@ -276,7 +277,10 @@ let mzMLReader = new MzMLReader(mzMLOfWiffUni)
 //Peak1DArray
 //|> Seq.length
 
-//mzMLReader.getSpectrum("sample=1 period=1 cycle=2 experiment=1")
+mzMLReader.ReadMassSpectra("run_1")
+
+mzMLReader.ReadMassSpectrum("sample=1 period=1 cycle=2 experiment=1")
+mzMLReader.ReadMassSpectrum("sample=1 period=1 cycle=1 experiment=1")
 
 //let spectrum =
 //    getSpectrum uniTestPath "sample=0 experiment=0 scan=0"
@@ -349,16 +353,23 @@ let mzMLReader = new MzMLReader(mzMLOfWiffUni)
 
 //////xI.Scans.Count
 
-let brukerReader = new BafFileReader(bafTestFile)
+//let brukerReader = new BafFileReader(bafTestFile)
 
-let spectra =
-    brukerReader.Model.Runs.GetProperties false
-    |> Seq.collect (fun (run:KeyValuePair<string, obj>) -> brukerReader.ReadMassSpectra run.Key)
-    //|> Seq.map (fun item -> brukerReader.RtProfile(item,  (new MzIO.Processing.RangeQuery(1., 300., 600.)), (new MzIO.Processing.RangeQuery(1., 300., 600.))))
+//let spectra =
+//    brukerReader.Model.Runs.GetProperties false
+//    |> Seq.collect (fun (run:KeyValuePair<string, obj>) -> brukerReader.ReadMassSpectra run.Key)
+//    //|> Seq.map (fun item -> brukerReader.RtProfile(item,  (new MzIO.Processing.RangeQuery(1., 300., 600.)), (new MzIO.Processing.RangeQuery(1., 300., 600.))))
 
 
-let brukaRTIndex = brukerReader.BuildRtIndex("run_1")
-let brukaRT = brukerReader.RtProfile(brukaRTIndex, (new MzIO.Processing.RangeQuery(1., 300., 600.)), (new MzIO.Processing.RangeQuery(1., 300., 600.)))
+//let brukaRTIndex = brukerReader.BuildRtIndex("run_1")
+//let brukaRT = brukerReader.RtProfile(brukaRTIndex, (new MzIO.Processing.RangeQuery(1., 300., 600.)), (new MzIO.Processing.RangeQuery(1., 300., 600.)))
+
+//let mzMLReader = new MzMLReader(bafMzMLFile)
+
+//mzMLReader.Model.Runs.GetProperties false
+//|> Seq.map(fun item -> mzMLReader.ReadMassSpectra(((MzIOJson.FromJson(item.Value.ToString())) :> Run).ID))
+
+//mzMLReader.ReadMassSpectra("_x0031_70922_4597")
 
 //for i in spectra do
 //    printfn "%A " (Seq.head spectra)
