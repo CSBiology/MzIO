@@ -360,6 +360,10 @@ let brukerReader = new BafFileReader(bafTestFile)
 brukerReader.Model.Runs.GetProperties false
 |> Seq.length
 
+brukerReader.Model.Runs.GetProperties false
+|> Seq.head
+|> (fun item -> MzIOJson.FromJson(MzIOJson.ToJson(item.Value)) :> Run)
+
 //let rawtestFile = "D:\Users\Patrick\Desktop\BioInformatik\MzIOTestFiles\RawTestFiles\small.RAW"
 
 ////ThermoFisher.CommonCore.Data.Business.IScanReader
