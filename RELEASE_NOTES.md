@@ -1,3 +1,7 @@
+#### 0.0.5 - Tuesday, June 25, 2019
+* Interface MzML-Reader with IMzIOReader
+* Increase performance of the Bruker-Reader
+
 #### 0.0.4 - Friday, June 21, 2019
 * Add project for the MzML-Reader
 
