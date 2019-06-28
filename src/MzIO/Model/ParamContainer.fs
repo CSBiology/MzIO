@@ -204,7 +204,7 @@ module CvParam =
         static member private createJsonValue(item:string) =
             if item.StartsWith("WithCvUnitAccession") then
                 let tmp = item.Substring(0, 19), item.Substring(20)
-                let tmpID = sprintf "\"Type\":\%s\"" (fst tmp)
+                let tmpID = sprintf "\"Type\":\"%s\"" (fst tmp)
                 let tmpValues = sprintf ",\"Values\":[%s]" (((snd tmp).Remove(0, 1)).Remove((snd tmp).Length-2))
                 sprintf "%s}" (sprintf "%s%s" tmpID tmpValues)
             else
