@@ -38,19 +38,18 @@
 //                //try
 //    //let rawFile = new MSFileReader_XRawfile() :> IXRawfile5
 //    //rawFile.Open(rawFilePath)
-//    let rawfile =
-//        //RawFileReaderAdapter.ThreadedFileFactory(rawFilePath).CreateThreadAccessor()
-//        //new RawFile()
-//        ThermoFisher.CommonCore.Data.RawDataCreator(null, null, null).
-//    let x =
-        
-//        rawfile.Open(rawFilePath)
-//        rawfile.SetCurrentController(0, 1)
+//    let rawFile =
+//        RawFileReaderAdapter.FileFactory(rawFilePath)
+//        //ThermoFisher.CommonCore.Data.RawDataCreator(null, null, null)
+//    let x =        
+//        //rawfile.Open(rawFilePath)
+//        //rawfile.SetCurrentController(0, 1)
+//        rawFile.SelectInstrument(rawFile.GetInstrumentType(0), 1)
 
-//    let startScanNo = GetFirstSpectrumNumber(rawFile)
-//    let endScanNo = GetLastSpectrumNumber(rawFile)
+//    let startScanNo = rawFile.RunHeaderEx.FirstSpectrum
+//    let endScanNo = rawFile.RunHeaderEx.LastSpectrum
 
-//    let model = MzLiteJson.HandleExternalModelFile(this, GetModelFilePath())
+//    member private this.model = MzIOJson.HandleExternalModelFile(this, ThermoRawFileReader.GetModelFilePath(rawFilePath))
 
 //                //with
 //                //    | :? Exception as ex ->
@@ -68,88 +67,56 @@
 
 ////        #region ThermoRawFileReader Members
 
-//    member private this.GetModelFilePath() =
+//    static member private GetModelFilePath(rawFilePath) =
 
-//        sprintf "%s%s" this.rawFilePath ".mzlitemodel"
+//        sprintf "%s%s" rawFilePath ".mzlitemodel"
 
-//    static member private GetFirstSpectrumNumber(rawFile:IXRawfile5) =
+//    static member private GetFirstSpectrumNumber(rawFile:IRawDataPlus) =
 //        //let t,firstScanNumber = rawFile.GetFirstSpectrumNumber(& firstScanNumber)
 
-//        let mutable firstScanNumber = 0
-//        rawFile.GetFirstSpectrumNumber(& firstScanNumber)
-//        firstScanNumber
+//        rawFile.RunHeaderEx.FirstSpectrum
 
-//    static member private GetLastSpectrumNumber(rawFile:IXRawfile5) =
+//    static member private GetLastSpectrumNumber(rawFile:IRawDataPlus) =
 
-//        let mutable lastScanNumber = 0
-//        rawFile.GetLastSpectrumNumber(& lastScanNumber)
-//        lastScanNumber
+//        rawFile.RunHeaderEx.LastSpectrum
 
-//    static member private IsCentroidSpectrum(rawFile:IXRawfile5, scanNo:int) =
+//    static member private IsCentroidSpectrum(rawFile:IRawDataPlus, scanNo:int) =
 
-//        let mutable isCentroidScan = 0
-//        rawFile.IsCentroidScanForScanNum(scanNo, & isCentroidScan)
-//        isCentroidScan <> 0
+//        rawFile.GetScanStatsForScanNumber(scanNo).IsCentroidScan
+//        //IsCentroidScan(scanNo, & isCentroidScan)
         
-//    static member private GetRetentionTime(rawFile:IXRawfile5, scanNo:int) =
+//    static member private GetRetentionTime(rawFile:IRawDataPlus, scanNo:int) =
 
-//        let mutable rt = 0
-//        rawFile.RTFromScanNum(scanNo, & rt)
-//        rt
+//        rawFile.RetentionTimeFromScanNumber(scanNo)
 
-//    static member private GetFilterString(rawFile:IXRawfile5, scanNo:int) =
+//    static member private GetFilterString(rawFile:IRawDataPlus, scanNo:int) =
         
-//        let mutable filter = null
-//        rawFile.GetFilterForScanNum(scanNo, & filter)
-//        filter
+//        rawFile.GetFilterForScanNumber(scanNo)
         
-//    static member private GetMSLevel(rawFile:IXRawfile5, scanNo:int) =
+//    static member private GetMSLevel(rawFile:IRawDataPlus, scanNo:int) =
 
-//        let mutable msLevel = 1;
-//        rawFile.GetMSOrderForScanNum(scanNo, & msLevel);
-//        msLevel
+//        rawFile.GetFilterForScanNumber(scanNo).MSOrder
 
-//    static member private GetIsolationWindowWidth(rawFile:IXRawfile5, scanNo:int, msLevel:int) =
+//    static member private GetIsolationWindowWidth(rawFile:IRawDataPlus, scanNo:int, msLevel:int) =
 
-//        let mutable width = 0
-//        rawFile.GetIsolationWidthForScanNum(scanNo, msLevel - 1, ref width)
-//        width
+//        rawFile.GetFilterForScanNumber(scanNo).GetIsolationWidth(msLevel - 1)
 
-//    static member private GetIsolationWindowTargetMz(rawFile:IXRawfile5, scanNo:int, msLevel:int) =
+//    static member private GetIsolationWindowTargetMz(rawFile:IRawDataPlus, scanNo:int, msLevel:int) =
 
-//        let mutable mz = 0
-//        rawFile.GetPrecursorMassForScanNum(scanNo, msLevel, ref mz)
-//        mz
+//        rawFile.GetScanEventForScanNumber(scanNo).GetReaction(msLevel).PrecursorMass
 
-//    static member private GetPrecursorMz(rawFile:IXRawfile5, scanNo:int, msLevel:int) =
+//    static member private GetPrecursorMz(rawFile:IRawDataPlus, scanNo:int, msLevel:int) =
 
-//        let mutable mz = 0
-//        rawFile.GetPrecursorMassForScanNum(scanNo, msLevel, ref mz)
-//        mz
+//        rawFile.GetScanEventForScanNumber(scanNo).GetReaction(msLevel).PrecursorMass
 
-//    static member private GetCollisionEnergy(rawFile:IXRawfile5, scanNo:int, msLevel:int) =
+//    static member private GetCollisionEnergy(rawFile:IRawDataPlus, scanNo:int, msLevel:int) =
         
-//        let mutable e = 0
-//        rawFile.GetCollisionEnergyForScanNum(scanNo, msLevel - 1, ref e)
-//        e
+//        rawFile.GetScanEventForScanNumber(scanNo).GetReaction(msLevel).CollisionEnergy
 
-//    static member private GetCollisionEnergy(rawFile:IXRawfile5, scanNo:int, msLevel:int) =
+//    static member private GetChargeState(rawFile:IRawDataPlus, scanNo:int) =
 
-//        let mutable e  = 0
-//        rawFile.GetCollisionEnergyForScanNum(scanNo, msLevel - 1, ref e)
-//        e
-
-//    static member private GetChargeState(rawFile:IXRawfile5, scanNo:int) =
-
-//        let mutable pChargeValue = null
-//        rawFile.GetTrailerExtraValueForScanNum(scanNo, "Charge State:", ref pChargeValue);
-//        Convert.ToInt32(pChargeValue)
-
-//    static member private GetChargeState(rawFile:IXRawfile5, scanNo:int) =
-
-//        let mutable pChargeValue = null;
-//        rawFile.GetTrailerExtraValueForScanNum(scanNo, "Charge State:", ref pChargeValue);
-//        Convert.ToInt32(pChargeValue)
+//        //Try to find out which field number contains information about the charge state...
+//        Convert.ToInt32(rawFile.GetTrailerExtraValue(scanNo, 0(*"Charge State:"*)))
 
 
 //    /// <summary>

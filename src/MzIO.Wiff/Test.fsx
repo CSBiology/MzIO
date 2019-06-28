@@ -62,6 +62,7 @@ open MzIO.IO.MzML.MzML
 
 let fileDir             = __SOURCE_DIRECTORY__
 let licensePath         = @"C:\Users\Student\source\repos\MzLiteFSharp\src\MzLiteFSharp.Wiff\License\Clearcore2.license.xml"
+let licenseHome         = @"C:\Users\Patrick\source\repos\MzLiteFSharp\src\MzLiteFSharp.Wiff\License\Clearcore2.license.xml"
 
 let wiffTestFileStudent = @"C:\Users\Student\OneDrive\MP_Biotech\VP_Timo\MassSpecFiles\wiffTestFiles\20171129 FW LWagg001.wiff"
 let mzIOFileStudent     = @"C:\Users\Student\source\repos\wiffTestFiles\20171129 FW LWagg001.wiff.mzIO"
@@ -148,7 +149,7 @@ let createMzIOHelper (runID:string) (path:string) (spectrum:seq<MzIO.Model.MassS
 //    ]
 
 let getWiffFileReader (path:string) =
-    new WiffFileReader(path, licensePath)
+    new WiffFileReader(path, licenseHome)
 
 let getMassSpectra (wiffFileReader:WiffFileReader) =
     wiffFileReader.Model.Runs.GetProperties false
@@ -159,7 +160,7 @@ let getPeak1DArrays (wiffFileReader:WiffFileReader) =
     |> Seq.map (fun spectrum -> wiffFileReader.ReadSpectrumPeaks spectrum.ID)
 
 let getMzIOHelper (path:string) (compressionType:BinaryDataCompressionType) =
-    let wiffFileReader = new WiffFileReader(path, licensePath)
+    let wiffFileReader = new WiffFileReader(path, licenseHome)
     let runIDMassSpectra =
         wiffFileReader.Model.Runs.GetProperties false
         |> Seq.map (fun (run:KeyValuePair<string, obj>) -> run.Key, wiffFileReader.ReadMassSpectra run.Key)
@@ -186,7 +187,7 @@ let insertWholeFileIntoDB (helper:MzIOHelper) =
 let insertIntoDB (amount:int) (helper:MzIOHelper) =
     let mzIOSQL = new MzIOSQL(helper.Path + ".mzIO")
     let bn = mzIOSQL.BeginTransaction()
-    Seq.map2 (fun (spectrum:MzIO.Model.MassSpectrum) (peak:Peak1DArray) -> mzIOSQL.Insert(helper.RunID, spectrum, peak)) (Seq.take amount helper.MassSpectrum) (Seq.take amount helper.Peaks)
+    Seq.map2 (fun (spectrum:MzIO.Model.MassSpectrum) (peak:Peak1DArray) -> mzIOSQL.Insert(helper.RunID, spectrum, peak)) ((*Seq.take amount*) helper.MassSpectrum) ((*Seq.take amount*) helper.Peaks)
     |> Seq.length |> ignore
     bn.Commit()
     bn.Dispose()
@@ -216,12 +217,12 @@ let getSpectrumPeaks (path:string) (spectrumID:string) =
 
 
 #time
-let wiffFileReader = getWiffFileReader wiffTestUni
+let wiffFileReader = getWiffFileReader wiffTestPaeddetor
 
-let wiffSpectra =
-    wiffFileReader.Model.Runs.GetProperties false
-    |> Seq.map (fun item -> MzIOJson.FromJson(item.Value.ToString()) :> Run)
-    //|> Seq.collect (fun (run:KeyValuePair<string, obj>) -> wiffFileReader.ReadMassSpectra run.Key)
+//let wiffSpectra =
+//    wiffFileReader.Model.Runs.GetProperties false
+//    |> Seq.map (fun item -> MzIOJson.FromJson(item.Value.ToString()) :> Run)
+//    //|> Seq.collect (fun (run:KeyValuePair<string, obj>) -> wiffFileReader.ReadMassSpectra run.Key)
 
 //wiffSpectra
 //|> Seq.length
@@ -242,7 +243,7 @@ let wiffSpectra =
 //massSpectra
 //|> Seq.length
 
-//let helper = getMzIOHelper wiffTestUni BinaryDataCompressionType.NoCompression
+//let helper = getMzIOHelper wiffTestPaeddetor BinaryDataCompressionType.NoCompression
 
 //let peak1DArrays = getPeak1DArrays wiffFileReader
 
@@ -254,14 +255,14 @@ let wiffSpectra =
 //peak1DArrays
 //|> Seq.length
 
-//let insertDB =
-//    getMzIOHelper wiffTestUni BinaryDataCompressionType.NoCompression
-//    |> (fun wiffFileReader -> insertIntoDB 100 wiffFileReader)
+let insertDB =
+    getMzIOHelper wiffTestPaeddetor BinaryDataCompressionType.NoCompression
+    |> (fun wiffFileReader -> insertIntoDB 100 wiffFileReader)
 
-let mzMLReader = new MzMLReader(mzMLOfWiffUni)
-mzMLReader.Model.Runs.GetProperties false
-|> Seq.map (fun item -> MzIOJson.FromJson(item.Value.ToString()) :> Run)
-|> Seq.head
+//let mzMLReader = new MzMLReader(mzMLOfWiffUni)
+//mzMLReader.Model.Runs.GetProperties false
+//|> Seq.map (fun item -> MzIOJson.FromJson(item.Value.ToString()) :> Run)
+//|> Seq.head
 
 //spectra
 //|> Seq.length
@@ -277,10 +278,10 @@ mzMLReader.Model.Runs.GetProperties false
 //Peak1DArray
 //|> Seq.length
 
-mzMLReader.ReadMassSpectra("run_1")
+//mzMLReader.ReadMassSpectra("run_1")
 
-mzMLReader.ReadMassSpectrum("sample=1 period=1 cycle=2 experiment=1")
-mzMLReader.ReadMassSpectrum("sample=1 period=1 cycle=1 experiment=1")
+//mzMLReader.ReadMassSpectrum("sample=1 period=1 cycle=2 experiment=1")
+//mzMLReader.ReadMassSpectrum("sample=1 period=1 cycle=1 experiment=1")
 
 //let spectrum =
 //    getSpectrum uniTestPath "sample=0 experiment=0 scan=0"
