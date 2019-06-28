@@ -61,9 +61,9 @@ open MzIO.IO.MzML.MzML
 
 
 let fileDir             = __SOURCE_DIRECTORY__
-let licensePath         = @"C:\Users\Student\source\repos\MzLiteFSharp\src\MzLiteFSharp.Wiff\License\Clearcore2.license.xml"
+let licensePath         = @"C:\Users\jonat\source\repos\Clearcore2License\Clearcore2.license.xml"
 
-let wiffTestFileStudent = @"C:\Users\Student\OneDrive\MP_Biotech\VP_Timo\MassSpecFiles\wiffTestFiles\20171129 FW LWagg001.wiff"
+let wiffTestFileStudent = @"C:\Users\jonat\OneDrive\MP_Biotech\VP_Timo\MassSpecFiles\wiffTestFiles\20171129 FW LWagg001.wiff"
 let mzIOFileStudent     = @"C:\Users\Student\source\repos\wiffTestFiles\20171129 FW LWagg001.wiff.mzIO"
 
 let jonMzIO             = @"C:\Users\jonat\OneDrive\MP_Biotech\VP_Timo\MassSpecFiles\test180807_Cold1_2d_GC8_01_8599.mzIO"
@@ -183,10 +183,10 @@ let insertWholeFileIntoDB (helper:MzIOHelper) =
     bn.Commit()
     bn.Dispose()
   
-let insertIntoDB (amount:int) (helper:MzIOHelper) =
+let insertIntoDB (*(amount:int)*) (helper:MzIOHelper) =
     let mzIOSQL = new MzIOSQL(helper.Path + ".mzIO")
     let bn = mzIOSQL.BeginTransaction()
-    Seq.map2 (fun (spectrum:MzIO.Model.MassSpectrum) (peak:Peak1DArray) -> mzIOSQL.Insert(helper.RunID, spectrum, peak)) (Seq.take amount helper.MassSpectrum) (Seq.take amount helper.Peaks)
+    Seq.map2 (fun (spectrum:MzIO.Model.MassSpectrum) (peak:Peak1DArray) -> mzIOSQL.Insert(helper.RunID, spectrum, peak)) ((*Seq.take amount*) helper.MassSpectrum) ((*Seq.take amount*) helper.Peaks)
     |> Seq.length |> ignore
     bn.Commit()
     bn.Dispose()
@@ -216,7 +216,7 @@ let getSpectrumPeaks (path:string) (spectrumID:string) =
 
 
 #time
-let wiffFileReader = getWiffFileReader wiffTestUni
+let wiffFileReader = getWiffFileReader wiffTestFileStudent
 
 let wiffSpectra =
     wiffFileReader.Model.Runs.GetProperties false
@@ -254,9 +254,9 @@ let wiffSpectra =
 //peak1DArrays
 //|> Seq.length
 
-//let insertDB =
-//    getMzIOHelper wiffTestUni BinaryDataCompressionType.NoCompression
-//    |> (fun wiffFileReader -> insertIntoDB 100 wiffFileReader)
+let insertDB =
+    getMzIOHelper wiffTestFileStudent BinaryDataCompressionType.NoCompression
+    |> (fun wiffFileReader -> insertIntoDB (*100*) wiffFileReader)
 
 let mzMLReader = new MzMLReader(mzMLOfWiffUni)
 mzMLReader.Model.Runs.GetProperties false

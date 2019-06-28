@@ -28,10 +28,22 @@ module MzML =
             member this.Rollback() =
                 ()
 
+        member this.Commit() =
+
+            (this :> ITransactionScope).Commit()
+
+        member this.Rollback() =
+
+            (this :> ITransactionScope).Rollback()
+
         interface IDisposable with
         
             member this.Dispose() =
                 ()
+
+        member this.Dispose() =
+
+            (this :> IDisposable).Dispose()
 
     type MzMLReader(filePath: string) =
 
