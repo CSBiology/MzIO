@@ -18,10 +18,63 @@
 //open ThermoFisher.CommonCore.MassPrecisionEstimator
 //open MzIO.Binary
 //open MzIO.Commons.Arrays
+//open MzIO.Commons.Arrays.MzIOArray
 //open MzIO.IO
 //open MzIO.Json
-//open MzIO.MetaData.PSIMSExtension
 //open MzIO.Model
+//open MzIO.MetaData.PSIMSExtension
+//open MzIO.MetaData.ParamEditExtension
+//open MzIO.MetaData.UO.UO
+
+//[<Sealed>]
+//type ThermoPeaksArray(peakData:float [,], peakArraySize:int) =
+
+//    member private this.peakData        = peakData
+//    member private this.peakArraySize   = peakArraySize
+
+//    interface IMzIOArray<Peak1D> with
+
+//        member this.Length =
+
+//            peakArraySize
+            
+//        member this.Item with get idx = new Peak1D(peakData.[1, idx], peakData.[0, idx])
+
+//    static member private Yield(peakData:float [,], peakArraySize:int) =
+
+//        [0..peakArraySize-1] 
+//        |> Seq.ofList
+//        |> Seq.map (fun idx -> new Peak1D(peakData.[1, idx], peakData.[0, idx]))
+
+//    interface IEnumerable<Peak1D> with
+    
+//        member this.GetEnumerator() =
+
+//            (ThermoPeaksArray.Yield(peakData, peakArraySize)).GetEnumerator()
+
+//    interface System.Collections.IEnumerable with
+
+//        member this.GetEnumerator() =
+
+//            ThermoPeaksArray.Yield(peakData, peakArraySize).GetEnumerator() :> Collections.IEnumerator
+
+//type ThermoRawTransactionScope() =
+
+//    interface ITransactionScope with
+    
+//        member this.Commit() =
+
+//            ()
+
+//        member this.Rollback() =
+
+//            ()
+
+//    interface IDisposable with
+
+//        member this.Dispose() =
+
+//            ()
 
 
 //[<Sealed>]
@@ -45,6 +98,8 @@
 //        //rawfile.Open(rawFilePath)
 //        //rawfile.SetCurrentController(0, 1)
 //        rawFile.SelectInstrument(rawFile.GetInstrumentType(0), 1)
+
+//    let mutable disposed = false
 
 //    let startScanNo = rawFile.RunHeaderEx.FirstSpectrum
 //    let endScanNo = rawFile.RunHeaderEx.LastSpectrum
@@ -95,7 +150,7 @@
         
 //    static member private GetMSLevel(rawFile:IRawDataPlus, scanNo:int) =
 
-//        rawFile.GetFilterForScanNumber(scanNo).MSOrder
+//        int (rawFile.GetFilterForScanNumber(scanNo).MSOrder)
 
 //    static member private GetIsolationWindowWidth(rawFile:IRawDataPlus, scanNo:int, msLevel:int) =
 
@@ -154,359 +209,212 @@
 
 //        sprintf "scan=%s" (scanNumber.ToString())
 
+//        member this.RaiseDisposed() =
+
+//            if disposed then raise (new ObjectDisposedException(this.GetType().Name))
+
+//    interface IDisposable with
+
+//        member this.Dispose() =
+
+//            if disposed then ()
+        
+//            if rawFile <> null then rawFile.Dispose()
+
+//            disposed <- true
+
 //    member private this.ReadMassSpectrum(scanNo:int) =
 
-////        private MzLite.Model.MassSpectrum ReadMassSpectrum(int scanNo)
-////        {
+//        this.RaiseDisposed()
 
-////            RaiseDisposed();
+//        try
 
-////            try
-////            {
+//            let spectrumID   = ThermoRawFileReader.GetSpectrumID(scanNo)
+//            let spectrum     = new MassSpectrum(spectrumID)
 
-////                string spectrumID = GetSpectrumID(scanNo);
-////                MassSpectrum spectrum = new MassSpectrum(spectrumID);
+//            // spectrum
+//            let msLevel = ThermoRawFileReader.GetMSLevel(rawFile, scanNo)
+//            spectrum.SetMsLevel(msLevel) |> ignore
 
-////                // spectrum
+//            if (ThermoRawFileReader.IsCentroidSpectrum(rawFile, scanNo)) then 
+//                spectrum.SetCentroidSpectrum() |> ignore
+//            else
+//                spectrum.SetProfileSpectrum() |> ignore
 
-////                int msLevel = GetMSLevel(rawFile, scanNo);
-////                spectrum.SetMsLevel(msLevel);
+//            // scan
+//            let scan = new Scan()
+//            //Maybe orther type than Name needed
+//            scan.SetFilterString(ThermoRawFileReader.GetFilterString(rawFile, scanNo).Name)
+//            scan.SetScanStartTime(ThermoRawFileReader.GetRetentionTime(rawFile, scanNo)).UO_Minute() |> ignore
+//            spectrum.Scans.Add(scan)
 
-////                if (IsCentroidSpectrum(rawFile, scanNo))
-////                    spectrum.SetCentroidSpectrum();
-////                else
-////                    spectrum.SetProfileSpectrum();
+//            // precursor
+//            if (msLevel > 1) then
 
-////                // scan
+//                let precursor   = new Precursor()
+//                let isoWidth    = ThermoRawFileReader.GetIsolationWindowWidth(rawFile, scanNo, msLevel) * 0.5
+//                let targetMz    = ThermoRawFileReader.GetIsolationWindowTargetMz(rawFile, scanNo, msLevel)
+//                let precursorMz = ThermoRawFileReader.GetPrecursorMz(rawFile, scanNo, msLevel)
+//                let chargeState = ThermoRawFileReader.GetChargeState(rawFile, scanNo)
 
-////                Scan scan = new Scan();
-////                scan.SetFilterString(GetFilterString(rawFile, scanNo))
-////                    .SetScanStartTime(GetRetentionTime(rawFile, scanNo));
-////                //.UO_Minute();
+//                precursor.IsolationWindow.SetIsolationWindowTargetMz(targetMz)      |> ignore
+//                precursor.IsolationWindow.SetIsolationWindowUpperOffset(isoWidth)   |> ignore
+//                precursor.IsolationWindow.SetIsolationWindowLowerOffset(isoWidth)   |> ignore
 
-////                spectrum.Scans.Add(scan);
+//                let selectedIon = new SelectedIon()
+//                selectedIon.SetSelectedIonMz(precursorMz)   |> ignore
+//                selectedIon.SetChargeState(chargeState)     |> ignore
 
-////                // precursor
+//                precursor.SelectedIons.Add(selectedIon)
+//                spectrum.Precursors.Add(precursor)
 
-////                if (msLevel > 1)
-////                {
+//                spectrum
 
-////                    Precursor precursor = new Precursor();
+//            else
+//                spectrum
 
-////                    double isoWidth = GetIsolationWindowWidth(rawFile, scanNo, msLevel) * 0.5d;
-////                    double targetMz = GetIsolationWindowTargetMz(rawFile, scanNo, msLevel);
-////                    double precursorMz = GetPrecursorMz(rawFile, scanNo, msLevel);
-////                    int chargeState = GetChargeState(rawFile, scanNo);
+//        with
+//            | :? Exception as ex ->
+//                raise (new MzIOIOException(ex.Message, ex))
 
-////                    precursor.IsolationWindow
-////                            .SetIsolationWindowTargetMz(targetMz)
-////                            .SetIsolationWindowUpperOffset(isoWidth)
-////                            .SetIsolationWindowLowerOffset(isoWidth);
+//    member private this.ReadSpectrumPeaks(scanNo:int) =
 
-////                    SelectedIon selectedIon = new SelectedIon();
+//        this.RaiseDisposed()
 
-////                    selectedIon
-////                        .SetSelectedIonMz(precursorMz)
-////                        .SetChargeState(chargeState);
+//        try
+//            let scanStats       = rawFile.GetScanStatsForScanNumber(scanNo)
+//            let segmentedScan   = rawFile.GetSegmentedScanFromScanNumber(scanNo, scanStats)
 
-////                    precursor.SelectedIons.Add(selectedIon);
+//            //maybe length of intensities needed
+//            let peaks = 
 
-////                    spectrum.Precursors.Add(precursor);
-////                }
+//                let tmp = array2D [|segmentedScan.Positions; segmentedScan.Intensities|]
 
-////                return spectrum;
+//                new ThermoPeaksArray(tmp, segmentedScan.Positions.Length)
 
-////            }
-////            catch (Exception ex)
-////            {
-////                throw new MzLiteIOException(ex.Message, ex);
-////            }
-////        }
+//            let mutable pa = 
+//                new Peak1DArray(
+//                    BinaryDataCompressionType.NoCompression, BinaryDataType.Float32, 
+//                    BinaryDataType.Float32, peaks)
+//            pa
 
-////        private Binary.Peak1DArray ReadSpectrumPeaks(int scanNo)
-////        {
+//            //int peakArraySize = 0;
+//            //double controidPeakWith = 0;
+//            //object massList = null;
+//            //object peakFlags = null;
 
-////            RaiseDisposed();
+//            //rawFile.GetMassListFromScanNum(
+//                //ref scanNo,
+//                //null, 1, 0, 0, 0,
+//                //ref controidPeakWith,
+//                //ref massList,
+//                //ref peakFlags,
+//                //ref peakArraySize);
 
-////            try
-////            {
-////                int peakArraySize = 0;
-////                double controidPeakWith = 0;
-////                object massList = null;
-////                object peakFlags = null;
+//            //Peak1DArray pa = new Peak1DArray(
+//                    //BinaryDataCompressionType.NoCompression,
+//                    //BinaryDataType.Float32,
+//                    //BinaryDataType.Float32);
 
-////                rawFile.GetMassListFromScanNum(
-////                    ref scanNo,
-////                    null, 1, 0, 0, 0,
-////                    ref controidPeakWith,
-////                    ref massList,
-////                    ref peakFlags,
-////                    ref peakArraySize);
+//            ////pa.Peaks = MzLiteArray.ToMzLiteArray(peaks);
 
-////                double[,] peakData = massList as double[,];
+//            //pa.Peaks = new ThermoPeaksArray(peakData, peakArraySize);
 
-////                Peak1DArray pa = new Peak1DArray(
-////                        BinaryDataCompressionType.NoCompression,
-////                        BinaryDataType.Float32,
-////                        BinaryDataType.Float32);
+//            //return pa;
 
-////                //Peak1D[] peaks = new Peak1D[peakArraySize];
-
-////                //for (int i = 0; i < peakArraySize; i++)
-////                //    peaks[i] = new Peak1D(peakData[1, i], peakData[0, i]);
-
-////                //pa.Peaks = MzLiteArray.ToMzLiteArray(peaks);
-
-////                pa.Peaks = new ThermoPeaksArray(peakData, peakArraySize);
-
-////                return pa;
-////            }
-////            catch (Exception ex)
-////            {
-////                throw new MzLiteIOException(ex.Message, ex);
-////            }
-////        }
-
-////        #endregion
+//        with
+//            | :? Exception as ex ->
+//                raise (new MzIOIOException(ex.Message, ex))
 
 ////        #region IMzLiteDataReader Members
 
-////        public IEnumerable<Model.MassSpectrum> ReadMassSpectra(string runID)
-////        {
-////            for (int i = startScanNo; i <= endScanNo; i++)
-////            {
-////                yield return ReadMassSpectrum(i);
-////            }
-////        }
+//    interface IMzIODataReader with
 
-////        public Model.MassSpectrum ReadMassSpectrum(string spectrumID)
-////        {
-////            int scanNo = ParseSpectrumId(spectrumID);
-////            return ReadMassSpectrum(scanNo);
-////        }
+//        member this.ReadMassSpectra(runID:string) =
 
-////        public Binary.Peak1DArray ReadSpectrumPeaks(string spectrumID)
-////        {
-////            int scanNo = ParseSpectrumId(spectrumID);
-////            return ReadSpectrumPeaks(scanNo);
-////        }
+//            let scanNumbers = [startScanNo..endScanNo] |> Seq.ofList
+//            scanNumbers
+//            |> Seq.map (fun scanNumber -> this.ReadMassSpectrum(scanNumber))
 
-////        public Task<MassSpectrum> ReadMassSpectrumAsync(string spectrumID)
-////        {
-////            return Task<MassSpectrum>.Run(() => { return ReadMassSpectrum(spectrumID); });
-////        }
+//        member this.ReadMassSpectrum(spectrumID:string) =
 
-////        public Task<Peak1DArray> ReadSpectrumPeaksAsync(string spectrumID)
-////        {
-////            return Task<Peak1DArray>.Run(() => { return ReadSpectrumPeaks(spectrumID); });
-////        }
+//            let scanNumber = this.ParseSpectrumId(spectrumID)
+//            this.ReadMassSpectrum(scanNumber)
+             
+//        member this.ReadSpectrumPeaks(spectrumID:string) =
 
-////        public IEnumerable<Model.Chromatogram> ReadChromatograms(string runID)
-////        {
-////            return Enumerable.Empty<Chromatogram>();
-////        }
+//            let scanNo = this.ParseSpectrumId(spectrumID)
+//            this.ReadSpectrumPeaks(scanNo)
 
-////        public Model.Chromatogram ReadChromatogram(string chromatogramID)
-////        {
-////            try
-////            {
-////                throw new NotSupportedException();
-////            }
-////            catch (Exception ex)
-////            {
-////                throw new MzLiteIOException(ex.Message, ex);
-////            }
-////        }
+//        member this.ReadMassSpectrumAsync(spectrumID:string) =
 
-////        public Binary.Peak2DArray ReadChromatogramPeaks(string chromatogramID)
-////        {
-////            try
-////            {
-////                throw new NotSupportedException();
-////            }
-////            catch (Exception ex)
-////            {
-////                throw new MzLiteIOException(ex.Message, ex);
-////            }
-////        }
+//            Task<MassSpectrum>.Run(fun () -> (this :> IMzIODataReader).ReadMassSpectrum(spectrumID))
 
-////        public Task<Chromatogram> ReadChromatogramAsync(string spectrumID)
-////        {
-////            try
-////            {
-////                throw new NotSupportedException();
-////            }
-////            catch (Exception ex)
-////            {
-////                throw new MzLiteIOException(ex.Message, ex);
-////            }
-////        }
+//        member this.ReadSpectrumPeaksAsync(spectrumID:string) =
 
-////        public Task<Peak2DArray> ReadChromatogramPeaksAsync(string spectrumID)
-////        {
-////            try
-////            {
-////                throw new NotSupportedException();
-////            }
-////            catch (Exception ex)
-////            {
-////                throw new MzLiteIOException(ex.Message, ex);
-////            }
-////        }
+//            Task<Peak1DArray>.Run(fun () -> (this :> IMzIODataReader).ReadSpectrumPeaks(spectrumID))
 
-////        #endregion
+//        member this.ReadChromatogram(chromatogramID:string) =
 
-////        #region IMzLiteIO Members
+//            raise (new NotSupportedException())
 
-////        public MzLiteModel CreateDefaultModel()
-////        {
-////            RaiseDisposed();
 
-////            string modelName = Path.GetFileNameWithoutExtension(rawFilePath);
-////            MzLiteModel model = new MzLiteModel(modelName);
+//        member this.ReadChromatograms(runID:string) =
 
-////            string sampleName = Path.GetFileNameWithoutExtension(rawFilePath);
-////            Sample sample = new Sample("sample_1", sampleName);
-////            model.Samples.Add(sample);
+//            Enumerable.Empty<Chromatogram>()
 
-////            Run run = new Run("run_1");
-////            run.Sample = sample;
-////            model.Runs.Add(run);
+//        member this.ReadChromatogramPeaks(chromatogramID:string) =
 
-////            return model;
-////        }
+//            raise (new NotSupportedException())
+        
 
-////        public MzLiteModel Model
-////        {
+//        member this.ReadChromatogramAsync(spectrumID:string) =
 
-////            get
-////            {
-////                RaiseDisposed();
-////                return model;
-////            }
-////        }
+//            raise (new NotSupportedException())
 
-////        public void SaveModel()
-////        {
-////            RaiseDisposed();
+//        member this.ReadChromatogramPeaksAsync(spectrumID:string) =
 
-////            try
-////            {
-////                MzLiteJson.SaveJsonFile(model, GetModelFilePath());
-////            }
-////            catch (Exception ex)
-////            {
-////                throw new MzLiteIOException(ex.Message, ex);
-////            }
-////        }
+//            raise (new NotSupportedException())
 
-////        public ITransactionScope BeginTransaction()
-////        {
-////            RaiseDisposed();
-////            return new ThermoRawTransactionScope();
-////        }
+//    interface IMzIOIO with
 
-////        #endregion
+//        member this.CreateDefaultModel() =
 
-////        #region IDisposable Members
+//            this.RaiseDisposed()
 
-////        private void RaiseDisposed()
-////        {
-////            if (disposed)
-////                throw new ObjectDisposedException(this.GetType().Name);
-////        }
+//            let modelName   = Path.GetFileNameWithoutExtension(rawFilePath)
+//            let model       = new MzIOModel(modelName)
 
-////        public void Dispose()
-////        {
-////            if (disposed)
-////                return;
+//            let sampleName  = Path.GetFileNameWithoutExtension(rawFilePath)
+//            let sample      = new Sample("sample_1", sampleName)
+//            model.Samples.Add(sample)
 
-////            if (rawFile != null)
-////            {
-////                rawFile.Close();
-////            }
+//            let run         = new Run("run_1")
+//            run.Sample      = sample |> ignore
+//            model.Runs.Add(run)
 
-////            disposed = true;
-////        }
+//            model
 
-////        #endregion
-////    }
+//        member this.Model =
 
-////    internal sealed class ThermoPeaksArray : IMzLiteArray<Peak1D>
-////    {
+//            this.RaiseDisposed()
 
-////        private readonly double[,] peakData;
-////        private readonly int peakArraySize;
+//            this.model        
 
-////        internal ThermoPeaksArray(double[,] peakData, int peakArraySize)
-////        {
-////            this.peakData = peakData;
-////            this.peakArraySize = peakArraySize;
-////        }
+//        member this.SaveModel() =
 
-////        #region IMzLiteArray<Peak1D> Members
+//            this.RaiseDisposed()
 
-////        public int Length
-////        {
-////            get { return peakArraySize; }
-////        }
+//            try
+//                MzIOJson.SaveJsonFile(this.model, ThermoRawFileReader.GetModelFilePath(rawFilePath))
+//            with
+//                | :? Exception as ex ->
 
-////        public Peak1D this[int idx]
-////        {
-////            get { return new Peak1D(peakData[1, idx], peakData[0, idx]); }
-////        }
+//                    raise (new MzIOIOException(ex.Message, ex))
 
-////        #endregion
+//        member this.BeginTransaction() =
 
-////        #region IEnumerable<Peak1D> Members
+//            this.RaiseDisposed()
 
-////        private static IEnumerable<Peak1D> Yield(double[,] peakData, int peakArraySize)
-////        {
-////            for (int i = 0; i < peakArraySize; i++)
-////            {
-////                yield return new Peak1D(peakData[1, i], peakData[0, i]);
-////            }
-////        }
-
-////        public IEnumerator<Peak1D> GetEnumerator()
-////        {
-////            return Yield(peakData, peakArraySize).GetEnumerator();
-////        }
-
-////        #endregion
-
-////        #region IEnumerable Members
-
-////        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
-////        {
-////            return Yield(peakData, peakArraySize).GetEnumerator();
-////        }
-
-////        #endregion
-////    }
-
-////    internal class ThermoRawTransactionScope : ITransactionScope
-////    {
-////        #region ITransactionScope Members
-
-////        public void Commit()
-////        {
-////        }
-
-////        public void Rollback()
-////        {
-////        }
-
-////        #endregion
-
-////        #region IDisposable Members
-
-////        public void Dispose()
-////        {
-////        }
-
-////        #endregion
-////    }
-////}
-
+//            new ThermoRawTransactionScope() :> ITransactionScope
 

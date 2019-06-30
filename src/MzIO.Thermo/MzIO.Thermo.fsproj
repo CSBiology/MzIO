@@ -24,12 +24,6 @@
     <None Include="paket.template" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="ThermoFisher.CommonCore.BackgroundSubtraction" Version="4.0.107" />
-    <PackageReference Include="ThermoFisher.CommonCore.Data" Version="4.0.107" />
-    <PackageReference Include="ThermoFisher.CommonCore.MassPrecisionEstimator" Version="4.0.107" />
-    <PackageReference Include="ThermoFisher.CommonCore.RawFileReader" Version="4.0.107" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\MzIO\MzIO.fsproj" />
   </ItemGroup>
   <Import Project="..\..\.paket\Paket.Restore.targets" />
