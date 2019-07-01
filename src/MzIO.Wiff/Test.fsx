@@ -35,6 +35,7 @@ open MzIO.Json
 open MzIO.Bruker
 open MzIO.IO.MzML
 open MzIO.IO.MzML.MzML
+open MzIO.IO
 //open ThermoFisher
 //open ThermoFisher.CommonCore
 //open ThermoFisher.CommonCore.RawFileReader
@@ -217,7 +218,7 @@ let getSpectrumPeaks (path:string) (spectrumID:string) =
 
 
 #time
-let wiffFileReader = getWiffFileReader wiffTestPaeddetor
+//let wiffFileReader = getWiffFileReader wiffTestPaeddetor
 
 //let wiffSpectra =
 //    wiffFileReader.Model.Runs.GetProperties false
@@ -255,9 +256,9 @@ let wiffFileReader = getWiffFileReader wiffTestPaeddetor
 //peak1DArrays
 //|> Seq.length
 
-let insertDB =
-    getMzIOHelper wiffTestPaeddetor BinaryDataCompressionType.NoCompression
-    |> (fun wiffFileReader -> insertIntoDB 100 wiffFileReader)
+//let insertDB =
+//    getMzIOHelper wiffTestPaeddetor BinaryDataCompressionType.NoCompression
+//    |> (fun wiffFileReader -> insertIntoDB 100 wiffFileReader)
 
 //let mzMLReader = new MzMLReader(mzMLOfWiffUni)
 //mzMLReader.Model.Runs.GetProperties false
@@ -361,6 +362,31 @@ let insertDB =
 //    |> Seq.collect (fun (run:KeyValuePair<string, obj>) -> brukerReader.ReadMassSpectra run.Key)
 //    //|> Seq.map (fun item -> brukerReader.RtProfile(item,  (new MzIO.Processing.RangeQuery(1., 300., 600.)), (new MzIO.Processing.RangeQuery(1., 300., 600.))))
 
+//let getBrukerHelper (path:string) (compressionType:BinaryDataCompressionType) =
+//    let bafFileReader = new BafFileReader(path)
+//    let runIDMassSpectra =
+//        bafFileReader.Model.Runs.GetProperties false
+//        |> Seq.map (fun (run:KeyValuePair<string, obj>) -> run.Key, bafFileReader.ReadMassSpectra run.Key)
+//    let tmp =
+//        runIDMassSpectra
+//        |> Seq.map (fun (runID, massSpectra) ->
+//            massSpectra
+//            |> Seq.map (fun spectrum -> (bafFileReader.ReadSpectrumPeaks spectrum.ID))
+//            |> Seq.map (fun peak -> peak.CompressionType <- compressionType
+//                                    peak)
+//            |> createMzIOHelper runID path massSpectra
+//            )
+//        |> Seq.head
+//    tmp
+
+//let insertBrukerIntoDB (helper:MzIOHelper) =
+//    let mzIOSQL = new MzIOSQL(helper.Path + ".mzIO")
+//    let bn = mzIOSQL.BeginTransaction()
+//    Seq.map2 (fun (spectrum:MzIO.Model.MassSpectrum) (peak:Peak1DArray) -> mzIOSQL.Insert(helper.RunID, spectrum, peak)) ((*Seq.take amount*) helper.MassSpectrum) ((*Seq.take amount*) helper.Peaks)
+//    |> Seq.length |> ignore
+//    bn.Commit()
+//    bn.Dispose()
+    
 
 //let brukaRTIndex = brukerReader.BuildRtIndex("run_1")
 //let brukaRT = brukerReader.RtProfile(brukaRTIndex, (new MzIO.Processing.RangeQuery(1., 300., 600.)), (new MzIO.Processing.RangeQuery(1., 300., 600.)))
@@ -384,3 +410,62 @@ let insertDB =
 //let instruments = InstrumentMethodFileReader.OpenMethod(rawtestFile)
 //let processings = ProcessingMethodFileReader.OpenProcessingMethod(rawtestFile)
 //let sequenceFiles = SequenceFileReader.OpenSequence(rawtestFile)
+
+let reader = new BafFileReader(bafTestFile)
+
+let spectra =
+    reader.Model.Runs.GetProperties false
+    |> Seq.collect (fun (run:KeyValuePair<string, obj>) -> reader.ReadMassSpectra run.Key)
+
+
+
+/// Create a new file instance of the DB schema. DELETES already existing instance
+let initDB filePath =
+    let _ = System.IO.File.Delete filePath  
+    let db = new MzIOSQL(filePath)
+    db
+
+/// Returns the conncetion string to a existing MzLiteSQL DB
+let getConnection filePath =
+    match System.IO.File.Exists filePath with
+    | true  -> let db = new MzIOSQL(filePath)
+               db 
+    | false -> initDB filePath
+
+/// copies MassSpectrum into DB schema
+let insertMSSpectrum (db: MzIOSQL) runID (reader:IMzIODataReader) (compress: string) (spectrum: MassSpectrum)= 
+    let peakArray = reader.ReadSpectrumPeaks(spectrum.ID)
+    match compress with 
+    | "NoCompression"  -> 
+        let clonedP = new Peak1DArray(BinaryDataCompressionType.NoCompression,peakArray.IntensityDataType,peakArray.MzDataType)
+        clonedP.Peaks <- peakArray.Peaks
+        db.Insert(runID, spectrum, clonedP)
+    | "ZLib" -> 
+        let clonedP = new Peak1DArray(BinaryDataCompressionType.ZLib,peakArray.IntensityDataType,peakArray.MzDataType)
+        clonedP.Peaks <- peakArray.Peaks
+        db.Insert(runID, spectrum, clonedP)
+    | "NumPress" ->
+        let clonedP = new Peak1DArray(BinaryDataCompressionType.NumPress,peakArray.IntensityDataType,peakArray.MzDataType)
+        clonedP.Peaks <- peakArray.Peaks
+        db.Insert(runID, spectrum, clonedP)
+    | "NumPressZLib" ->
+        let clonedP = new Peak1DArray(BinaryDataCompressionType.NumPressZLib,peakArray.IntensityDataType,peakArray.MzDataType)
+        clonedP.Peaks <- peakArray.Peaks
+        db.Insert(runID, spectrum, clonedP)
+    | _ ->
+        failwith "Not a valid compression Method"
+
+/// Starts bulkinsert of mass spectra into a MzLiteSQL database
+let insertMSSpectraBy insertSpectrumF outFilepath runID (reader:IMzIODataReader) (compress: string) (spectra: seq<MassSpectrum>) = 
+    let db = getConnection outFilepath
+    let bulkInsert spectra = 
+        spectra
+        |> Seq.iter (insertSpectrumF db runID reader compress)
+    let trans = db.BeginTransaction()
+    bulkInsert spectra
+    trans.Commit()
+    trans.Dispose() 
+    db.Dispose()
+
+
+let tmp = insertMSSpectraBy insertMSSpectrum (bafTestFile + ".mzio") ("run_1") reader "NoCompression" spectra

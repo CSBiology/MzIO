@@ -303,12 +303,12 @@ and MzIOSQL(encoder:BinaryDataEncoder,decoder:BinaryDataDecoder, model:MzIOModel
         if not (currentScope.Value.TryGetCommand("INSERT_CHROMATOGRAM_CMD", & cmd)) then
             cmd <- currentScope.Value.PrepareCommand("INSERT_CHROMATOGRAM_CMD", "INSERT INTO Chromatogram VALUES(@runID, @chromatogramID, @description, @peakArray, @peakData)")
         cmd.Parameters.Clear()                                                      
-        cmd.Parameters.AddWithValue("@runID", runID)                                 |> ignore
-        cmd.Parameters.AddWithValue("@chromatogramID", chromatogram.ID)              |> ignore
-        cmd.Parameters.AddWithValue("@description", MzIOJson.ToJson(chromatogram)) |> ignore
-        cmd.Parameters.AddWithValue("@peakArray", MzIOJson.ToJson(peaks))          |> ignore
-        cmd.Parameters.AddWithValue("@peakData", encoder.Encode(peaks))              |> ignore
-        cmd.ExecuteNonQuery()                                                        |> ignore
+        cmd.Parameters.AddWithValue("@runID", runID)                                |> ignore
+        cmd.Parameters.AddWithValue("@chromatogramID", chromatogram.ID)             |> ignore
+        cmd.Parameters.AddWithValue("@description", MzIOJson.ToJson(chromatogram))  |> ignore
+        cmd.Parameters.AddWithValue("@peakArray", MzIOJson.ToJson(peaks))           |> ignore
+        cmd.Parameters.AddWithValue("@peakData", encoder.Encode(peaks))             |> ignore
+        cmd.ExecuteNonQuery()                                                       |> ignore
 
     member private this.SqlInsert(runID: string, spectrum: MassSpectrum, peaks: Peak1DArray) =
         
@@ -317,12 +317,12 @@ and MzIOSQL(encoder:BinaryDataEncoder,decoder:BinaryDataDecoder, model:MzIOModel
         if not (currentScope.Value.TryGetCommand("INSERT_SPECTRUM_CMD", & cmd)) then
             cmd <- currentScope.Value.PrepareCommand("INSERT_SPECTRUM_CMD", "INSERT INTO Spectrum VALUES(@runID, @spectrumID, @description, @peakArray, @peakData)")
         cmd.Parameters.Clear()                                                      
-        cmd.Parameters.AddWithValue("@runID", runID)                                |> ignore
-        cmd.Parameters.AddWithValue("@spectrumID", spectrum.ID)                     |> ignore
-        cmd.Parameters.AddWithValue("@description", MzIOJson.ToJson(spectrum))    |> ignore
-        cmd.Parameters.AddWithValue("@peakArray", MzIOJson.ToJson(peaks))         |> ignore
-        cmd.Parameters.AddWithValue("@peakData", encoder.Encode(peaks))             |> ignore
-        cmd.ExecuteNonQuery()                                                       |> ignore
+        cmd.Parameters.AddWithValue("@runID", runID)                            |> ignore
+        cmd.Parameters.AddWithValue("@spectrumID", spectrum.ID)                 |> ignore
+        cmd.Parameters.AddWithValue("@description", MzIOJson.ToJson(spectrum))  |> ignore
+        cmd.Parameters.AddWithValue("@peakArray", MzIOJson.ToJson(peaks))       |> ignore
+        cmd.Parameters.AddWithValue("@peakData", encoder.Encode(peaks))         |> ignore
+        cmd.ExecuteNonQuery()                                                   |> ignore
 
 
     //member private this.SqlInsert() =

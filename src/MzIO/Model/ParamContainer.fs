@@ -205,13 +205,15 @@ module CvParam =
             if item.StartsWith("WithCvUnitAccession") then
                 let tmp = item.Substring(0, 19), item.Substring(20)
                 let tmpID = sprintf "\"Type\":\"%s\"" (fst tmp)
-                let tmpValues = sprintf ",\"Values\":[%s]" (((snd tmp).Remove(0, 1)).Remove((snd tmp).Length-2))
+                let values = if (snd tmp) :> Object :? UInt64 then decimal(Convert.ToUInt64 (snd tmp)).ToString() else snd tmp
+                let tmpValues = sprintf ",\"Values\":[%s]" (((values).Remove(0, 1)).Remove((values).Length-2))
                 sprintf "%s}" (sprintf "%s%s" tmpID tmpValues)
             else
                 if item.StartsWith("CvValue") then
                     let tmp = item.Substring(0, 7), item.Substring(8)
                     let tmpID = sprintf "\"Type\":\"%s\"" (fst tmp)
-                    let tmpValues = sprintf ",\"Values\":[%s]" (snd tmp)
+                    let values = if (snd tmp) :> Object :? UInt64 then int64(Convert.ToUInt64 (snd tmp)).ToString() else snd tmp
+                    let tmpValues = sprintf ",\"Values\":[%s]" (values)
                     sprintf "%s}" (sprintf "%s%s" tmpID tmpValues)
                 else
                     let tmpID = "\"Type\":\"CvValue\""
@@ -249,11 +251,39 @@ module CvParam =
             match param with
             | :? CvParam<'T>    as item ->                
                 let tmpID = sprintf "{\"%s\":\"%s\",\"CvAccession\":\"%s\"," "$id" "1" item.CvAccession
-                let tmpValue = ParamBaseConverter.createJsonValue(if item.Value.IsSome then item.Value.Value.ToString() else "None")
+                let tmpValue = 
+                    ParamBaseConverter.createJsonValue(
+                        if item.Value.IsSome then
+                            item.Value.Value.ToString() 
+                        else "None")
                 JObject.Parse(sprintf "%s%s" tmpID tmpValue)
             | :? UserParam<'T>  as item -> 
                 let tmpID = sprintf "{\"%s\":\"%s\",\"Name\":\"%s\"," "$id" "1" item.Name
-                let tmpValue = ParamBaseConverter.createJsonValue(if item.Value.IsSome then item.Value.Value.ToString() else "None")
+
+                let tryGetValue (test:ParamValue<'T> option) =
+                    let tmp =
+                        match test with
+                        | Some value ->
+                            match value with
+                            | CvValue v                 -> 
+                                v
+                            | WithCvUnitAccession (v,_) -> 
+                                v
+                        | None -> failwith "Wrong"
+                    match tmp :> Object with
+                    | :? Int16  -> (Convert.ToDecimal(tmp :> Object)).ToString()
+                    | :? Int32  -> (Convert.ToDecimal(tmp :> Object)).ToString()
+                    | :? Int64  -> (Convert.ToDecimal(tmp :> Object)).ToString()
+                    | :? UInt16 -> (Convert.ToDecimal(tmp :> Object)).ToString()
+                    | :? UInt32 -> (Convert.ToDecimal(tmp :> Object)).ToString()
+                    | :? UInt64 -> (Convert.ToDecimal(tmp :> Object)).ToString()
+                    | :?   _    -> tmp.ToString()
+
+                let tmpValue = 
+                    ParamBaseConverter.createJsonValue(
+                        if item.Value.IsSome then
+                            tryGetValue item.Value
+                            else "None")
                 JObject.Parse(sprintf "%s%s" tmpID tmpValue)
             | _     -> raise (new JsonSerializationException("Could not determine concrete param type."))
         

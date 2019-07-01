@@ -32,5 +32,7 @@
   <ItemGroup>
     <ProjectReference Include="..\MzIO\MzIO.fsproj" />
   </ItemGroup>
+  <ItemGroup>
+  </ItemGroup>
   <Import Project="..\..\.paket\Paket.Restore.targets" />
 </Project>
