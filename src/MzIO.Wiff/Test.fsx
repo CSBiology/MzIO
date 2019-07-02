@@ -77,6 +77,7 @@ let paddeTestPath       = @"D:\Users\Patrick\Desktop\BioInformatik\MzLiteTestFil
 let wiffTestUni         = @"C:\Users\Student\source\repos\wiffTestFiles\WiffFiles\20171129 FW LWagg001.wiff"
 let mzMLOfWiffUni       = @"C:\Users\Student\source\repos\wiffTestFiles\WiffFiles\20171129 FW LWagg001.mzML"
 let uniTestPath         = @"C:\Users\Student\source\repos\wiffTestFiles\WiffFiles\20171129 FW LWagg001.wiff.mzIO"
+let thermoUniPath       = @"C:\Users\Student\source\repos\wiffTestFiles\Thermo\data02.RAW"
 
 let bafTestFile         = @"C:\Users\Student\source\repos\wiffTestFiles\Bruker\170922_4597.d\analysis.baf"
 let bafMzMLFile         = @"C:\Users\Student\source\repos\wiffTestFiles\Bruker\170922_4597.mzML"
@@ -468,4 +469,5 @@ let insertMSSpectraBy insertSpectrumF outFilepath runID (reader:IMzIODataReader)
     db.Dispose()
 
 
-let tmp = insertMSSpectraBy insertMSSpectrum (bafTestFile + ".mzio") ("run_1") reader "NoCompression" spectra
+//let tmp = insertMSSpectraBy insertMSSpectrum (bafTestFile + ".mzio") ("run_1") reader "NoCompression" spectra
+

@@ -94,6 +94,7 @@
 //    let rawFile =
 //        RawFileReaderAdapter.FileFactory(rawFilePath)
 //        //ThermoFisher.CommonCore.Data.RawDataCreator(null, null, null)
+
 //    let x =        
 //        //rawfile.Open(rawFilePath)
 //        //rawfile.SetCurrentController(0, 1)
@@ -103,6 +104,8 @@
 
 //    let startScanNo = rawFile.RunHeaderEx.FirstSpectrum
 //    let endScanNo = rawFile.RunHeaderEx.LastSpectrum
+
+//    //member private this.IsSet = rawFile.SelectInstrument(rawFile.GetInstrumentType(0), 1)
 
 //    member private this.model = MzIOJson.HandleExternalModelFile(this, ThermoRawFileReader.GetModelFilePath(rawFilePath))
 
@@ -144,7 +147,7 @@
 
 //        rawFile.RetentionTimeFromScanNumber(scanNo)
 
-//    static member private GetFilterString(rawFile:IRawDataPlus, scanNo:int) =
+//    static member GetFilterString(rawFile:IRawDataPlus, scanNo:int) =
         
 //        rawFile.GetFilterForScanNumber(scanNo)
         
@@ -209,9 +212,9 @@
 
 //        sprintf "scan=%s" (scanNumber.ToString())
 
-//        member this.RaiseDisposed() =
+//    member this.RaiseDisposed() =
 
-//            if disposed then raise (new ObjectDisposedException(this.GetType().Name))
+//        if disposed then raise (new ObjectDisposedException(this.GetType().Name))
 
 //    interface IDisposable with
 
@@ -225,57 +228,87 @@
 
 //    member private this.ReadMassSpectrum(scanNo:int) =
 
+//        rawFile.SelectInstrument(rawFile.GetInstrumentType(0), 1)
+
+//        printfn "ReadMassSpectrum"
+//        printfn "%i" scanNo
+
 //        this.RaiseDisposed()
 
-//        try
+//        //try
+//        printfn "1"
 
-//            let spectrumID   = ThermoRawFileReader.GetSpectrumID(scanNo)
-//            let spectrum     = new MassSpectrum(spectrumID)
+//        let spectrumID   = ThermoRawFileReader.GetSpectrumID(scanNo)
+//        let spectrum     = new MassSpectrum(spectrumID)
 
-//            // spectrum
-//            let msLevel = ThermoRawFileReader.GetMSLevel(rawFile, scanNo)
-//            spectrum.SetMsLevel(msLevel) |> ignore
+//        printfn "2"
 
-//            if (ThermoRawFileReader.IsCentroidSpectrum(rawFile, scanNo)) then 
-//                spectrum.SetCentroidSpectrum() |> ignore
-//            else
-//                spectrum.SetProfileSpectrum() |> ignore
+//        // spectrum
+//        let msLevel = ThermoRawFileReader.GetMSLevel(rawFile, scanNo)
+//        spectrum.SetMsLevel(msLevel) |> ignore
 
-//            // scan
-//            let scan = new Scan()
-//            //Maybe orther type than Name needed
-//            scan.SetFilterString(ThermoRawFileReader.GetFilterString(rawFile, scanNo).Name)
-//            scan.SetScanStartTime(ThermoRawFileReader.GetRetentionTime(rawFile, scanNo)).UO_Minute() |> ignore
-//            spectrum.Scans.Add(scan)
+//        printfn "3"
 
-//            // precursor
-//            if (msLevel > 1) then
+//        if (ThermoRawFileReader.IsCentroidSpectrum(rawFile, scanNo)) then 
+//            spectrum.SetCentroidSpectrum() |> ignore
+//        else
+//            spectrum.SetProfileSpectrum() |> ignore
 
-//                let precursor   = new Precursor()
-//                let isoWidth    = ThermoRawFileReader.GetIsolationWindowWidth(rawFile, scanNo, msLevel) * 0.5
-//                let targetMz    = ThermoRawFileReader.GetIsolationWindowTargetMz(rawFile, scanNo, msLevel)
-//                let precursorMz = ThermoRawFileReader.GetPrecursorMz(rawFile, scanNo, msLevel)
-//                let chargeState = ThermoRawFileReader.GetChargeState(rawFile, scanNo)
+//        printfn "4"
 
-//                precursor.IsolationWindow.SetIsolationWindowTargetMz(targetMz)      |> ignore
-//                precursor.IsolationWindow.SetIsolationWindowUpperOffset(isoWidth)   |> ignore
-//                precursor.IsolationWindow.SetIsolationWindowLowerOffset(isoWidth)   |> ignore
+//        // scan
+//        let scan = new Scan()
+//        //Maybe orther type than Name needed
+//        scan.SetFilterString(ThermoRawFileReader.GetFilterString(rawFile, scanNo).ToString())
+//        scan.SetScanStartTime(ThermoRawFileReader.GetRetentionTime(rawFile, scanNo)).UO_Minute() |> ignore
+//        spectrum.Scans.Add(scan)
 
-//                let selectedIon = new SelectedIon()
-//                selectedIon.SetSelectedIonMz(precursorMz)   |> ignore
-//                selectedIon.SetChargeState(chargeState)     |> ignore
+//        printfn "5"
 
-//                precursor.SelectedIons.Add(selectedIon)
-//                spectrum.Precursors.Add(precursor)
+//        // precursor
+//        if (msLevel > 1) then
+                
+//            printfn "6"
 
-//                spectrum
+//            let precursor   = new Precursor()
+//            printfn "6.0"
+//            let isoWidth    = ThermoRawFileReader.GetIsolationWindowWidth(rawFile, scanNo, msLevel) * 0.5
+//            printfn "6.1"
+//            let targetMz    = ThermoRawFileReader.GetIsolationWindowTargetMz(rawFile, scanNo, msLevel)
+//            printfn "6.2"
+//            let precursorMz = ThermoRawFileReader.GetPrecursorMz(rawFile, scanNo, msLevel)
+//            printfn "6.3"
+//            let chargeState = ThermoRawFileReader.GetChargeState(rawFile, scanNo)
+//            printfn "6.4"
 
-//            else
-//                spectrum
+//            printfn "7"
 
-//        with
-//            | :? Exception as ex ->
-//                raise (new MzIOIOException(ex.Message, ex))
+//            precursor.IsolationWindow.SetIsolationWindowTargetMz(targetMz)      |> ignore
+//            precursor.IsolationWindow.SetIsolationWindowUpperOffset(isoWidth)   |> ignore
+//            precursor.IsolationWindow.SetIsolationWindowLowerOffset(isoWidth)   |> ignore
+
+//            printfn "8"
+
+//            let selectedIon = new SelectedIon()
+//            selectedIon.SetSelectedIonMz(precursorMz)   |> ignore
+//            selectedIon.SetChargeState(chargeState)     |> ignore
+
+//            printfn "9"
+
+//            precursor.SelectedIons.Add(selectedIon)
+//            spectrum.Precursors.Add(precursor)
+
+//            spectrum
+
+//        else
+                
+//            printfn "10"
+                
+//            spectrum
+
+//        //with
+//        //    | :? Exception as ex ->
+//        //        raise (new MzIOIOException(ex.Message, ex))
 
 //    member private this.ReadSpectrumPeaks(scanNo:int) =
 
@@ -330,16 +363,18 @@
 
 //    interface IMzIODataReader with
 
-//        member this.ReadMassSpectra(runID:string) =
-
-//            let scanNumbers = [startScanNo..endScanNo] |> Seq.ofList
-//            scanNumbers
-//            |> Seq.map (fun scanNumber -> this.ReadMassSpectrum(scanNumber))
-
 //        member this.ReadMassSpectrum(spectrumID:string) =
 
 //            let scanNumber = this.ParseSpectrumId(spectrumID)
 //            this.ReadMassSpectrum(scanNumber)
+
+//        member this.ReadMassSpectra(runID:string) =
+
+//            let scanNumbers = [startScanNo..endScanNo] |> Seq.ofList
+//            scanNumbers
+//            |> Seq.map (fun scanNumber -> 
+//                printfn "ScanNumber %i" scanNumber
+//                this.ReadMassSpectrum(scanNumber))
              
 //        member this.ReadSpectrumPeaks(spectrumID:string) =
 
@@ -358,23 +393,61 @@
 
 //            raise (new NotSupportedException())
 
-
 //        member this.ReadChromatograms(runID:string) =
 
 //            Enumerable.Empty<Chromatogram>()
 
 //        member this.ReadChromatogramPeaks(chromatogramID:string) =
 
-//            raise (new NotSupportedException())
-        
+//            raise (new NotSupportedException())        
 
-//        member this.ReadChromatogramAsync(spectrumID:string) =
-
-//            raise (new NotSupportedException())
-
-//        member this.ReadChromatogramPeaksAsync(spectrumID:string) =
+//        member this.ReadChromatogramAsync(chromatogramID:string) =
 
 //            raise (new NotSupportedException())
+
+//        member this.ReadChromatogramPeaksAsync(chromatogramID:string) =
+
+//            raise (new NotSupportedException())
+
+//    member this.ReadMassSpectrum(spectrumID:string) =
+
+//        (this :> IMzIODataReader).ReadMassSpectrum(spectrumID)
+
+//    member this.ReadMassSpectra(runID:string) =
+
+//        (this :> IMzIODataReader).ReadMassSpectra(runID)
+
+//    member this.ReadSpectrumPeaks(spectrumID:string) =
+
+//        (this :> IMzIODataReader).ReadSpectrumPeaks(spectrumID)
+
+//    member this.ReadMassSpectrumAsync(spectrumID:string) =
+
+//        (this :> IMzIODataReader).ReadMassSpectrumAsync(spectrumID)
+
+//    member this.ReadSpectrumPeaksAsync(spectrumID:string) =
+
+//        (this :> IMzIODataReader).ReadSpectrumPeaksAsync(spectrumID)
+
+//    member this.ReadChromatogram(chromatogramID:string) =
+
+//        (this :> IMzIODataReader).ReadChromatogram(chromatogramID)
+
+//    member this.ReadChromatograms(runID:string) =
+
+//        (this :> IMzIODataReader).ReadChromatograms(runID)
+
+//    member this.ReadChromatogramPeaks(chromatogramID:string) =
+
+//        (this :> IMzIODataReader).ReadChromatogramPeaks(chromatogramID)
+
+//    member this.ReadChromatogramAsync(chromatogramID:string) =
+
+//        (this :> IMzIODataReader).ReadChromatogramAsync(chromatogramID)
+
+//    member this.ReadChromatogramPeaksAsync(chromatogramID:string) =
+
+//        (this :> IMzIODataReader).ReadChromatogramPeaksAsync(chromatogramID)
 
 //    interface IMzIOIO with
 
@@ -417,4 +490,8 @@
 //            this.RaiseDisposed()
 
 //            new ThermoRawTransactionScope() :> ITransactionScope
+
+//    member this.Model =
+
+//        (this :> IMzIOIO).Model
 

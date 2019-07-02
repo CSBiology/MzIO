@@ -30,9 +30,12 @@
     <PackageReference Include="ThermoFisher.CommonCore.RawFileReader" Version="4.0.107" />
   </ItemGroup>-->
   <ItemGroup>
+    <ProjectReference Include="..\MzIO.Bruker\MzIO.Bruker.fsproj" />
+    <ProjectReference Include="..\MzIO.MzML\MzIO.MzML.fsproj" />
+    <ProjectReference Include="..\MzIO.Processing\MzIO.Processing.fsproj" />
+    <ProjectReference Include="..\MzIO.SQL\MzIO.SQL.fsproj" />
+    <ProjectReference Include="..\MzIO.Wiff\MzIO.Wiff.fsproj" />
     <ProjectReference Include="..\MzIO\MzIO.fsproj" />
-  </ItemGroup>
-  <ItemGroup>
   </ItemGroup>
   <Import Project="..\..\.paket\Paket.Restore.targets" />
 </Project>

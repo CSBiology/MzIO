@@ -316,7 +316,7 @@ and MzIOSQL(encoder:BinaryDataEncoder,decoder:BinaryDataDecoder, model:MzIOModel
         
         if not (currentScope.Value.TryGetCommand("INSERT_SPECTRUM_CMD", & cmd)) then
             cmd <- currentScope.Value.PrepareCommand("INSERT_SPECTRUM_CMD", "INSERT INTO Spectrum VALUES(@runID, @spectrumID, @description, @peakArray, @peakData)")
-        cmd.Parameters.Clear()                                                      
+        cmd.Parameters.Clear()
         cmd.Parameters.AddWithValue("@runID", runID)                            |> ignore
         cmd.Parameters.AddWithValue("@spectrumID", spectrum.ID)                 |> ignore
         cmd.Parameters.AddWithValue("@description", MzIOJson.ToJson(spectrum))  |> ignore
