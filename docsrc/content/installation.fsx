@@ -1,19 +1,73 @@
-(*** hide ***)
-// This block of code is omitted in the generated HTML documentation. Use 
-// it to define helpers that you do not want to show in the documentation.
-#I "../../bin"
-
 (**
-Introducing your project
-========================
+# Installation Guide
 
-Say more
+MzIO contains 7 different projects. 3 of those projects are essential for most practical applications.
+Those would be MzIO (basic functions), MzIO.Processing (data processing functions)
+and MzIO.SQL (functions to interact with the SQLite database). The other 4 projects are for 4 different
+file formats. Currently supported formats are Wiff (wiff), Bruker (baf) , Thermo Fisher (raw) and MzML (xml).
+The readers for those formats can be installed individually.
 
-*)
-#r "MzIO.dll"
-open MzIO
+The first step is always to clone the repository from github.
 
-Library.hello 0
-(**
-Some more info
+##Wiff
+
+To install the Wiff-Reader, you have to open the console and navigate to the folder of the repository.
+Then you run the command:
+
+<pre>fake build -t Wiff</pre>
+
+This command builds the projects MzIO, MzIO.Processing, MzIO.SQL and MzIO.Wiff.
+
+Important notes:
+
+* You have to run the projects in 32 bit mode for the Wiff-Reader to work properly
+* You need a Clearcore2 license for the Clearcore2 dlls used in this project
+    * A dummy file for the license which can be replaced is already located at the correct position in the project
+
+##Bruker
+
+To install the Bruker-Reader, you have to open the console and navigate to the folder of the repository.
+Then you run the command:
+
+<pre>fake build -t Bruker</pre>
+
+This command builds the projects MzIO, MzIO.Processing, MzIO.SQL and MzIO.Bruker.
+
+Important notes:
+
+* You have to specify the platform on which the project runs, since bruker uses a different dll for 32 bit and 64 bit.
+* You need to install [Visual C++ Redistributable for Visual Studio 2012 Update 4](https://www.microsoft.com/en-us/download/details.aspx?id=30679)
+
+##Thermo Fisher
+
+To install the ThermoFisher-Reader, you have to open the console and navigate to the folder of the repository.
+Then you run the command:
+
+<pre>fake build -t Thermo</pre>
+
+This command builds the projects MzIO, MzIO.Processing, MzIO.SQL and MzIO.Thermo.
+
+Important notes:
+
+* You need the [RawFileReader nuget packages for the .net version](https://planetorbitrap.com/rawfilereader) from Thermo Fisher Scientific
+
+##MzML
+
+To install the MzML-Reader, you have to open the console and navigate to the folder of the repository.
+Then you run the command:
+
+<pre>fake build -t MzML</pre>
+
+This command builds the projects MzIO, MzIO.Processing, MzIO.SQL and MzIO.MzML.
+
+##Other
+
+All projects can be built at once if desired. The command for that is:
+
+<pre>fake build</pre>
+
+If you don't possess the dlls for the Thermo-Reader, this command end in an error due to missing dlls.
+
+All projects are available as nuget packages as well. The important notes for the individual readers also apply to
+the nuget packages.
 *)
