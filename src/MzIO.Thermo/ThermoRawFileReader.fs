@@ -157,24 +157,24 @@
 
 //    static member private GetIsolationWindowWidth(rawFile:IRawDataPlus, scanNo:int, msLevel:int) =
 
-//        rawFile.GetFilterForScanNumber(scanNo).GetIsolationWidth(msLevel - 1)
+//        rawFile.GetFilterForScanNumber(scanNo).GetIsolationWidth(0)
 
 //    static member private GetIsolationWindowTargetMz(rawFile:IRawDataPlus, scanNo:int, msLevel:int) =
 
-//        rawFile.GetScanEventForScanNumber(scanNo).GetReaction(msLevel).PrecursorMass
+//        rawFile.GetScanEventForScanNumber(scanNo).GetReaction(0).PrecursorMass
 
 //    static member private GetPrecursorMz(rawFile:IRawDataPlus, scanNo:int, msLevel:int) =
 
-//        rawFile.GetScanEventForScanNumber(scanNo).GetReaction(msLevel).PrecursorMass
+//        rawFile.GetScanEventForScanNumber(scanNo).GetReaction(0).PrecursorMass
 
 //    static member private GetCollisionEnergy(rawFile:IRawDataPlus, scanNo:int, msLevel:int) =
         
-//        rawFile.GetScanEventForScanNumber(scanNo).GetReaction(msLevel).CollisionEnergy
+//        rawFile.GetScanEventForScanNumber(scanNo).GetReaction(0).CollisionEnergy
 
 //    static member private GetChargeState(rawFile:IRawDataPlus, scanNo:int) =
 
-//        //Try to find out which field number contains information about the charge state...
-//        Convert.ToInt32(rawFile.GetTrailerExtraValue(scanNo, 0(*"Charge State:"*)))
+//        //Propably wrong index for charge state, needs further testing
+//        Convert.ToInt32(rawFile.GetTrailerExtraValue(scanNo, 9(*"Charge State:"*)))
 
 
 //    /// <summary>
@@ -230,31 +230,21 @@
 
 //        rawFile.SelectInstrument(rawFile.GetInstrumentType(0), 1)
 
-//        printfn "ReadMassSpectrum"
-//        printfn "%i" scanNo
-
 //        this.RaiseDisposed()
 
 //        //try
-//        printfn "1"
 
 //        let spectrumID   = ThermoRawFileReader.GetSpectrumID(scanNo)
 //        let spectrum     = new MassSpectrum(spectrumID)
-
-//        printfn "2"
 
 //        // spectrum
 //        let msLevel = ThermoRawFileReader.GetMSLevel(rawFile, scanNo)
 //        spectrum.SetMsLevel(msLevel) |> ignore
 
-//        printfn "3"
-
 //        if (ThermoRawFileReader.IsCentroidSpectrum(rawFile, scanNo)) then 
 //            spectrum.SetCentroidSpectrum() |> ignore
 //        else
 //            spectrum.SetProfileSpectrum() |> ignore
-
-//        printfn "4"
 
 //        // scan
 //        let scan = new Scan()
@@ -263,37 +253,22 @@
 //        scan.SetScanStartTime(ThermoRawFileReader.GetRetentionTime(rawFile, scanNo)).UO_Minute() |> ignore
 //        spectrum.Scans.Add(scan)
 
-//        printfn "5"
-
 //        // precursor
-//        if (msLevel > 1) then
-                
-//            printfn "6"
+//        if (msLevel > 1) then 
 
 //            let precursor   = new Precursor()
-//            printfn "6.0"
 //            let isoWidth    = ThermoRawFileReader.GetIsolationWindowWidth(rawFile, scanNo, msLevel) * 0.5
-//            printfn "6.1"
 //            let targetMz    = ThermoRawFileReader.GetIsolationWindowTargetMz(rawFile, scanNo, msLevel)
-//            printfn "6.2"
 //            let precursorMz = ThermoRawFileReader.GetPrecursorMz(rawFile, scanNo, msLevel)
-//            printfn "6.3"
 //            let chargeState = ThermoRawFileReader.GetChargeState(rawFile, scanNo)
-//            printfn "6.4"
-
-//            printfn "7"
 
 //            precursor.IsolationWindow.SetIsolationWindowTargetMz(targetMz)      |> ignore
 //            precursor.IsolationWindow.SetIsolationWindowUpperOffset(isoWidth)   |> ignore
 //            precursor.IsolationWindow.SetIsolationWindowLowerOffset(isoWidth)   |> ignore
 
-//            printfn "8"
-
 //            let selectedIon = new SelectedIon()
 //            selectedIon.SetSelectedIonMz(precursorMz)   |> ignore
 //            selectedIon.SetChargeState(chargeState)     |> ignore
-
-//            printfn "9"
 
 //            precursor.SelectedIons.Add(selectedIon)
 //            spectrum.Precursors.Add(precursor)
@@ -301,8 +276,6 @@
 //            spectrum
 
 //        else
-                
-//            printfn "10"
                 
 //            spectrum
 
@@ -372,9 +345,7 @@
 
 //            let scanNumbers = [startScanNo..endScanNo] |> Seq.ofList
 //            scanNumbers
-//            |> Seq.map (fun scanNumber -> 
-//                printfn "ScanNumber %i" scanNumber
-//                this.ReadMassSpectrum(scanNumber))
+//            |> Seq.map (fun scanNumber -> this.ReadMassSpectrum(scanNumber))
              
 //        member this.ReadSpectrumPeaks(spectrumID:string) =
 
