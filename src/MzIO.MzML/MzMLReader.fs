@@ -1460,38 +1460,6 @@ module MzML =
                     outerLoop (reader.Read())
             outerLoop false
 
-        member private this.getSpectra(runID) =
-            reader <- XmlReader.Create(filePath)
-            let rec outerLoop acc =
-                if reader.Name = "run" then
-                    let readSubtree = reader.ReadSubtree()
-                    let readOp = readSubtree.Read
-                    let rec loop (acc:seq<MassSpectrum>) =
-                        seq
-                            {
-                                if readSubtree.NodeType=XmlNodeType.Element then
-                                    match readSubtree.Name with
-                                    | "run"         ->
-                                        if (this.getAttribute ("id", readSubtree)) = runID then
-                                            (readOp()) |> ignore
-                                            yield! loop acc
-                                        else
-                                            (readOp()) |> ignore
-                                            yield! loop acc
-                                    | "spectrum"    ->  yield this.getSpectrum readSubtree
-                                                        (readOp()) |> ignore
-                                                        yield! loop acc
-                                    |   _           ->  (readOp()) |> ignore
-                                                        yield! loop acc
-                                else
-                                    if readOp()=true then yield! loop acc
-                                    else yield! acc
-                            }
-                    loop Seq.empty
-                else
-                    outerLoop (reader.Read())
-            outerLoop false
-
         member private this.tryGetSpectrum(spectrumID: string) =
             let readSubtree =
                 let rec loop acc =
@@ -1555,6 +1523,38 @@ module MzML =
                     outerLoop (reader.Read())
             outerLoop false
 
+        member private this.getSpectra(runID) =
+            reader <- XmlReader.Create(filePath)
+            let rec outerLoop acc =
+                if reader.Name = "run" then
+                    let readSubtree = reader.ReadSubtree()
+                    let readOp = readSubtree.Read
+                    let rec loop (acc:seq<MassSpectrum>) =
+                        seq
+                            {
+                                if readSubtree.NodeType=XmlNodeType.Element then
+                                    match readSubtree.Name with
+                                    | "run"         ->
+                                        if (this.getAttribute ("id", readSubtree)) = runID then
+                                            (readOp()) |> ignore
+                                            yield! loop acc
+                                        else
+                                            (readOp()) |> ignore
+                                            yield! loop acc
+                                    | "spectrum"    ->  yield this.getSpectrum readSubtree
+                                                        (readOp()) |> ignore
+                                                        yield! loop acc
+                                    |   _           ->  (readOp()) |> ignore
+                                                        yield! loop acc
+                                else
+                                    if readOp()=true then yield! loop acc
+                                    else yield! acc
+                            }
+                    loop Seq.empty
+                else
+                    outerLoop (reader.Read())
+            outerLoop false
+
         member private this.tryGetPeak1DArray(spectrumID: string) =
             let readSubtree =
                 let rec loop acc =
@@ -1576,6 +1576,57 @@ module MzML =
                     if readOp()=true then loop read
                     else None
             loop ()
+
+        member private this.GetPeak1DArray(?xmlReader:XmlReader) =
+            let xmlReader = defaultArg xmlReader reader
+            let rec outerLoop acc =
+                if xmlReader.NodeType=XmlNodeType.Element && xmlReader.Name = "spectrum" then
+                    let readSubtree = xmlReader.ReadSubtree()
+                    let readOp = readSubtree.Read
+                    let rec loop (acc) =
+                        if readSubtree.NodeType=XmlNodeType.Element then
+                            match readSubtree.Name with
+                            | "binaryDataArrayList" ->  this.translatePeak1DArray readSubtree
+                            |   _                   ->  loop (readOp() |> ignore)
+                        else
+                            if readOp()=true then loop acc
+                            else failwith "No valid spectrumID"
+                    loop ()
+                else
+                    outerLoop (reader.Read())
+            outerLoop false
+
+        member private this.getAllPeak1DArrays(runID) =
+            reader <- XmlReader.Create(filePath)
+            let rec outerLoop acc =
+                if reader.Name = "run" then
+                    let readSubtree = reader.ReadSubtree()
+                    let readOp = readSubtree.Read
+                    let rec loop (acc:seq<Peak1DArray>) =
+                        seq
+                            {
+                                if readSubtree.NodeType=XmlNodeType.Element then
+                                    match readSubtree.Name with
+                                    | "run"         ->
+                                        if (this.getAttribute ("id", readSubtree)) = runID then
+                                            (readOp()) |> ignore
+                                            yield! loop acc
+                                        else
+                                            (readOp()) |> ignore
+                                            yield! loop acc
+                                    | "spectrum"    ->  yield this.GetPeak1DArray readSubtree
+                                                        (readOp()) |> ignore
+                                                        yield! loop acc
+                                    |   _           ->  (readOp()) |> ignore
+                                                        yield! loop acc
+                                else
+                                    if readOp()=true then yield! loop acc
+                                    else yield! acc
+                            }
+                    loop Seq.empty
+                else
+                    outerLoop (reader.Read())
+            outerLoop false
 
         member private this.getSpecificPeak1DArray(spectrumID:string) =
             let rec outerLoop acc =
@@ -1887,3 +1938,7 @@ module MzML =
         member this.ReadChromatogramPeaksAsync(runID:string)    =
 
             (this :> IMzIODataReader).ReadChromatogramPeaksAsync(runID)
+
+        member this.ReadAllSpectrumPeaks(runID:string) =
+
+            this.getAllPeak1DArrays(runID)
