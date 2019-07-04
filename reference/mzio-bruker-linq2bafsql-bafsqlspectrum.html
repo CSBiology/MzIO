@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"/>
+    <title>BafSqlSpectrum - MzIO</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta name="description" content=""/>
+    <meta name="author" content="Patrick Blume, Jonathan Ott"/>
+
+    <script src="https://code.jquery.com/jquery-1.8.0.js"></script>
+    <script src="https://code.jquery.com/ui/1.8.23/jquery-ui.js"></script>
+    <script src="https://netdna.bootstrapcdn.com/twitter-bootstrap/2.2.1/js/bootstrap.min.js"></script>
+    <link href="https://netdna.bootstrapcdn.com/twitter-bootstrap/2.2.1/css/bootstrap-combined.min.css" rel="stylesheet"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=11" >
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <link type="text/css" rel="stylesheet" href="/MzIO/content/style.css" /> <!--/MzIO-->
+    <link type="text/css" rel="stylesheet" href="/MzIO/styles/CSBStyles.css" /> <!--/MzIO-->
+    <script type="text/javascript" src="/MzIO/content/tips.js"></script> <!--/MzIO-->
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="container">
+      <div class="masthead">
+        <ul class="nav nav-pills pull-right">
+          <li><a href="http://fsharp.org">fsharp.org</a></li>
+          <li><a href="https://github.com/CSBiology/MzIO">github page</a></li>
+        </ul>
+        <h3 class="muted"><a href="/MzIO/index.html">MzIO</a></h3>
+      </div>
+      <hr />
+      <div class="row">
+        <div class="span9" id="main">
+          
+
+
+
+<h1>BafSqlSpectrum</h1>
+<p>
+
+    <span>Namespace: MzIO.Bruker</span><br />
+        <span>Parent Module: <a href="mzio-bruker-linq2bafsql.html">Linq2BafSql</a></span><br />
+            <span>
+            Attributes: <br />
+[&lt;Sealed&gt;]<br />
+[&lt;Table(Name = &quot;Spectra&quot;)&gt;]<br />
+            
+        </span>
+</p>
+<div class="xmldoc">
+</div>
+  <h3>Constructors</h3>
+  <table class="table table-bordered member-list">
+    <thead>
+      <tr><td>Constructor</td><td>Description</td></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '137', 137)" onmouseover="showTip(event, '137', 137)">
+            new()
+          </code>
+          <div class="tip" id="137">
+            <strong>Signature:</strong> unit -&gt; BafSqlSpectrum<br />
+                                  </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.Bruker/Linq2BafSql.fs#L42-42" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+              <p>CompiledName: <code>.ctor</code></p>
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '138', 138)" onmouseover="showTip(event, '138', 138)">
+            new(...)
+          </code>
+          <div class="tip" id="138">
+            <strong>Signature:</strong> (id:Nullable&lt;UInt64&gt; * rt:Nullable&lt;float&gt; * seg:Nullable&lt;UInt64&gt; * aqk:Nullable&lt;UInt64&gt; * parent:Nullable&lt;UInt64&gt; * mzAqRL:Nullable&lt;UInt64&gt; * mzAqRUpper:Nullable&lt;UInt64&gt; * sumInt:Nullable&lt;float&gt; * maxInt:Nullable&lt;float&gt; * tranForId:Nullable&lt;UInt64&gt; * profMzId:Nullable&lt;UInt64&gt; * profIntId:Nullable&lt;UInt64&gt; * lineIndexId:Nullable&lt;UInt64&gt; * lineMzId:Nullable&lt;UInt64&gt; * lineIntId:Nullable&lt;UInt64&gt; * lineIdxWithId:Nullable&lt;UInt64&gt; * linePeakAreaId:Nullable&lt;UInt64&gt; * lineSnrId:Nullable&lt;UInt64&gt;) -&gt; BafSqlSpectrum<br />
+                                  </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.Bruker/Linq2BafSql.fs#L16-16" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+              <p>CompiledName: <code>.ctor</code></p>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  <h3>Instance members</h3>
+  <table class="table table-bordered member-list">
+    <thead>
+      <tr><td>Instance member</td><td>Description</td></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '139', 139)" onmouseover="showTip(event, '139', 139)">
+            x.AcquisitionKey()
+          </code>
+          <div class="tip" id="139">
+            <strong>Signature:</strong> unit -&gt; Nullable&lt;UInt64&gt;<br />
+                                    <span>
+            <strong>Attributes:</strong><br />
+[&lt;Column&gt;]<br />
+          </span>
+          </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.Bruker/Linq2BafSql.fs#L62-62" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+              <p>CompiledName: <code>set_AcquisitionKey</code></p>
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '140', 140)" onmouseover="showTip(event, '140', 140)">
+            x.AcquisitionKey()
+          </code>
+          <div class="tip" id="140">
+            <strong>Signature:</strong> unit -&gt; unit<br />
+                                    <span>
+            <strong>Attributes:</strong><br />
+[&lt;Column&gt;]<br />
+          </span>
+          </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.Bruker/Linq2BafSql.fs#L62-62" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+              <p>CompiledName: <code>get_AcquisitionKey</code></p>
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '141', 141)" onmouseover="showTip(event, '141', 141)">
+            x.Id()
+          </code>
+          <div class="tip" id="141">
+            <strong>Signature:</strong> unit -&gt; Nullable&lt;UInt64&gt;<br />
+                                    <span>
+            <strong>Attributes:</strong><br />
+[&lt;Column(IsPrimaryKey = true)&gt;]<br />
+          </span>
+          </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.Bruker/Linq2BafSql.fs#L49-49" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+              <p>CompiledName: <code>set_Id</code></p>
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '142', 142)" onmouseover="showTip(event, '142', 142)">
+            x.Id()
+          </code>
+          <div class="tip" id="142">
+            <strong>Signature:</strong> unit -&gt; unit<br />
+                                    <span>
+            <strong>Attributes:</strong><br />
+[&lt;Column(IsPrimaryKey = true)&gt;]<br />
+          </span>
+          </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.Bruker/Linq2BafSql.fs#L49-49" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+              <p>CompiledName: <code>get_Id</code></p>
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '143', 143)" onmouseover="showTip(event, '143', 143)">
+            x.LineIndexId()
+          </code>
+          <div class="tip" id="143">
+            <strong>Signature:</strong> unit -&gt; Nullable&lt;UInt64&gt;<br />
+                                    <span>
+            <strong>Attributes:</strong><br />
+[&lt;Column&gt;]<br />
+          </span>
+          </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.Bruker/Linq2BafSql.fs#L98-98" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+              <p>CompiledName: <code>set_LineIndexId</code></p>
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '144', 144)" onmouseover="showTip(event, '144', 144)">
+            x.LineIndexId()
+          </code>
+          <div class="tip" id="144">
+            <strong>Signature:</strong> unit -&gt; unit<br />
+                                    <span>
+            <strong>Attributes:</strong><br />
+[&lt;Column&gt;]<br />
+          </span>
+          </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.Bruker/Linq2BafSql.fs#L98-98" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+              <p>CompiledName: <code>get_LineIndexId</code></p>
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '145', 145)" onmouseover="showTip(event, '145', 145)">
+            x.LineIndexWidthId()
+          </code>
+          <div class="tip" id="145">
+            <strong>Signature:</strong> unit -&gt; Nullable&lt;UInt64&gt;<br />
+                                    <span>
+            <strong>Attributes:</strong><br />
+[&lt;Column&gt;]<br />
+          </span>
+          </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.Bruker/Linq2BafSql.fs#L110-110" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+              <p>CompiledName: <code>set_LineIndexWidthId</code></p>
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '146', 146)" onmouseover="showTip(event, '146', 146)">
+            x.LineIndexWidthId()
+          </code>
+          <div class="tip" id="146">
+            <strong>Signature:</strong> unit -&gt; unit<br />
+                                    <span>
+            <strong>Attributes:</strong><br />
+[&lt;Column&gt;]<br />
+          </span>
+          </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.Bruker/Linq2BafSql.fs#L110-110" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+              <p>CompiledName: <code>get_LineIndexWidthId</code></p>
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '147', 147)" onmouseover="showTip(event, '147', 147)">
+            x.LineIntensityId()
+          </code>
+          <div class="tip" id="147">
+            <strong>Signature:</strong> unit -&gt; Nullable&lt;UInt64&gt;<br />
+                                    <span>
+            <strong>Attributes:</strong><br />
+[&lt;Column&gt;]<br />
+          </span>
+          </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.Bruker/Linq2BafSql.fs#L106-106" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+              <p>CompiledName: <code>set_LineIntensityId</code></p>
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '148', 148)" onmouseover="showTip(event, '148', 148)">
+            x.LineIntensityId()
+          </code>
+          <div class="tip" id="148">
+            <strong>Signature:</strong> unit -&gt; unit<br />
+                                    <span>
+            <strong>Attributes:</strong><br />
+[&lt;Column&gt;]<br />
+          </span>
+          </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.Bruker/Linq2BafSql.fs#L106-106" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+              <p>CompiledName: <code>get_LineIntensityId</code></p>
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '149', 149)" onmouseover="showTip(event, '149', 149)">
+            x.LineMzId()
+          </code>
+          <div class="tip" id="149">
+            <strong>Signature:</strong> unit -&gt; Nullable&lt;UInt64&gt;<br />
+                                    <span>
+            <strong>Attributes:</strong><br />
+[&lt;Column&gt;]<br />
+          </span>
+          </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.Bruker/Linq2BafSql.fs#L102-102" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+              <p>CompiledName: <code>set_LineMzId</code></p>
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '150', 150)" onmouseover="showTip(event, '150', 150)">
+            x.LineMzId()
+          </code>
+          <div class="tip" id="150">
+            <strong>Signature:</strong> unit -&gt; unit<br />
+                                    <span>
+            <strong>Attributes:</strong><br />
+[&lt;Column&gt;]<br />
+          </span>
+          </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.Bruker/Linq2BafSql.fs#L102-102" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+              <p>CompiledName: <code>get_LineMzId</code></p>
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '151', 151)" onmouseover="showTip(event, '151', 151)">
+            x.LinePeakAreaId()
+          </code>
+          <div class="tip" id="151">
+            <strong>Signature:</strong> unit -&gt; Nullable&lt;UInt64&gt;<br />
+                                    <span>
+            <strong>Attributes:</strong><br />
+[&lt;Column&gt;]<br />
+          </span>
+          </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.Bruker/Linq2BafSql.fs#L114-114" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+              <p>CompiledName: <code>set_LinePeakAreaId</code></p>
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '152', 152)" onmouseover="showTip(event, '152', 152)">
+            x.LinePeakAreaId()
+          </code>
+          <div class="tip" id="152">
+            <strong>Signature:</strong> unit -&gt; unit<br />
+                                    <span>
+            <strong>Attributes:</strong><br />
+[&lt;Column&gt;]<br />
+          </span>
+          </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.Bruker/Linq2BafSql.fs#L114-114" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+              <p>CompiledName: <code>get_LinePeakAreaId</code></p>
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '153', 153)" onmouseover="showTip(event, '153', 153)">
+            x.LineSnrId()
+          </code>
+          <div class="tip" id="153">
+            <strong>Signature:</strong> unit -&gt; Nullable&lt;UInt64&gt;<br />
+                                    <span>
+            <strong>Attributes:</strong><br />
+[&lt;Column&gt;]<br />
+          </span>
+          </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.Bruker/Linq2BafSql.fs#L118-118" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+              <p>CompiledName: <code>set_LineSnrId</code></p>
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '154', 154)" onmouseover="showTip(event, '154', 154)">
+            x.LineSnrId()
+          </code>
+          <div class="tip" id="154">
+            <strong>Signature:</strong> unit -&gt; unit<br />
+                                    <span>
+            <strong>Attributes:</strong><br />
+[&lt;Column&gt;]<br />
+          </span>
+          </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.Bruker/Linq2BafSql.fs#L118-118" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+              <p>CompiledName: <code>get_LineSnrId</code></p>
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '155', 155)" onmouseover="showTip(event, '155', 155)">
+            x.MaxIntensity()
+          </code>
+          <div class="tip" id="155">
+            <strong>Signature:</strong> unit -&gt; Nullable&lt;float&gt;<br />
+                                    <span>
+            <strong>Attributes:</strong><br />
+[&lt;Column&gt;]<br />
+          </span>
+          </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.Bruker/Linq2BafSql.fs#L82-82" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+              <p>CompiledName: <code>set_MaxIntensity</code></p>
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '156', 156)" onmouseover="showTip(event, '156', 156)">
+            x.MaxIntensity()
+          </code>
+          <div class="tip" id="156">
+            <strong>Signature:</strong> unit -&gt; unit<br />
+                                    <span>
+            <strong>Attributes:</strong><br />
+[&lt;Column&gt;]<br />
+          </span>
+          </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.Bruker/Linq2BafSql.fs#L82-82" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+              <p>CompiledName: <code>get_MaxIntensity</code></p>
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '157', 157)" onmouseover="showTip(event, '157', 157)">
+            x.MzAcqRangeLower()
+          </code>
+          <div class="tip" id="157">
+            <strong>Signature:</strong> unit -&gt; Nullable&lt;UInt64&gt;<br />
+                                    <span>
+            <strong>Attributes:</strong><br />
+[&lt;Column&gt;]<br />
+          </span>
+          </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.Bruker/Linq2BafSql.fs#L70-70" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+              <p>CompiledName: <code>set_MzAcqRangeLower</code></p>
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '158', 158)" onmouseover="showTip(event, '158', 158)">
+            x.MzAcqRangeLower()
+          </code>
+          <div class="tip" id="158">
+            <strong>Signature:</strong> unit -&gt; unit<br />
+                                    <span>
+            <strong>Attributes:</strong><br />
+[&lt;Column&gt;]<br />
+          </span>
+          </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.Bruker/Linq2BafSql.fs#L70-70" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+              <p>CompiledName: <code>get_MzAcqRangeLower</code></p>
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '159', 159)" onmouseover="showTip(event, '159', 159)">
+            x.MzAcqRangeUpper()
+          </code>
+          <div class="tip" id="159">
+            <strong>Signature:</strong> unit -&gt; Nullable&lt;UInt64&gt;<br />
+                                    <span>
+            <strong>Attributes:</strong><br />
+[&lt;Column&gt;]<br />
+          </span>
+          </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.Bruker/Linq2BafSql.fs#L74-74" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+              <p>CompiledName: <code>set_MzAcqRangeUpper</code></p>
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '160', 160)" onmouseover="showTip(event, '160', 160)">
+            x.MzAcqRangeUpper()
+          </code>
+          <div class="tip" id="160">
+            <strong>Signature:</strong> unit -&gt; unit<br />
+                                    <span>
+            <strong>Attributes:</strong><br />
+[&lt;Column&gt;]<br />
+          </span>
+          </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.Bruker/Linq2BafSql.fs#L74-74" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+              <p>CompiledName: <code>get_MzAcqRangeUpper</code></p>
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '161', 161)" onmouseover="showTip(event, '161', 161)">
+            x.Parent()
+          </code>
+          <div class="tip" id="161">
+            <strong>Signature:</strong> unit -&gt; Nullable&lt;UInt64&gt;<br />
+                                    <span>
+            <strong>Attributes:</strong><br />
+[&lt;Column&gt;]<br />
+          </span>
+          </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.Bruker/Linq2BafSql.fs#L66-66" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+              <p>CompiledName: <code>set_Parent</code></p>
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '162', 162)" onmouseover="showTip(event, '162', 162)">
+            x.Parent()
+          </code>
+          <div class="tip" id="162">
+            <strong>Signature:</strong> unit -&gt; unit<br />
+                                    <span>
+            <strong>Attributes:</strong><br />
+[&lt;Column&gt;]<br />
+          </span>
+          </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.Bruker/Linq2BafSql.fs#L66-66" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+              <p>CompiledName: <code>get_Parent</code></p>
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '163', 163)" onmouseover="showTip(event, '163', 163)">
+            x.ProfileIntensityId()
+          </code>
+          <div class="tip" id="163">
+            <strong>Signature:</strong> unit -&gt; Nullable&lt;UInt64&gt;<br />
+                                    <span>
+            <strong>Attributes:</strong><br />
+[&lt;Column&gt;]<br />
+          </span>
+          </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.Bruker/Linq2BafSql.fs#L94-94" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+              <p>CompiledName: <code>set_ProfileIntensityId</code></p>
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '164', 164)" onmouseover="showTip(event, '164', 164)">
+            x.ProfileIntensityId()
+          </code>
+          <div class="tip" id="164">
+            <strong>Signature:</strong> unit -&gt; unit<br />
+                                    <span>
+            <strong>Attributes:</strong><br />
+[&lt;Column&gt;]<br />
+          </span>
+          </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.Bruker/Linq2BafSql.fs#L94-94" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+              <p>CompiledName: <code>get_ProfileIntensityId</code></p>
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '165', 165)" onmouseover="showTip(event, '165', 165)">
+            x.ProfileMzId()
+          </code>
+          <div class="tip" id="165">
+            <strong>Signature:</strong> unit -&gt; Nullable&lt;UInt64&gt;<br />
+                                    <span>
+            <strong>Attributes:</strong><br />
+[&lt;Column&gt;]<br />
+          </span>
+          </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.Bruker/Linq2BafSql.fs#L90-90" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+              <p>CompiledName: <code>set_ProfileMzId</code></p>
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '166', 166)" onmouseover="showTip(event, '166', 166)">
+            x.ProfileMzId()
+          </code>
+          <div class="tip" id="166">
+            <strong>Signature:</strong> unit -&gt; unit<br />
+                                    <span>
+            <strong>Attributes:</strong><br />
+[&lt;Column&gt;]<br />
+          </span>
+          </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.Bruker/Linq2BafSql.fs#L90-90" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+              <p>CompiledName: <code>get_ProfileMzId</code></p>
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '167', 167)" onmouseover="showTip(event, '167', 167)">
+            x.Rt()
+          </code>
+          <div class="tip" id="167">
+            <strong>Signature:</strong> unit -&gt; Nullable&lt;float&gt;<br />
+                                    <span>
+            <strong>Attributes:</strong><br />
+[&lt;Column&gt;]<br />
+          </span>
+          </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.Bruker/Linq2BafSql.fs#L54-54" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+              <p>CompiledName: <code>set_Rt</code></p>
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '168', 168)" onmouseover="showTip(event, '168', 168)">
+            x.Rt()
+          </code>
+          <div class="tip" id="168">
+            <strong>Signature:</strong> unit -&gt; unit<br />
+                                    <span>
+            <strong>Attributes:</strong><br />
+[&lt;Column&gt;]<br />
+          </span>
+          </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.Bruker/Linq2BafSql.fs#L54-54" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+              <p>CompiledName: <code>get_Rt</code></p>
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '169', 169)" onmouseover="showTip(event, '169', 169)">
+            x.Segment()
+          </code>
+          <div class="tip" id="169">
+            <strong>Signature:</strong> unit -&gt; Nullable&lt;UInt64&gt;<br />
+                                    <span>
+            <strong>Attributes:</strong><br />
+[&lt;Column&gt;]<br />
+          </span>
+          </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.Bruker/Linq2BafSql.fs#L58-58" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+              <p>CompiledName: <code>set_Segment</code></p>
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '170', 170)" onmouseover="showTip(event, '170', 170)">
+            x.Segment()
+          </code>
+          <div class="tip" id="170">
+            <strong>Signature:</strong> unit -&gt; unit<br />
+                                    <span>
+            <strong>Attributes:</strong><br />
+[&lt;Column&gt;]<br />
+          </span>
+          </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.Bruker/Linq2BafSql.fs#L58-58" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+              <p>CompiledName: <code>get_Segment</code></p>
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '171', 171)" onmouseover="showTip(event, '171', 171)">
+            x.SumIntensity()
+          </code>
+          <div class="tip" id="171">
+            <strong>Signature:</strong> unit -&gt; Nullable&lt;float&gt;<br />
+                                    <span>
+            <strong>Attributes:</strong><br />
+[&lt;Column&gt;]<br />
+          </span>
+          </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.Bruker/Linq2BafSql.fs#L78-78" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+              <p>CompiledName: <code>set_SumIntensity</code></p>
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '172', 172)" onmouseover="showTip(event, '172', 172)">
+            x.SumIntensity()
+          </code>
+          <div class="tip" id="172">
+            <strong>Signature:</strong> unit -&gt; unit<br />
+                                    <span>
+            <strong>Attributes:</strong><br />
+[&lt;Column&gt;]<br />
+          </span>
+          </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.Bruker/Linq2BafSql.fs#L78-78" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+              <p>CompiledName: <code>get_SumIntensity</code></p>
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '173', 173)" onmouseover="showTip(event, '173', 173)">
+            x.TransformatorId()
+          </code>
+          <div class="tip" id="173">
+            <strong>Signature:</strong> unit -&gt; Nullable&lt;UInt64&gt;<br />
+                                    <span>
+            <strong>Attributes:</strong><br />
+[&lt;Column&gt;]<br />
+          </span>
+          </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.Bruker/Linq2BafSql.fs#L86-86" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+              <p>CompiledName: <code>set_TransformatorId</code></p>
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '174', 174)" onmouseover="showTip(event, '174', 174)">
+            x.TransformatorId()
+          </code>
+          <div class="tip" id="174">
+            <strong>Signature:</strong> unit -&gt; unit<br />
+                                    <span>
+            <strong>Attributes:</strong><br />
+[&lt;Column&gt;]<br />
+          </span>
+          </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.Bruker/Linq2BafSql.fs#L86-86" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+              <p>CompiledName: <code>get_TransformatorId</code></p>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+        </div>
+        <div class="span3">
+          <img src="/MzIO/img/logo.png" alt="F# Project" style="width:150px;margin:10px" />  
+          <ul class="nav nav-list" id="menu" style="margin-top: 20px;">
+              <li class="nav-header">MzIO</li>
+              <li><a href="/MzIO/index.html">Home page</a></li>
+              <li class="divider"></li>
+              <li><a href="http://nuget.org/packages/MzIO">Get Library via NuGet</a></li>
+              <li><a href="https://github.com/CSBiology/MzIO">Source Code on GitHub</a></li>
+              <li><a href="/MzIO/license.html">License</a></li>
+              <li><a href="/MzIO/release-notes.html">Release Notes</a></li>
+
+              <li class="nav-header">Guides</li>
+              <li><a href="/MzIO/installation.html">Installation</a></li>
+              <li><a href="/MzIO/IMzIODataReader.html">Data Reader</a></li>
+
+              <li class="nav-header">Documentation</li>
+              <li><a href="/MzIO/reference/index.html">API Reference</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <a href="https://github.com/CSBiology/MzIO"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_gray_6d6d6d.png" alt="Fork me on GitHub"/></a>
+  </body>
+  </html>

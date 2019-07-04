@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"/>
+    <title>BafSqlPerSpectrumVariable - MzIO</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta name="description" content=""/>
+    <meta name="author" content="Patrick Blume, Jonathan Ott"/>
+
+    <script src="https://code.jquery.com/jquery-1.8.0.js"></script>
+    <script src="https://code.jquery.com/ui/1.8.23/jquery-ui.js"></script>
+    <script src="https://netdna.bootstrapcdn.com/twitter-bootstrap/2.2.1/js/bootstrap.min.js"></script>
+    <link href="https://netdna.bootstrapcdn.com/twitter-bootstrap/2.2.1/css/bootstrap-combined.min.css" rel="stylesheet"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=11" >
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <link type="text/css" rel="stylesheet" href="/MzIO/content/style.css" /> <!--/MzIO-->
+    <link type="text/css" rel="stylesheet" href="/MzIO/styles/CSBStyles.css" /> <!--/MzIO-->
+    <script type="text/javascript" src="/MzIO/content/tips.js"></script> <!--/MzIO-->
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="container">
+      <div class="masthead">
+        <ul class="nav nav-pills pull-right">
+          <li><a href="http://fsharp.org">fsharp.org</a></li>
+          <li><a href="https://github.com/CSBiology/MzIO">github page</a></li>
+        </ul>
+        <h3 class="muted"><a href="/MzIO/index.html">MzIO</a></h3>
+      </div>
+      <hr />
+      <div class="row">
+        <div class="span9" id="main">
+          
+
+
+
+<h1>BafSqlPerSpectrumVariable</h1>
+<p>
+
+    <span>Namespace: MzIO.Bruker</span><br />
+        <span>Parent Module: <a href="mzio-bruker-linq2bafsql.html">Linq2BafSql</a></span><br />
+            <span>
+            Attributes: <br />
+[&lt;Sealed&gt;]<br />
+[&lt;Table(Name = &quot;PerSpectrumVariables&quot;)&gt;]<br />
+            
+        </span>
+</p>
+<div class="xmldoc">
+</div>
+  <h3>Constructors</h3>
+  <table class="table table-bordered member-list">
+    <thead>
+      <tr><td>Constructor</td><td>Description</td></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '130', 130)" onmouseover="showTip(event, '130', 130)">
+            new(spec, var, value&#39;)
+          </code>
+          <div class="tip" id="130">
+            <strong>Signature:</strong> (spec:Nullable&lt;UInt64&gt; * var:Nullable&lt;UInt64&gt; * value&#39;:Nullable&lt;Decimal&gt;) -&gt; BafSqlPerSpectrumVariable<br />
+                                  </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.Bruker/Linq2BafSql.fs#L157-157" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+              <p>CompiledName: <code>.ctor</code></p>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  <h3>Instance members</h3>
+  <table class="table table-bordered member-list">
+    <thead>
+      <tr><td>Instance member</td><td>Description</td></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '131', 131)" onmouseover="showTip(event, '131', 131)">
+            x.Spectrum()
+          </code>
+          <div class="tip" id="131">
+            <strong>Signature:</strong> unit -&gt; Nullable&lt;UInt64&gt;<br />
+                                    <span>
+            <strong>Attributes:</strong><br />
+[&lt;Column(IsPrimaryKey = true)&gt;]<br />
+          </span>
+          </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.Bruker/Linq2BafSql.fs#L164-164" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+              <p>CompiledName: <code>set_Spectrum</code></p>
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '132', 132)" onmouseover="showTip(event, '132', 132)">
+            x.Spectrum()
+          </code>
+          <div class="tip" id="132">
+            <strong>Signature:</strong> unit -&gt; unit<br />
+                                    <span>
+            <strong>Attributes:</strong><br />
+[&lt;Column(IsPrimaryKey = true)&gt;]<br />
+          </span>
+          </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.Bruker/Linq2BafSql.fs#L164-164" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+              <p>CompiledName: <code>get_Spectrum</code></p>
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '133', 133)" onmouseover="showTip(event, '133', 133)">
+            x.Value()
+          </code>
+          <div class="tip" id="133">
+            <strong>Signature:</strong> unit -&gt; Nullable&lt;Decimal&gt;<br />
+                                    <span>
+            <strong>Attributes:</strong><br />
+[&lt;Column&gt;]<br />
+          </span>
+          </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.Bruker/Linq2BafSql.fs#L172-172" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+              <p>CompiledName: <code>set_Value</code></p>
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '134', 134)" onmouseover="showTip(event, '134', 134)">
+            x.Value()
+          </code>
+          <div class="tip" id="134">
+            <strong>Signature:</strong> unit -&gt; unit<br />
+                                    <span>
+            <strong>Attributes:</strong><br />
+[&lt;Column&gt;]<br />
+          </span>
+          </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.Bruker/Linq2BafSql.fs#L172-172" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+              <p>CompiledName: <code>get_Value</code></p>
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '135', 135)" onmouseover="showTip(event, '135', 135)">
+            x.Variable()
+          </code>
+          <div class="tip" id="135">
+            <strong>Signature:</strong> unit -&gt; Nullable&lt;UInt64&gt;<br />
+                                    <span>
+            <strong>Attributes:</strong><br />
+[&lt;Column(IsPrimaryKey = true)&gt;]<br />
+          </span>
+          </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.Bruker/Linq2BafSql.fs#L168-168" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+              <p>CompiledName: <code>set_Variable</code></p>
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '136', 136)" onmouseover="showTip(event, '136', 136)">
+            x.Variable()
+          </code>
+          <div class="tip" id="136">
+            <strong>Signature:</strong> unit -&gt; unit<br />
+                                    <span>
+            <strong>Attributes:</strong><br />
+[&lt;Column(IsPrimaryKey = true)&gt;]<br />
+          </span>
+          </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.Bruker/Linq2BafSql.fs#L168-168" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+              <p>CompiledName: <code>get_Variable</code></p>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+        </div>
+        <div class="span3">
+          <img src="/MzIO/img/logo.png" alt="F# Project" style="width:150px;margin:10px" />  
+          <ul class="nav nav-list" id="menu" style="margin-top: 20px;">
+              <li class="nav-header">MzIO</li>
+              <li><a href="/MzIO/index.html">Home page</a></li>
+              <li class="divider"></li>
+              <li><a href="http://nuget.org/packages/MzIO">Get Library via NuGet</a></li>
+              <li><a href="https://github.com/CSBiology/MzIO">Source Code on GitHub</a></li>
+              <li><a href="/MzIO/license.html">License</a></li>
+              <li><a href="/MzIO/release-notes.html">Release Notes</a></li>
+
+              <li class="nav-header">Guides</li>
+              <li><a href="/MzIO/installation.html">Installation</a></li>
+              <li><a href="/MzIO/IMzIODataReader.html">Data Reader</a></li>
+
+              <li class="nav-header">Documentation</li>
+              <li><a href="/MzIO/reference/index.html">API Reference</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <a href="https://github.com/CSBiology/MzIO"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_gray_6d6d6d.png" alt="Fork me on GitHub"/></a>
+  </body>
+  </html>

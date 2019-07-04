@@ -1,0 +1,1523 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"/>
+    <title>MzMLReader - MzIO</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta name="description" content=""/>
+    <meta name="author" content="Patrick Blume, Jonathan Ott"/>
+
+    <script src="https://code.jquery.com/jquery-1.8.0.js"></script>
+    <script src="https://code.jquery.com/ui/1.8.23/jquery-ui.js"></script>
+    <script src="https://netdna.bootstrapcdn.com/twitter-bootstrap/2.2.1/js/bootstrap.min.js"></script>
+    <link href="https://netdna.bootstrapcdn.com/twitter-bootstrap/2.2.1/css/bootstrap-combined.min.css" rel="stylesheet"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=11" >
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <link type="text/css" rel="stylesheet" href="/MzIO/content/style.css" /> <!--/MzIO-->
+    <link type="text/css" rel="stylesheet" href="/MzIO/styles/CSBStyles.css" /> <!--/MzIO-->
+    <script type="text/javascript" src="/MzIO/content/tips.js"></script> <!--/MzIO-->
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="container">
+      <div class="masthead">
+        <ul class="nav nav-pills pull-right">
+          <li><a href="http://fsharp.org">fsharp.org</a></li>
+          <li><a href="https://github.com/CSBiology/MzIO">github page</a></li>
+        </ul>
+        <h3 class="muted"><a href="/MzIO/index.html">MzIO</a></h3>
+      </div>
+      <hr />
+      <div class="row">
+        <div class="span9" id="main">
+          
+
+
+
+<h1>MzMLReader</h1>
+<p>
+
+    <span>Namespace: MzIO.IO.MzML</span><br />
+        <span>Parent Module: <a href="mzio-io-mzml-mzml.html">MzML</a></span><br />
+    </p>
+<div class="xmldoc">
+</div>
+  <h3>Constructors</h3>
+  <table class="table table-bordered member-list">
+    <thead>
+      <tr><td>Constructor</td><td>Description</td></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '260', 260)" onmouseover="showTip(event, '260', 260)">
+            new(filePath)
+          </code>
+          <div class="tip" id="260">
+            <strong>Signature:</strong> filePath:string -&gt; MzMLReader<br />
+                                  </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.MzML/MzMLReader.fs#L48-48" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+              <p>CompiledName: <code>.ctor</code></p>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  <h3>Instance members</h3>
+  <table class="table table-bordered member-list">
+    <thead>
+      <tr><td>Instance member</td><td>Description</td></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '261', 261)" onmouseover="showTip(event, '261', 261)">
+            x.BeginTransaction()
+          </code>
+          <div class="tip" id="261">
+            <strong>Signature:</strong> unit -&gt; ITransactionScope<br />
+                                  </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.MzML/MzMLReader.fs#L1796-1796" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '262', 262)" onmouseover="showTip(event, '262', 262)">
+            x.CreateDefaultModel()
+          </code>
+          <div class="tip" id="262">
+            <strong>Signature:</strong> unit -&gt; MzIOModel<br />
+                                  </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.MzML/MzMLReader.fs#L1800-1800" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '263', 263)" onmouseover="showTip(event, '263', 263)">
+            x.Dispose()
+          </code>
+          <div class="tip" id="263">
+            <strong>Signature:</strong> unit -&gt; unit<br />
+                                  </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.MzML/MzMLReader.fs#L1760-1760" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '264', 264)" onmouseover="showTip(event, '264', 264)">
+            x.getActivation(xmlReader)
+          </code>
+          <div class="tip" id="264">
+            <strong>Signature:</strong> (xmlReader:XmlReader option) -&gt; Activation<br />
+                                  </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.MzML/MzMLReader.fs#L621-621" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '265', 265)" onmouseover="showTip(event, '265', 265)">
+            x.getAttribute(name, xmlReader)
+          </code>
+          <div class="tip" id="265">
+            <strong>Signature:</strong> (name:string * xmlReader:XmlReader option) -&gt; string<br />
+                                  </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.MzML/MzMLReader.fs#L58-58" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '266', 266)" onmouseover="showTip(event, '266', 266)">
+            x.getBinary(xmlReader)
+          </code>
+          <div class="tip" id="266">
+            <strong>Signature:</strong> (xmlReader:XmlReader option) -&gt; string<br />
+                                  </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.MzML/MzMLReader.fs#L253-253" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '267', 267)" onmouseover="showTip(event, '267', 267)">
+            x.getChromatogram(xmlReader)
+          </code>
+          <div class="tip" id="267">
+            <strong>Signature:</strong> (xmlReader:XmlReader option) -&gt; Chromatogram<br />
+                                  </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.MzML/MzMLReader.fs#L859-859" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '268', 268)" onmouseover="showTip(event, '268', 268)">
+            x.getChromatogramms()
+          </code>
+          <div class="tip" id="268">
+            <strong>Signature:</strong> unit -&gt; seq&lt;Chromatogram&gt;<br />
+                                  </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.MzML/MzMLReader.fs#L893-893" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '269', 269)" onmouseover="showTip(event, '269', 269)">
+            x.getComponentList(xmlReader)
+          </code>
+          <div class="tip" id="269">
+            <strong>Signature:</strong> (xmlReader:XmlReader option) -&gt; ComponentList<br />
+                                  </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.MzML/MzMLReader.fs#L1148-1148" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '270', 270)" onmouseover="showTip(event, '270', 270)">
+            x.getContact(xmlReader)
+          </code>
+          <div class="tip" id="270">
+            <strong>Signature:</strong> (xmlReader:XmlReader option) -&gt; Contact<br />
+                                  </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.MzML/MzMLReader.fs#L1317-1317" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '271', 271)" onmouseover="showTip(event, '271', 271)">
+            x.getCVParam(xmlReader)
+          </code>
+          <div class="tip" id="271">
+            <strong>Signature:</strong> (xmlReader:XmlReader option) -&gt; CvParam&lt;string&gt;<br />
+                                  </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.MzML/MzMLReader.fs#L62-62" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '272', 272)" onmouseover="showTip(event, '272', 272)">
+            x.getDataProcessing(xmlReader)
+          </code>
+          <div class="tip" id="272">
+            <strong>Signature:</strong> (xmlReader:XmlReader option) -&gt; DataProcessing<br />
+                                  </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.MzML/MzMLReader.fs#L1107-1107" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '273', 273)" onmouseover="showTip(event, '273', 273)">
+            x.getDataProcessingList(xmlReader)
+          </code>
+          <div class="tip" id="273">
+            <strong>Signature:</strong> (xmlReader:XmlReader option) -&gt; DataProcessingList<br />
+                                  </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.MzML/MzMLReader.fs#L1128-1128" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '274', 274)" onmouseover="showTip(event, '274', 274)">
+            x.getDataProcessingReference(...)
+          </code>
+          <div class="tip" id="274">
+            <strong>Signature:</strong> (spectrum:MassSpectrum * xmlReader:XmlReader option) -&gt; unit<br />
+                                  </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.MzML/MzMLReader.fs#L436-436" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '275', 275)" onmouseover="showTip(event, '275', 275)">
+            x.getFileContent(xmlReader)
+          </code>
+          <div class="tip" id="275">
+            <strong>Signature:</strong> (xmlReader:XmlReader option) -&gt; FileContent<br />
+                                  </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.MzML/MzMLReader.fs#L1390-1390" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '276', 276)" onmouseover="showTip(event, '276', 276)">
+            x.getFileDescription(xmlReader)
+          </code>
+          <div class="tip" id="276">
+            <strong>Signature:</strong> (xmlReader:XmlReader option) -&gt; FileDescription<br />
+                                  </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.MzML/MzMLReader.fs#L1416-1416" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '277', 277)" onmouseover="showTip(event, '277', 277)">
+            x.getIDs elementName attributeName
+          </code>
+          <div class="tip" id="277">
+            <strong>Signature:</strong> elementName:string -&gt; attributeName:string -&gt; seq&lt;string option&gt; option<br />
+                                  </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.MzML/MzMLReader.fs#L94-94" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '278', 278)" onmouseover="showTip(event, '278', 278)">
+            x.getInstrumentConfiguration(xmlReader)
+          </code>
+          <div class="tip" id="278">
+            <strong>Signature:</strong> (xmlReader:XmlReader option) -&gt; Instrument<br />
+                                  </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.MzML/MzMLReader.fs#L1174-1174" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '279', 279)" onmouseover="showTip(event, '279', 279)">
+            x.getInstrumentConfigurationList(...)
+          </code>
+          <div class="tip" id="279">
+            <strong>Signature:</strong> (xmlReader:XmlReader option) -&gt; InstrumentList<br />
+                                  </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.MzML/MzMLReader.fs#L1203-1203" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '280', 280)" onmouseover="showTip(event, '280', 280)">
+            x.getIsolationWindow(xmlReader)
+          </code>
+          <div class="tip" id="280">
+            <strong>Signature:</strong> (xmlReader:XmlReader option) -&gt; IsolationWindow<br />
+                                  </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.MzML/MzMLReader.fs#L684-684" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '281', 281)" onmouseover="showTip(event, '281', 281)">
+            x.getPeak1DArray(xmlReader)
+          </code>
+          <div class="tip" id="281">
+            <strong>Signature:</strong> (xmlReader:XmlReader option) -&gt; Peak1DArray<br />
+                                  </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.MzML/MzMLReader.fs#L917-917" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '282', 282)" onmouseover="showTip(event, '282', 282)">
+            x.getPeak1DArrays()
+          </code>
+          <div class="tip" id="282">
+            <strong>Signature:</strong> unit -&gt; seq&lt;Peak1DArray&gt;<br />
+                                  </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.MzML/MzMLReader.fs#L939-939" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '283', 283)" onmouseover="showTip(event, '283', 283)">
+            x.getPeak2DArray(xmlReader)
+          </code>
+          <div class="tip" id="283">
+            <strong>Signature:</strong> (xmlReader:XmlReader option) -&gt; Peak2DArray<br />
+                                  </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.MzML/MzMLReader.fs#L977-977" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '284', 284)" onmouseover="showTip(event, '284', 284)">
+            x.getPeak2DArrays(chromatogramID)
+          </code>
+          <div class="tip" id="284">
+            <strong>Signature:</strong> chromatogramID:string -&gt; Peak2DArray<br />
+                                  </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.MzML/MzMLReader.fs#L1719-1719" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '285', 285)" onmouseover="showTip(event, '285', 285)">
+            x.getPeak2DArrays()
+          </code>
+          <div class="tip" id="285">
+            <strong>Signature:</strong> unit -&gt; seq&lt;Peak2DArray&gt;<br />
+                                  </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.MzML/MzMLReader.fs#L999-999" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '286', 286)" onmouseover="showTip(event, '286', 286)">
+            x.getPrecursor(xmlReader)
+          </code>
+          <div class="tip" id="286">
+            <strong>Signature:</strong> (xmlReader:XmlReader option) -&gt; Precursor<br />
+                                  </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.MzML/MzMLReader.fs#L705-705" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '287', 287)" onmouseover="showTip(event, '287', 287)">
+            x.getPrecursorList(xmlReader)
+          </code>
+          <div class="tip" id="287">
+            <strong>Signature:</strong> (xmlReader:XmlReader option) -&gt; PrecursorList<br />
+                                  </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.MzML/MzMLReader.fs#L736-736" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '288', 288)" onmouseover="showTip(event, '288', 288)">
+            x.getProcessingMethod(xmlReader)
+          </code>
+          <div class="tip" id="288">
+            <strong>Signature:</strong> (xmlReader:XmlReader option) -&gt; DataProcessingStep<br />
+                                  </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.MzML/MzMLReader.fs#L1060-1060" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '289', 289)" onmouseover="showTip(event, '289', 289)">
+            x.getProcessingMethods(xmlReader)
+          </code>
+          <div class="tip" id="289">
+            <strong>Signature:</strong> (xmlReader:XmlReader option) -&gt; DataProcessingStepList<br />
+                                  </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.MzML/MzMLReader.fs#L1087-1087" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '290', 290)" onmouseover="showTip(event, '290', 290)">
+            x.getProduct(xmlReader)
+          </code>
+          <div class="tip" id="290">
+            <strong>Signature:</strong> (xmlReader:XmlReader option) -&gt; Product<br />
+                                  </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.MzML/MzMLReader.fs#L756-756" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '291', 291)" onmouseover="showTip(event, '291', 291)">
+            x.getProductList(xmlReader)
+          </code>
+          <div class="tip" id="291">
+            <strong>Signature:</strong> (xmlReader:XmlReader option) -&gt; ProductList<br />
+                                  </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.MzML/MzMLReader.fs#L778-778" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '292', 292)" onmouseover="showTip(event, '292', 292)">
+            x.getRun(xmlReader)
+          </code>
+          <div class="tip" id="292">
+            <strong>Signature:</strong> (xmlReader:XmlReader option) -&gt; RunList<br />
+                                  </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.MzML/MzMLReader.fs#L1023-1023" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '293', 293)" onmouseover="showTip(event, '293', 293)">
+            x.getSample(xmlReader)
+          </code>
+          <div class="tip" id="293">
+            <strong>Signature:</strong> (xmlReader:XmlReader option) -&gt; Sample<br />
+                                  </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.MzML/MzMLReader.fs#L1270-1270" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '294', 294)" onmouseover="showTip(event, '294', 294)">
+            x.getSampleList(xmlReader)
+          </code>
+          <div class="tip" id="294">
+            <strong>Signature:</strong> (xmlReader:XmlReader option) -&gt; SampleList<br />
+                                  </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.MzML/MzMLReader.fs#L1297-1297" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '295', 295)" onmouseover="showTip(event, '295', 295)">
+            x.getScan(xmlReader)
+          </code>
+          <div class="tip" id="295">
+            <strong>Signature:</strong> (xmlReader:XmlReader option) -&gt; Scan<br />
+                                  </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.MzML/MzMLReader.fs#L567-567" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '296', 296)" onmouseover="showTip(event, '296', 296)">
+            x.getScanList(xmlReader)
+          </code>
+          <div class="tip" id="296">
+            <strong>Signature:</strong> (xmlReader:XmlReader option) -&gt; ScanList<br />
+                                  </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.MzML/MzMLReader.fs#L601-601" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '297', 297)" onmouseover="showTip(event, '297', 297)">
+            x.getScanWindow(xmlReader)
+          </code>
+          <div class="tip" id="297">
+            <strong>Signature:</strong> (xmlReader:XmlReader option) -&gt; ScanWindow<br />
+                                  </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.MzML/MzMLReader.fs#L524-524" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '298', 298)" onmouseover="showTip(event, '298', 298)">
+            x.getScanWindowList(xmlReader)
+          </code>
+          <div class="tip" id="298">
+            <strong>Signature:</strong> (xmlReader:XmlReader option) -&gt; ScanWindowList<br />
+                                  </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.MzML/MzMLReader.fs#L547-547" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '299', 299)" onmouseover="showTip(event, '299', 299)">
+            x.getSelectedIon(xmlReader)
+          </code>
+          <div class="tip" id="299">
+            <strong>Signature:</strong> (xmlReader:XmlReader option) -&gt; SelectedIon<br />
+                                  </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.MzML/MzMLReader.fs#L642-642" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '300', 300)" onmouseover="showTip(event, '300', 300)">
+            x.getSelectedIonList(xmlReader)
+          </code>
+          <div class="tip" id="300">
+            <strong>Signature:</strong> (xmlReader:XmlReader option) -&gt; SelectedIonList<br />
+                                  </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.MzML/MzMLReader.fs#L664-664" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '301', 301)" onmouseover="showTip(event, '301', 301)">
+            x.getSoftware(xmlReader)
+          </code>
+          <div class="tip" id="301">
+            <strong>Signature:</strong> (xmlReader:XmlReader option) -&gt; Software<br />
+                                  </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.MzML/MzMLReader.fs#L1223-1223" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '302', 302)" onmouseover="showTip(event, '302', 302)">
+            x.getSoftwareList(xmlReader)
+          </code>
+          <div class="tip" id="302">
+            <strong>Signature:</strong> (xmlReader:XmlReader option) -&gt; SoftwareList<br />
+                                  </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.MzML/MzMLReader.fs#L1250-1250" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '303', 303)" onmouseover="showTip(event, '303', 303)">
+            x.getSourceFile(xmlReader)
+          </code>
+          <div class="tip" id="303">
+            <strong>Signature:</strong> (xmlReader:XmlReader option) -&gt; SourceFile<br />
+                                  </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.MzML/MzMLReader.fs#L1343-1343" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '304', 304)" onmouseover="showTip(event, '304', 304)">
+            x.getSourceFileList(xmlReader)
+          </code>
+          <div class="tip" id="304">
+            <strong>Signature:</strong> (xmlReader:XmlReader option) -&gt; SourceFileList<br />
+                                  </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.MzML/MzMLReader.fs#L1370-1370" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '305', 305)" onmouseover="showTip(event, '305', 305)">
+            x.getSpectra()
+          </code>
+          <div class="tip" id="305">
+            <strong>Signature:</strong> unit -&gt; seq&lt;MassSpectrum&gt;<br />
+                                  </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.MzML/MzMLReader.fs#L835-835" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '306', 306)" onmouseover="showTip(event, '306', 306)">
+            x.getSpectrum(xmlReader)
+          </code>
+          <div class="tip" id="306">
+            <strong>Signature:</strong> (xmlReader:XmlReader option) -&gt; MassSpectrum<br />
+                                  </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.MzML/MzMLReader.fs#L798-798" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '307', 307)" onmouseover="showTip(event, '307', 307)">
+            x.getUserParam(xmlReader)
+          </code>
+          <div class="tip" id="307">
+            <strong>Signature:</strong> (xmlReader:XmlReader option) -&gt; UserParam&lt;string&gt;<br />
+                                  </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.MzML/MzMLReader.fs#L78-78" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '308', 308)" onmouseover="showTip(event, '308', 308)">
+            x.Model
+          </code>
+          <div class="tip" id="308">
+            <strong>Signature:</strong> MzIOModel<br />
+                                  </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.MzML/MzMLReader.fs#L1808-1808" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+              <p>CompiledName: <code>get_Model</code></p>
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '309', 309)" onmouseover="showTip(event, '309', 309)">
+            x.ReadChromatogramAsync(runID)
+          </code>
+          <div class="tip" id="309">
+            <strong>Signature:</strong> runID:string -&gt; Async&lt;Chromatogram&gt;<br />
+                                  </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.MzML/MzMLReader.fs#L1883-1883" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '310', 310)" onmouseover="showTip(event, '310', 310)">
+            x.ReadChromatogramms(runID)
+          </code>
+          <div class="tip" id="310">
+            <strong>Signature:</strong> runID:string -&gt; seq&lt;Chromatogram&gt;<br />
+                                  </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.MzML/MzMLReader.fs#L1605-1605" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '311', 311)" onmouseover="showTip(event, '311', 311)">
+            x.ReadChromatogramPeaks(runID)
+          </code>
+          <div class="tip" id="311">
+            <strong>Signature:</strong> runID:string -&gt; Peak2DArray<br />
+                                  </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.MzML/MzMLReader.fs#L1879-1879" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '312', 312)" onmouseover="showTip(event, '312', 312)">
+            x.ReadChromatogramPeaksAsync(runID)
+          </code>
+          <div class="tip" id="312">
+            <strong>Signature:</strong> runID:string -&gt; Async&lt;Peak2DArray&gt;<br />
+                                  </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.MzML/MzMLReader.fs#L1887-1887" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '313', 313)" onmouseover="showTip(event, '313', 313)">
+            x.ReadChromatograms(runID)
+          </code>
+          <div class="tip" id="313">
+            <strong>Signature:</strong> runID:string -&gt; IEnumerable&lt;Chromatogram&gt;<br />
+                                  </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.MzML/MzMLReader.fs#L1875-1875" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '314', 314)" onmouseover="showTip(event, '314', 314)">
+            x.ReadMassSpectra(runID)
+          </code>
+          <div class="tip" id="314">
+            <strong>Signature:</strong> runID:string -&gt; IEnumerable&lt;MassSpectrum&gt;<br />
+                                  </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.MzML/MzMLReader.fs#L1855-1855" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '315', 315)" onmouseover="showTip(event, '315', 315)">
+            x.ReadMassSpectrum(spectrumID)
+          </code>
+          <div class="tip" id="315">
+            <strong>Signature:</strong> spectrumID:string -&gt; MassSpectrum<br />
+                                  </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.MzML/MzMLReader.fs#L1859-1859" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '316', 316)" onmouseover="showTip(event, '316', 316)">
+            x.ReadMassSpectrumAsync(spectrumID)
+          </code>
+          <div class="tip" id="316">
+            <strong>Signature:</strong> spectrumID:string -&gt; Task&lt;MassSpectrum&gt;<br />
+                                  </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.MzML/MzMLReader.fs#L1867-1867" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '317', 317)" onmouseover="showTip(event, '317', 317)">
+            x.ReadSpectrumPeaks(spectrumID)
+          </code>
+          <div class="tip" id="317">
+            <strong>Signature:</strong> spectrumID:string -&gt; Peak1DArray<br />
+                                  </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.MzML/MzMLReader.fs#L1863-1863" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '318', 318)" onmouseover="showTip(event, '318', 318)">
+            x.ReadSpectrumPeaksAsync(spectrumID)
+          </code>
+          <div class="tip" id="318">
+            <strong>Signature:</strong> spectrumID:string -&gt; Task&lt;Peak1DArray&gt;<br />
+                                  </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.MzML/MzMLReader.fs#L1871-1871" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '319', 319)" onmouseover="showTip(event, '319', 319)">
+            x.SaveModel()
+          </code>
+          <div class="tip" id="319">
+            <strong>Signature:</strong> unit -&gt; unit<br />
+                                  </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.MzML/MzMLReader.fs#L1804-1804" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '320', 320)" onmouseover="showTip(event, '320', 320)">
+            x.translatePeak1DArray(xmlReader)
+          </code>
+          <div class="tip" id="320">
+            <strong>Signature:</strong> (xmlReader:XmlReader option) -&gt; Peak1DArray<br />
+                                  </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.MzML/MzMLReader.fs#L453-453" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '321', 321)" onmouseover="showTip(event, '321', 321)">
+            x.translatePeak2DArray(xmlReader)
+          </code>
+          <div class="tip" id="321">
+            <strong>Signature:</strong> (xmlReader:XmlReader option) -&gt; Peak2DArray<br />
+                                  </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.MzML/MzMLReader.fs#L478-478" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '322', 322)" onmouseover="showTip(event, '322', 322)">
+            x.tryGetAttribute(name, xmlReader)
+          </code>
+          <div class="tip" id="322">
+            <strong>Signature:</strong> (name:string * xmlReader:XmlReader option) -&gt; string option<br />
+                                  </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.MzML/MzMLReader.fs#L52-52" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '323', 323)" onmouseover="showTip(event, '323', 323)">
+            x.tryGetPeak2DArray(chromatogramID)
+          </code>
+          <div class="tip" id="323">
+            <strong>Signature:</strong> chromatogramID:string -&gt; Peak2DArray option<br />
+                                  </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.MzML/MzMLReader.fs#L1695-1695" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  <h3>Static members</h3>
+  <table class="table table-bordered member-list">
+    <thead>
+      <tr><td>Static member</td><td>Description</td></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '324', 324)" onmouseover="showTip(event, '324', 324)">
+            MzMLReader.byteToDoubles(...)
+          </code>
+          <div class="tip" id="324">
+            <strong>Signature:</strong> littleEndian:Boolean -&gt; (byteArray:byte []) -&gt; float&lt;MeasureOne&gt; []<br />
+                                  </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.MzML/MzMLReader.fs#L233-233" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '325', 325)" onmouseover="showTip(event, '325', 325)">
+            MzMLReader.byteToSingles(...)
+          </code>
+          <div class="tip" id="325">
+            <strong>Signature:</strong> littleEndian:Boolean -&gt; (byteArray:byte []) -&gt; float32 []<br />
+                                  </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.MzML/MzMLReader.fs#L219-219" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '326', 326)" onmouseover="showTip(event, '326', 326)">
+            MzMLReader.createPeak1DArray(peakArray)
+          </code>
+          <div class="tip" id="326">
+            <strong>Signature:</strong> peakArray:Peak1DArray -&gt; Peak1DArray<br />
+                                  </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.MzML/MzMLReader.fs#L156-156" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '327', 327)" onmouseover="showTip(event, '327', 327)">
+            MzMLReader.createPeak2DArray(peakArray)
+          </code>
+          <div class="tip" id="327">
+            <strong>Signature:</strong> peakArray:Peak2DArray -&gt; Peak2DArray<br />
+                                  </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.MzML/MzMLReader.fs#L207-207" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '328', 328)" onmouseover="showTip(event, '328', 328)">
+            MzMLReader.decompressZlib(bytes)
+          </code>
+          <div class="tip" id="328">
+            <strong>Signature:</strong> (bytes:byte []) -&gt; byte []<br />
+                                  </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.MzML/MzMLReader.fs#L243-243" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          <p>Remove 1st two bytes because they are the header of zLib compression</p>
+
+
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '329', 329)" onmouseover="showTip(event, '329', 329)">
+            MzMLReader.doubleToBytes(floatArray)
+          </code>
+          <div class="tip" id="329">
+            <strong>Signature:</strong> (floatArray:float []) -&gt; byte []<br />
+                                  </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.MzML/MzMLReader.fs#L228-228" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '330', 330)" onmouseover="showTip(event, '330', 330)">
+            MzMLReader.get1DPeaks peaks peakArray
+          </code>
+          <div class="tip" id="330">
+            <strong>Signature:</strong> (peaks:string list) -&gt; peakArray:Peak1DArray -&gt; unit<br />
+                                  </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.MzML/MzMLReader.fs#L257-257" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '331', 331)" onmouseover="showTip(event, '331', 331)">
+            MzMLReader.get2DPeaks peaks peakArray
+          </code>
+          <div class="tip" id="331">
+            <strong>Signature:</strong> (peaks:string list) -&gt; peakArray:Peak2DArray -&gt; unit<br />
+                                  </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.MzML/MzMLReader.fs#L348-348" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '332', 332)" onmouseover="showTip(event, '332', 332)">
+            MzMLReader.getArrayTypeOfP1D(...)
+          </code>
+          <div class="tip" id="332">
+            <strong>Signature:</strong> peakArray:Peak1DArray -&gt; arrayType:BinaryDataType -&gt; keys:seq&lt;string&gt; -&gt; unit<br />
+                                  </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.MzML/MzMLReader.fs#L115-115" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '333', 333)" onmouseover="showTip(event, '333', 333)">
+            MzMLReader.getArrayTypeOfP2D(...)
+          </code>
+          <div class="tip" id="333">
+            <strong>Signature:</strong> peakArray:Peak2DArray -&gt; arrayType:BinaryDataType -&gt; (keys:string []) -&gt; unit<br />
+                                  </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.MzML/MzMLReader.fs#L163-163" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '334', 334)" onmouseover="showTip(event, '334', 334)">
+            MzMLReader.getBinaryDataTypeOfP1D(...)
+          </code>
+          <div class="tip" id="334">
+            <strong>Signature:</strong> peakArray:Peak1DArray -&gt; keys:seq&lt;string&gt; -&gt; unit<br />
+                                  </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.MzML/MzMLReader.fs#L126-126" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '335', 335)" onmouseover="showTip(event, '335', 335)">
+            MzMLReader.getBinaryDataTypeOfP2D(...)
+          </code>
+          <div class="tip" id="335">
+            <strong>Signature:</strong> peakArray:Peak2DArray -&gt; (keys:string []) -&gt; unit<br />
+                                  </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.MzML/MzMLReader.fs#L177-177" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '336', 336)" onmouseover="showTip(event, '336', 336)">
+            MzMLReader.getCompressionTypeOfP1D(...)
+          </code>
+          <div class="tip" id="336">
+            <strong>Signature:</strong> peakArray:Peak1DArray -&gt; keys:seq&lt;string&gt; -&gt; unit<br />
+                                  </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.MzML/MzMLReader.fs#L143-143" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '337', 337)" onmouseover="showTip(event, '337', 337)">
+            MzMLReader.getCompressionTypeOfP2D(...)
+          </code>
+          <div class="tip" id="337">
+            <strong>Signature:</strong> peakArray:Peak2DArray -&gt; (keys:string []) -&gt; unit<br />
+                                  </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.MzML/MzMLReader.fs#L194-194" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '338', 338)" onmouseover="showTip(event, '338', 338)">
+            MzMLReader.singleToBytes(floatArray)
+          </code>
+          <div class="tip" id="338">
+            <strong>Signature:</strong> (floatArray:float []) -&gt; byte []<br />
+                                  </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.MzML/MzMLReader.fs#L214-214" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+        </div>
+        <div class="span3">
+          <img src="/MzIO/img/logo.png" alt="F# Project" style="width:150px;margin:10px" />  
+          <ul class="nav nav-list" id="menu" style="margin-top: 20px;">
+              <li class="nav-header">MzIO</li>
+              <li><a href="/MzIO/index.html">Home page</a></li>
+              <li class="divider"></li>
+              <li><a href="http://nuget.org/packages/MzIO">Get Library via NuGet</a></li>
+              <li><a href="https://github.com/CSBiology/MzIO">Source Code on GitHub</a></li>
+              <li><a href="/MzIO/license.html">License</a></li>
+              <li><a href="/MzIO/release-notes.html">Release Notes</a></li>
+
+              <li class="nav-header">Guides</li>
+              <li><a href="/MzIO/installation.html">Installation</a></li>
+              <li><a href="/MzIO/IMzIODataReader.html">Data Reader</a></li>
+
+              <li class="nav-header">Documentation</li>
+              <li><a href="/MzIO/reference/index.html">API Reference</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <a href="https://github.com/CSBiology/MzIO"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_gray_6d6d6d.png" alt="Fork me on GitHub"/></a>
+  </body>
+  </html>
