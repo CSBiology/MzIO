@@ -1458,6 +1458,7 @@ module MzML =
             outerLoop false
 
         member private this.getSpectra(runID) =
+            reader <- XmlReader.Create(filePath)
             let rec outerLoop acc =
                 if reader.Name = "run" then
                     let readSubtree = reader.ReadSubtree()
@@ -1575,23 +1576,24 @@ module MzML =
 
         member private this.getSpecificPeak1DArray(spectrumID:string) =
             let rec outerLoop acc =
-                if reader.Name = "spectrumList" then
+                if reader.Name = "spectrumList" && reader.NodeType = XmlNodeType.Element then
                     let readSubtree = reader.ReadSubtree()
                     let readOp = readSubtree.Read
                     let rec loop acc =
-                                if readSubtree.NodeType=XmlNodeType.Element then
-                                    match readSubtree.Name with
-                                    | "spectrum"    ->  match this.tryGetPeak1DArray spectrumID with
-                                                        | Some peak1DArray  -> peak1DArray
-                                                        | None              ->
-                                                            (readOp()) |> ignore
-                                                            loop acc
-                                    |   _           ->  (readOp()) |> ignore
-                                                        loop acc
-                                else
-                                    if readOp()=true then loop acc
-                                    else 
-                                        failwith "Invalid spectrumID"
+                        if readSubtree.NodeType=XmlNodeType.Element then
+                            match readSubtree.Name with
+                            | "spectrum"    ->  match this.tryGetPeak1DArray spectrumID with
+                                                | Some peak1DArray  -> peak1DArray
+                                                | None              ->
+                                                    (readOp()) |> ignore
+                                                    loop acc
+                            |   _           ->  (readOp()) |> ignore
+                                                loop acc
+                        else
+                            if readOp()=true then 
+                                loop acc
+                            else 
+                                failwith "Invalid spectrumID"
                     loop ()
                 else
                     outerLoop (reader.Read())
@@ -1806,17 +1808,16 @@ module MzML =
         interface IMzIODataReader with
     
             // Needs improbement
-            member this.ReadMassSpectra(runID: string) = 
-                let tmp = this.getSpectra(runID)
+            member this.ReadMassSpectra(runID: string) =
                 reader <- XmlReader.Create(filePath)
-                tmp
+                this.getSpectra(runID)
 
             member this. ReadMassSpectrum(spectrumID: string) =
-                let tmp = this.getSpectrum(spectrumID)
                 reader <- XmlReader.Create(filePath)
-                tmp
+                this.getSpectrum(spectrumID)
 
             member this.ReadSpectrumPeaks(spectrumID: string) =
+                reader <- XmlReader.Create(filePath)
                 this.getSpecificPeak1DArray(spectrumID)
 
             member this.ReadMassSpectrumAsync(spectrumID: string) =

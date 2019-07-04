@@ -217,7 +217,6 @@ module MzIOLinq =
 
         member this.RtProfile(rtIndex: IMzIOArray<RtIndexEntry>, rtRange: RangeQuery, mzRange: RangeQuery) =
 
-
             let entries = RtIndexEntry.Search(rtIndex, rtRange).ToArray()
 
             let profile = Array.zeroCreate<Peak2D> entries.Length

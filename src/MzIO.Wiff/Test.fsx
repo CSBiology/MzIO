@@ -18,8 +18,10 @@
 
 
 open System
+open System.Xml
 open System.Collections.Generic
 open System.Runtime.InteropServices
+open System.IO.Compression
 open Newtonsoft.Json
 open Newtonsoft.Json.Linq
 open MzIO.Binary
@@ -412,11 +414,11 @@ let getSpectrumPeaks (path:string) (spectrumID:string) =
 //let processings = ProcessingMethodFileReader.OpenProcessingMethod(rawtestFile)
 //let sequenceFiles = SequenceFileReader.OpenSequence(rawtestFile)
 
-let reader = new BafFileReader(bafTestFile)
+//let reader = new BafFileReader(bafTestFile)
 
-let spectra =
-    reader.Model.Runs.GetProperties false
-    |> Seq.collect (fun (run:KeyValuePair<string, obj>) -> reader.ReadMassSpectra run.Key)
+//let spectra =
+//    reader.Model.Runs.GetProperties false
+//    |> Seq.collect (fun (run:KeyValuePair<string, obj>) -> reader.ReadMassSpectra run.Key)
 
 
 
@@ -471,3 +473,27 @@ let insertMSSpectraBy insertSpectrumF outFilepath runID (reader:IMzIODataReader)
 
 //let tmp = insertMSSpectraBy insertMSSpectrum (bafTestFile + ".mzio") ("run_1") reader "NoCompression" spectra
 
+let termoMzML = @"C:\Users\Student\source\repos\wiffTestFiles\Thermo\data02.mzML"
+
+let mutable mzMLReader = new MzMLReader(termoMzML)
+
+let spectra =
+    mzMLReader.Model.Runs.GetProperties false
+    |> Seq.collect (fun item -> mzMLReader.ReadMassSpectra (MzIOJson.FromJson<Run>(item.Value.ToString())).ID)
+    //|> List.ofSeq
+
+mzMLReader.ReadSpectrumPeaks "controllerType=0 controllerNumber=1 scan=1"
+
+spectra
+|> Seq.map (fun spectrum -> mzMLReader.ReadSpectrumPeaks spectrum.ID)
+|> Seq.length
+
+//spectra
+//|> Seq.length
+
+//let brukaRTIndex = mzMLReader.BuildRtIndex("controllerType=0 controllerNumber=1 scan=2")
+//let brukaRT = mzMLReader.RtProfile(brukaRTIndex, (new MzIO.Processing.RangeQuery(1., 300., 600.)), (new MzIO.Processing.RangeQuery(1., 300., 600.)))
+
+
+//let reader = XmlReader.Create("Test")
+//reader.NodeType = XmlNodeType.Element
