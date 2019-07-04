@@ -112,7 +112,7 @@ module MzML =
             |> List.ofSeq
             |> (fun item -> if item.IsEmpty then None else Some (item |> Seq.ofList))
 
-        static member getArrayTypeOfP1D (peakArray:Peak1DArray) (arrayType:BinaryDataType) (keys:string []) =
+        static member getArrayTypeOfP1D (peakArray:Peak1DArray) (arrayType:BinaryDataType) (keys:seq<string>) =
             for key in keys do
                 match key with
                 //M/Z Array
@@ -123,7 +123,7 @@ module MzML =
                                   peakArray.IntensityDataType <- arrayType
                 | _            -> ()
 
-        static member getBinaryDataTypeOfP1D (peakArray:Peak1DArray) (keys:string []) =
+        static member getBinaryDataTypeOfP1D (peakArray:Peak1DArray) (keys:seq<string>) =
             for key in keys do
                 match key with
                 //Float32
@@ -140,7 +140,7 @@ module MzML =
                                     MzMLReader.getArrayTypeOfP1D peakArray BinaryDataType.Int64 keys
                 | _             ->  ()
 
-        static member getCompressionTypeOfP1D (peakArray:Peak1DArray) (keys:string []) =
+        static member getCompressionTypeOfP1D (peakArray:Peak1DArray) (keys:seq<string>) =
             for key in keys do
                 match key with
                 //NoCompression
@@ -156,7 +156,7 @@ module MzML =
         static member createPeak1DArray (peakArray:Peak1DArray) =
             peakArray.GetProperties false
             |> Seq.map (fun pair -> pair.Key)
-            |> Array.ofSeq
+            //|> Array.ofSeq
             |> MzMLReader.getCompressionTypeOfP1D peakArray
             peakArray
 
@@ -255,92 +255,95 @@ module MzML =
             xmlReader.ReadElementContentAsString()
 
         static member get1DPeaks (peaks:string list) (peakArray:Peak1DArray) =
-            match peakArray.CompressionType with
-            | BinaryDataCompressionType.NoCompression ->
-                match peakArray.MzDataType with
-                | BinaryDataType.Float32 ->
-                    let mzs =
-                        Convert.FromBase64String(peaks.[1])
-                        |> (fun bytes -> MzMLReader.byteToSingles false bytes)
-                    match peakArray.IntensityDataType with
+            if peaks.Head.Length <> 0 then
+                match peakArray.CompressionType with
+                | BinaryDataCompressionType.NoCompression ->
+                    match peakArray.MzDataType with
                     | BinaryDataType.Float32 ->
-                        let intensities =
-                            Convert.FromBase64String(peaks.[0])
+                        let mzs =
+                            Convert.FromBase64String(peaks.[1])
                             |> (fun bytes -> MzMLReader.byteToSingles false bytes)
-                        let peaks = Array.map2 (fun mz int -> new Peak1D(float int, float mz)) mzs intensities
-                        peakArray.Peaks <- ArrayWrapper(peaks)
+                        match peakArray.IntensityDataType with
+                        | BinaryDataType.Float32 ->
+                            let intensities =
+                                Convert.FromBase64String(peaks.[0])
+                                |> (fun bytes -> MzMLReader.byteToSingles false bytes)
+                            let peaks = Array.map2 (fun mz int -> new Peak1D(float int, float mz)) mzs intensities
+                            peakArray.Peaks <- ArrayWrapper(peaks)
+                        | BinaryDataType.Float64 ->
+                            let intensities =
+                                Convert.FromBase64String(peaks.[0])
+                                |> (fun bytes -> MzMLReader.byteToDoubles false bytes)
+                            let peaks = Array.map2 (fun mz int -> new Peak1D(int, float mz)) mzs intensities
+                            peakArray.Peaks <- ArrayWrapper(peaks)
+                        | _ -> failwith "No compelement Type"
                     | BinaryDataType.Float64 ->
-                        let intensities =
-                            Convert.FromBase64String(peaks.[0])
+                        let mzs =
+                            Convert.FromBase64String(peaks.[1])
                             |> (fun bytes -> MzMLReader.byteToDoubles false bytes)
-                        let peaks = Array.map2 (fun mz int -> new Peak1D(int, float mz)) mzs intensities
-                        peakArray.Peaks <- ArrayWrapper(peaks)
+                        match peakArray.IntensityDataType with
+                        | BinaryDataType.Float32 ->
+                            let intensities =
+                                Convert.FromBase64String(peaks.[0])
+                                |> (fun bytes -> MzMLReader.byteToSingles false bytes)
+                            let peaks = Array.map2 (fun mz int -> new Peak1D(float int, mz)) mzs intensities
+                            peakArray.Peaks <- ArrayWrapper(peaks)
+                        | BinaryDataType.Float64 ->
+                            let intensities =
+                                Convert.FromBase64String(peaks.[0])
+                                |> (fun bytes -> MzMLReader.byteToDoubles false bytes)
+                            let peaks = Array.map2 (fun mz int -> new Peak1D(int, mz)) mzs intensities
+                            peakArray.Peaks <- ArrayWrapper(peaks)
+                        | _ -> failwith "No compelement Type"
                     | _ -> failwith "No compelement Type"
-                | BinaryDataType.Float64 ->
-                    let mzs =
-                        Convert.FromBase64String(peaks.[1])
-                        |> (fun bytes -> MzMLReader.byteToDoubles false bytes)
-                    match peakArray.IntensityDataType with
+                | BinaryDataCompressionType.ZLib ->
+                    match peakArray.MzDataType with
                     | BinaryDataType.Float32 ->
-                        let intensities =
-                            Convert.FromBase64String(peaks.[0])
-                            |> (fun bytes -> MzMLReader.byteToSingles false bytes)
-                        let peaks = Array.map2 (fun mz int -> new Peak1D(float int, mz)) mzs intensities
-                        peakArray.Peaks <- ArrayWrapper(peaks)
-                    | BinaryDataType.Float64 ->
-                        let intensities =
-                            Convert.FromBase64String(peaks.[0])
-                            |> (fun bytes -> MzMLReader.byteToDoubles false bytes)
-                        let peaks = Array.map2 (fun mz int -> new Peak1D(int, mz)) mzs intensities
-                        peakArray.Peaks <- ArrayWrapper(peaks)
-                    | _ -> failwith "No compelement Type"
-                | _ -> failwith "No compelement Type"
-            | BinaryDataCompressionType.ZLib ->
-                match peakArray.MzDataType with
-                | BinaryDataType.Float32 ->
-                    let mzs =
-                        Convert.FromBase64String(peaks.[1])
-                        |> MzMLReader.decompressZlib
-                        |> (fun bytes -> MzMLReader.byteToSingles true bytes)
-                    match peakArray.IntensityDataType with
-                    | BinaryDataType.Float32 ->
-                        let intensities =
-                            Convert.FromBase64String(peaks.[0])
+                        let mzs =
+                            Convert.FromBase64String(peaks.[1])
                             |> MzMLReader.decompressZlib
                             |> (fun bytes -> MzMLReader.byteToSingles true bytes)
-                        let peaks = Array.map2 (fun mz int -> new Peak1D(float int, float mz)) mzs intensities
-                        peakArray.Peaks <- ArrayWrapper(peaks)
+                        match peakArray.IntensityDataType with
+                        | BinaryDataType.Float32 ->
+                            let intensities =
+                                Convert.FromBase64String(peaks.[0])
+                                |> MzMLReader.decompressZlib
+                                |> (fun bytes -> MzMLReader.byteToSingles true bytes)
+                            let peaks = Array.map2 (fun mz int -> new Peak1D(float int, float mz)) mzs intensities
+                            peakArray.Peaks <- ArrayWrapper(peaks)
+                        | BinaryDataType.Float64 ->
+                            let intensities =
+                                Convert.FromBase64String(peaks.[0])
+                                |> MzMLReader.decompressZlib
+                                |> (fun bytes -> MzMLReader.byteToDoubles true bytes)
+                            let peaks = Array.map2 (fun mz int -> new Peak1D(int, float mz)) mzs intensities
+                            peakArray.Peaks <- ArrayWrapper(peaks)
+                         | _ -> failwith "No compelement Type"
                     | BinaryDataType.Float64 ->
-                        let intensities =
-                            Convert.FromBase64String(peaks.[0])
+                        let mzs =
+                            Convert.FromBase64String(peaks.[1])
                             |> MzMLReader.decompressZlib
                             |> (fun bytes -> MzMLReader.byteToDoubles true bytes)
-                        let peaks = Array.map2 (fun mz int -> new Peak1D(int, float mz)) mzs intensities
-                        peakArray.Peaks <- ArrayWrapper(peaks)
-                     | _ -> failwith "No compelement Type"
-                | BinaryDataType.Float64 ->
-                    let mzs =
-                        Convert.FromBase64String(peaks.[1])
-                        |> MzMLReader.decompressZlib
-                        |> (fun bytes -> MzMLReader.byteToDoubles true bytes)
-                    match peakArray.IntensityDataType with
-                    | BinaryDataType.Float64 ->
-                        let intensities =
-                            Convert.FromBase64String(peaks.[0])
-                            |> MzMLReader.decompressZlib
-                            |> (fun bytes -> MzMLReader.byteToDoubles true bytes)
-                        let peaks = Array.map2 (fun mz int -> new Peak1D(int, mz)) mzs intensities
-                        peakArray.Peaks <- ArrayWrapper(peaks)
-                    | BinaryDataType.Float32 ->
-                        let intensities =
-                            Convert.FromBase64String(peaks.[0])
-                            |> MzMLReader.decompressZlib
-                            |> (fun bytes -> MzMLReader.byteToSingles true bytes)
-                        let peaks = Array.map2 (fun mz int -> new Peak1D(float int, mz)) mzs intensities
-                        peakArray.Peaks <- ArrayWrapper(peaks)
-                     | _ -> failwith "No compelement Type"
+                        match peakArray.IntensityDataType with
+                        | BinaryDataType.Float64 ->
+                            let intensities =
+                                Convert.FromBase64String(peaks.[0])
+                                |> MzMLReader.decompressZlib
+                                |> (fun bytes -> MzMLReader.byteToDoubles true bytes)
+                            let peaks = Array.map2 (fun mz int -> new Peak1D(int, mz)) mzs intensities
+                            peakArray.Peaks <- ArrayWrapper(peaks)
+                        | BinaryDataType.Float32 ->
+                            let intensities =
+                                Convert.FromBase64String(peaks.[0])
+                                |> MzMLReader.decompressZlib
+                                |> (fun bytes -> MzMLReader.byteToSingles true bytes)
+                            let peaks = Array.map2 (fun mz int -> new Peak1D(float int, mz)) mzs intensities
+                            peakArray.Peaks <- ArrayWrapper(peaks)
+                         | _ -> failwith "No compelement Type"
+                    | _ -> failwith "No compelement Type"
                 | _ -> failwith "No compelement Type"
-            | _ -> failwith "No compelement Type"
+            else
+                ()
 
         static member get2DPeaks (peaks:string list) (peakArray:Peak2DArray) =
             match peakArray.CompressionType with

@@ -473,20 +473,28 @@ let insertMSSpectraBy insertSpectrumF outFilepath runID (reader:IMzIODataReader)
 
 //let tmp = insertMSSpectraBy insertMSSpectrum (bafTestFile + ".mzio") ("run_1") reader "NoCompression" spectra
 
-let termoMzML = @"C:\Users\Student\source\repos\wiffTestFiles\Thermo\data02.mzML"
+//let termoMzML = @"C:\Users\Student\source\repos\wiffTestFiles\Thermo\data02.mzML"
+let xmlMzML = @"C:\Users\Patrick\source\repos\MzDatabasesLibrary\MzDatabasesLibrary\XMLs\small_miape.pwiz.1.1.txt"
 
-let mutable mzMLReader = new MzMLReader(termoMzML)
+
+let mutable mzMLReader = new MzMLReader(xmlMzML)
 
 let spectra =
     mzMLReader.Model.Runs.GetProperties false
     |> Seq.collect (fun item -> mzMLReader.ReadMassSpectra (MzIOJson.FromJson<Run>(item.Value.ToString())).ID)
     //|> List.ofSeq
 
-mzMLReader.ReadSpectrumPeaks "controllerType=0 controllerNumber=1 scan=1"
-
 spectra
-|> Seq.map (fun spectrum -> mzMLReader.ReadSpectrumPeaks spectrum.ID)
 |> Seq.length
+
+//mzMLReader.ReadSpectrumPeaks "controllerType=0 controllerNumber=1 scan=1"
+
+let peaks =
+    spectra
+    |> Seq.map (fun spectrum -> mzMLReader.ReadSpectrumPeaks spectrum.ID)
+
+for i in peaks do
+    printfn "%i" (Seq.length i.Peaks)
 
 //spectra
 //|> Seq.length
