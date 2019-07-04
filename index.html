@@ -2,8 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8"/>
-    <title>MzIO
-</title>
+    <title>index</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <meta name="description" content="Generic data model to unify various reader and writer for different formats used in protein mass spectrometry"/>
     <meta name="author" content="Patrick Blume, Jonathan Ott"/>
@@ -35,33 +34,11 @@
       <div class="row">
         <div class="span9" id="main">
           
-<h1><a name="MzIO" class="anchor" href="#MzIO">MzIO</a></h1>
-<p>Documentation</p>
-<div class="row">
-  <div class="span1"></div>
-  <div class="span6">
-    <div class="well well-small" id="nuget">
-      The MzIO library can be <a href="https://nuget.org/packages/MzIO">installed from NuGet</a>:
-      <pre>PM> Install-Package MzIO</pre>
-    </div>
-  </div>
-  <div class="span1"></div>
-</div>
-<h2><a name="Example" class="anchor" href="#Example">Example</a></h2>
-<p>This example demonstrates using a function defined in this sample library.</p>
-<table class="pre"><tr><td class="lines"><pre class="fssnip"><span class="l">1: </span>
-<span class="l">2: </span>
-<span class="l">3: </span>
-<span class="l">4: </span>
-</pre></td>
-<td class="snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="pp">#r</span> <span class="s">&quot;MzIO.dll&quot;</span>
-<span class="k">open</span> <span class="id">MzIO</span>
-
-<span onmouseout="hideTip(event, 'fs1', 1)" onmouseover="showTip(event, 'fs1', 1)" class="fn">printfn</span> <span class="s">&quot;hello = </span><span class="pf">%i</span><span class="s">&quot;</span> <span class="o">&lt;|</span> <span class="id">Library</span><span class="pn">.</span><span class="id">hello</span> <span class="n">0</span>
-</code></pre></td>
-</tr>
-</table>
-<p>Some more info</p>
+<p>MzIO is a library that consists of a generic model which is based on the minimal amount of metadata, which different protein mass spectometry data formats share with each other.
+The model is built up of different classes, each with a different function. The MzIOModel holds the global metadata of the experiment, e.g. the with of the isolation window and
+is saved as a Json based shadow file. The runID of the MzIOModel links it with the MassSpectrum.
+The MassSpectrum is used to store the metadata of the different scans and is linked by its ID with the Peak1DArray.
+The Peak1DArray contains in addition to the inensity and m/z values the compression mode and the data format of the values, e.g. float 32 or float 64.</p>
 <h2><a name="Samples-amp-documentation" class="anchor" href="#Samples-amp-documentation">Samples &amp; documentation</a></h2>
 <p>The library comes with comprehensible documentation.
 It can include tutorials automatically generated from <code>*.fsx</code> files in <a href="https://github.com/fsprojects/MzIO/tree/master/docs/content">the content folder</a>.
@@ -83,7 +60,6 @@ also want to read the <a href="https://github.com/fsprojects/MzIO/blob/master/RE
 redistribution for both commercial and non-commercial purposes. For more information see the
 <a href="https://github.com/fsprojects/MzIO/blob/master/LICENSE.txt">License file</a> in the GitHub repository.</p>
 
-<div class="tip" id="fs1">val printfn : format:Printf.TextWriterFormat&lt;&#39;T&gt; -&gt; &#39;T</div>
 
         </div>
         <div class="span3">

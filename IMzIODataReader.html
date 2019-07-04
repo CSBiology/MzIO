@@ -52,13 +52,14 @@ to interact with the data. Thus all readers can be used with the same processing
 </code></pre></td>
 </tr>
 </table>
+<h3><a name="header" class="anchor" href="#header"></a></h3>
 
 <div class="tip" id="fs1">namespace MzIO</div>
 <div class="tip" id="fs2">namespace MzIO.IO</div>
 <div class="tip" id="fs3">namespace MzIO.IO.MzML</div>
 <div class="tip" id="fs4">module MzML<br /><br />from MzIO.IO.MzML</div>
 <div class="tip" id="fs5">val reader : MzMLReader</div>
-<div class="tip" id="fs6">Multiple items<br />type MzMLReader =<br />&#160;&#160;interface IMzIODataReader<br />&#160;&#160;interface IMzIOIO<br />&#160;&#160;interface IDisposable<br />&#160;&#160;new : filePath:string -&gt; MzMLReader<br />&#160;&#160;member BeginTransaction : unit -&gt; ITransactionScope<br />&#160;&#160;member CreateDefaultModel : unit -&gt; MzIOModel<br />&#160;&#160;member Dispose : unit -&gt; unit<br />&#160;&#160;member ReadChromatogramAsync : runID:string -&gt; Async&lt;Chromatogram&gt;<br />&#160;&#160;member ReadChromatogramPeaks : runID:string -&gt; Peak2DArray<br />&#160;&#160;member ReadChromatogramPeaksAsync : runID:string -&gt; Async&lt;Peak2DArray&gt;<br />&#160;&#160;...<br /><br />--------------------<br />new : filePath:string -&gt; MzMLReader</div>
+<div class="tip" id="fs6">Multiple items<br />type MzMLReader =<br />&#160;&#160;interface IMzIODataReader<br />&#160;&#160;interface IMzIOIO<br />&#160;&#160;interface IDisposable<br />&#160;&#160;new : filePath:string -&gt; MzMLReader<br />&#160;&#160;member BeginTransaction : unit -&gt; ITransactionScope<br />&#160;&#160;member CreateDefaultModel : unit -&gt; MzIOModel<br />&#160;&#160;member Dispose : unit -&gt; unit<br />&#160;&#160;member private GetPeak1DArray : ?xmlReader:XmlReader -&gt; Peak1DArray<br />&#160;&#160;member ReadAllSpectrumPeaks : runID:string -&gt; seq&lt;Peak1DArray&gt;<br />&#160;&#160;member ReadChromatogramAsync : runID:string -&gt; Async&lt;Chromatogram&gt;<br />&#160;&#160;...<br /><br />--------------------<br />new : filePath:string -&gt; MzMLReader</div>
 <div class="tip" id="fs7">member MzMLReader.ReadMassSpectra : runID:string -&gt; System.Collections.Generic.IEnumerable&lt;Model.MassSpectrum&gt;</div>
 <div class="tip" id="fs8">member MzMLReader.ReadMassSpectrum : spectrumID:string -&gt; Model.MassSpectrum</div>
 
