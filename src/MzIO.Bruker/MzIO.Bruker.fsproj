@@ -13,6 +13,7 @@
     <!-- Optional: Include PDB in the built .nupkg -->
     <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
     <Platforms>AnyCPU;x64;x86</Platforms>
+    <Configurations>Debug;Release;Wiff;MzML;Thermo;Bruker</Configurations>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net45|x86'">
     <DefineConstants>TRACE;WIN32</DefineConstants>
