@@ -41,11 +41,18 @@ Those would be MzIO (basic functions), MzIO.Processing (data processing function
 and MzIO.SQL (functions to interact with the SQLite database). The other 4 projects are for 4 different
 file formats. Currently supported formats are Wiff (wiff), Bruker (baf) , Thermo Fisher (raw) and MzML (xml).
 The readers for those formats can be installed individually.</p>
-<p>The first step is always to clone the repository from github.</p>
+<p>Currently, the nuget packages are only available at our github <a href="https://github.com/CSBiology/MzIO/tree/nuget">nuget branch</a>. At a later point they will be released at <a href="www.nuget.org">nuget.org</a>.
+You can either install them from there or build the binaries yourself.</p>
+<h1><a name="Building-the-binaries-yourself" class="anchor" href="#Building-the-binaries-yourself">Building the binaries yourself</a></h1>
+<p>First steps:</p>
+<ul>
+<li>Install <a href="https://dotnet.microsoft.com/download">.Net Core SDK</a></li>
+<li>Install the dotnet tool fake cli by <code>dotnet tool install fake-cli -g</code> for global installation or <code>dotnet tool install fake-cli --tool-path yourtoolpath</code></li>
+</ul>
 <h2><a name="Wiff" class="anchor" href="#Wiff">Wiff</a></h2>
 <p>To install the Wiff-Reader, you have to open the console and navigate to the folder of the repository.
 Then you run the command:</p>
-<pre>fake build -t Wiff</pre>
+<p><code>fake build -t Wiff</code></p>
 <p>This command builds the projects MzIO, MzIO.Processing, MzIO.SQL and MzIO.Wiff.</p>
 <p>Important notes:</p>
 <ul>
@@ -60,7 +67,7 @@ You need a Clearcore2 license for the Clearcore2 dlls used in this project
 <h2><a name="Bruker" class="anchor" href="#Bruker">Bruker</a></h2>
 <p>To install the Bruker-Reader, you have to open the console and navigate to the folder of the repository.
 Then you run the command:</p>
-<pre>fake build -t Bruker</pre>
+<p><code>fake build -t Bruker</code></p>
 <p>This command builds the projects MzIO, MzIO.Processing, MzIO.SQL and MzIO.Bruker.</p>
 <p>Important notes:</p>
 <ul>
@@ -70,7 +77,7 @@ Then you run the command:</p>
 <h2><a name="Thermo-Fisher" class="anchor" href="#Thermo-Fisher">Thermo Fisher</a></h2>
 <p>To install the ThermoFisher-Reader, you have to open the console and navigate to the folder of the repository.
 Then you run the command:</p>
-<pre>fake build -t Thermo</pre>
+<p><code>fake build -t Thermo</code></p>
 <p>This command builds the projects MzIO, MzIO.Processing, MzIO.SQL and MzIO.Thermo.</p>
 <p>Important notes:</p>
 <ul>
@@ -79,14 +86,23 @@ Then you run the command:</p>
 <h2><a name="MzML" class="anchor" href="#MzML">MzML</a></h2>
 <p>To install the MzML-Reader, you have to open the console and navigate to the folder of the repository.
 Then you run the command:</p>
-<pre>fake build -t MzML</pre>
+<p><code>fake build -t MzML</code></p>
 <p>This command builds the projects MzIO, MzIO.Processing, MzIO.SQL and MzIO.MzML.</p>
 <h2><a name="Other" class="anchor" href="#Other">Other</a></h2>
 <p>All projects can be built at once if desired. The command for that is:</p>
-<pre>fake build</pre>
+<p><code>fake build</code></p>
 <p>If you don't possess the dlls for the Thermo-Reader, this command end in an error due to missing dlls.</p>
-<p>All projects are available as nuget packages as well. The important notes for the individual readers also apply to
-the nuget packages.</p>
+<h1><a name="Using-the-prerelease-packages-from-the-nuget-branch" class="anchor" href="#Using-the-prerelease-packages-from-the-nuget-branch">Using the prerelease packages from the nuget branch</a></h1>
+<p>If you are using paket, add the following line to your <code>paket.dependencies</code> file:</p>
+<p><code>git https://github.com/CSBiology/BioFSharp.git nuget Packages: /</code></p>
+<p>you can then access the individual packages:
+<code>nuget MzIO</code> <br></p>
+<p><code>nuget MzIO.Processing</code> <br></p>
+<p><code>nuget MzIO.Wiff</code> <br></p>
+<p><code>nuget MzIO.Bruker</code> <br></p>
+<p><code>nuget MzIO.Thermo</code> <br></p>
+<p><code>nuget MzIO.MzML</code> <br></p>
+<p>Note: The important note for installing the binaries yourself apply to the nuget packages as well.</p>
 
 
         </div>

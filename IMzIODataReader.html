@@ -40,7 +40,7 @@ to interact with the data. Thus all readers can be used with the same processing
 <p>Uses a run ID to get all spectra saved in the model.</p>
 <table class="pre"><tr><td class="lines"><pre class="fssnip"><span class="l">1: </span>
 </pre></td>
-<td class="snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span onmouseout="hideTip(event, 'fs5', 8)" onmouseover="showTip(event, 'fs5', 8)" class="fn">reader</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs7', 9)" onmouseover="showTip(event, 'fs7', 9)" class="id">ReadMassSpectra</span> <span class="s">&quot;runID&quot;</span>
+<td class="snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span onmouseout="hideTip(event, 'fs5', 8)" onmouseover="showTip(event, 'fs5', 8)" class="id">reader</span><span class="pn">.</span><span class="id">ReadMassSpectra</span> <span class="s">&quot;runID&quot;</span>
 </code></pre></td>
 </tr>
 </table>
@@ -48,7 +48,7 @@ to interact with the data. Thus all readers can be used with the same processing
 <p>Uses a spectrum ID to get the spectrum with this ID saved in the model.</p>
 <table class="pre"><tr><td class="lines"><pre class="fssnip"><span class="l">1: </span>
 </pre></td>
-<td class="snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span onmouseout="hideTip(event, 'fs5', 10)" onmouseover="showTip(event, 'fs5', 10)" class="fn">reader</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs8', 11)" onmouseover="showTip(event, 'fs8', 11)" class="id">ReadMassSpectrum</span> <span class="s">&quot;spectrumID&quot;</span>
+<td class="snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span onmouseout="hideTip(event, 'fs5', 9)" onmouseover="showTip(event, 'fs5', 9)" class="id">reader</span><span class="pn">.</span><span class="id">ReadMassSpectrum</span> <span class="s">&quot;spectrumID&quot;</span>
 </code></pre></td>
 </tr>
 </table>
@@ -59,9 +59,7 @@ to interact with the data. Thus all readers can be used with the same processing
 <div class="tip" id="fs3">namespace MzIO.IO.MzML</div>
 <div class="tip" id="fs4">module MzML<br /><br />from MzIO.IO.MzML</div>
 <div class="tip" id="fs5">val reader : MzMLReader</div>
-<div class="tip" id="fs6">Multiple items<br />type MzMLReader =<br />&#160;&#160;interface IMzIODataReader<br />&#160;&#160;interface IMzIOIO<br />&#160;&#160;interface IDisposable<br />&#160;&#160;new : filePath:string -&gt; MzMLReader<br />&#160;&#160;member BeginTransaction : unit -&gt; ITransactionScope<br />&#160;&#160;member CreateDefaultModel : unit -&gt; MzIOModel<br />&#160;&#160;member Dispose : unit -&gt; unit<br />&#160;&#160;member private GetPeak1DArray : ?xmlReader:XmlReader -&gt; Peak1DArray<br />&#160;&#160;member ReadAllSpectrumPeaks : runID:string -&gt; seq&lt;Peak1DArray&gt;<br />&#160;&#160;member ReadChromatogramAsync : runID:string -&gt; Async&lt;Chromatogram&gt;<br />&#160;&#160;...<br /><br />--------------------<br />new : filePath:string -&gt; MzMLReader</div>
-<div class="tip" id="fs7">member MzMLReader.ReadMassSpectra : runID:string -&gt; System.Collections.Generic.IEnumerable&lt;Model.MassSpectrum&gt;</div>
-<div class="tip" id="fs8">member MzMLReader.ReadMassSpectrum : spectrumID:string -&gt; Model.MassSpectrum</div>
+<div class="tip" id="fs6">Multiple items<br /><br />--------------------<br />new : filePath:string -&gt; MzMLReader</div>
 
         </div>
         <div class="span3">
