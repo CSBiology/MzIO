@@ -7,14 +7,22 @@ and MzIO.SQL (functions to interact with the SQLite database). The other 4 proje
 file formats. Currently supported formats are Wiff (wiff), Bruker (baf) , Thermo Fisher (raw) and MzML (xml).
 The readers for those formats can be installed individually.
 
-The first step is always to clone the repository from github.
+Currently, the nuget packages are only available at our github [nuget branch](https://github.com/CSBiology/MzIO/tree/nuget). At a later point they will be released at [nuget.org](www.nuget.org).
+You can either install them from there or build the binaries yourself.
+
+#Building the binaries yourself
+
+First steps:
+
+* Install [.Net Core SDK](https://dotnet.microsoft.com/download)
+* Install the dotnet tool fake cli by `dotnet tool install fake-cli -g` for global installation, or `dotnet tool install fake-cli --tool-path yourtoolpath`
 
 ##Wiff
 
 To install the Wiff-Reader, you have to open the console and navigate to the folder of the repository.
 Then you run the command:
 
-<pre>fake build -t Wiff</pre>
+`fake build -t Wiff`
 
 This command builds the projects MzIO, MzIO.Processing, MzIO.SQL and MzIO.Wiff.
 
@@ -29,7 +37,7 @@ Important notes:
 To install the Bruker-Reader, you have to open the console and navigate to the folder of the repository.
 Then you run the command:
 
-<pre>fake build -t Bruker</pre>
+`fake build -t Bruker`
 
 This command builds the projects MzIO, MzIO.Processing, MzIO.SQL and MzIO.Bruker.
 
@@ -43,7 +51,7 @@ Important notes:
 To install the ThermoFisher-Reader, you have to open the console and navigate to the folder of the repository.
 Then you run the command:
 
-<pre>fake build -t Thermo</pre>
+`fake build -t Thermo`
 
 This command builds the projects MzIO, MzIO.Processing, MzIO.SQL and MzIO.Thermo.
 
@@ -56,7 +64,7 @@ Important notes:
 To install the MzML-Reader, you have to open the console and navigate to the folder of the repository.
 Then you run the command:
 
-<pre>fake build -t MzML</pre>
+`fake build -t MzML`
 
 This command builds the projects MzIO, MzIO.Processing, MzIO.SQL and MzIO.MzML.
 
@@ -64,10 +72,29 @@ This command builds the projects MzIO, MzIO.Processing, MzIO.SQL and MzIO.MzML.
 
 All projects can be built at once if desired. The command for that is:
 
-<pre>fake build</pre>
+`fake build`
 
 If you don't possess the dlls for the Thermo-Reader, this command end in an error due to missing dlls.
 
-All projects are available as nuget packages as well. The important notes for the individual readers also apply to
-the nuget packages.
+#Using the prerelease packages from the nuget branch
+
+If you are using paket, add the following line to your `paket.dependencies` file:
+
+`git https://github.com/CSBiology/BioFSharp.git nuget Packages: /`
+
+you can then access the individual packages:
+
+`nuget MzIO` <br>
+
+`nuget MzIO.Processing` <br>
+
+`nuget MzIO.Wiff` <br>
+
+`nuget MzIO.Bruker` <br>
+
+`nuget MzIO.Thermo` <br>
+
+`nuget MzIO.MzML` <br>
+
+Note: The important note for installing the binaries yourself apply to the nuget packages as well.
 *)
