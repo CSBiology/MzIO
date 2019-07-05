@@ -49,7 +49,7 @@
     <Compile Include="IO\MzIOIOExcpetion.fs" />
     <Compile Include="IO\ITransactionScope.fs" />
     <Compile Include="IO\IMzIOIO.fs" />
-    <Compile Include="IO\MzIODataReader.fs" />
+    <Compile Include="IO\IMzIODataReader.fs" />
     <Compile Include="IO\IMzIODataWriter.fs" />
     <Compile Include="JSON\ParamBaseConverter.fs" />
     <Compile Include="JSON\MzIOJson.fs" />
