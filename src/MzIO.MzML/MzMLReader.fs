@@ -873,22 +873,22 @@ module MzML =
             let rec loop id cvParams userParams precs products read =
                 if readSubtree.NodeType=XmlNodeType.Element then
                     match readSubtree.Name with
-                    | "chromatogram"                -> loop
-                                                        (this.getAttribute ("id", readSubtree))
-                                                        cvParams userParams precs products
-                                                        (readOp() |> ignore)
-                    | "cvParam"                     -> loop id ((this.getCVParam readSubtree)::cvParams) userParams precs products (readOp() |> ignore)
-                    | "userParam"                   -> loop id cvParams ((this.getUserParam readSubtree)::userParams) precs products   (readOp() |> ignore)
-                    | "scanList"                    -> loop id cvParams userParams precs products read
-                    | "precursor"                   -> loop id cvParams userParams (this.getPrecursor readSubtree) products read
-                    | "product"                     -> loop id cvParams userParams precs (this.getProduct readSubtree) read
-                    | "binaryDataArrayList"         -> chromatogram <- new Chromatogram(id, precs, products)
-                                                       cvParams
-                                                       |> List.iter(fun cvParam -> chromatogram.AddCvParam cvParam)
-                                                       userParams
-                                                       |> List.iter(fun userParam -> chromatogram.AddUserParam userParam)
-                                                       chromatogram
-                    |   _                           -> chromatogram
+                    | "chromatogram"        -> loop
+                                                (this.getAttribute ("id", readSubtree))
+                                                cvParams userParams precs products
+                                                (readOp() |> ignore)
+                    | "cvParam"             -> loop id ((this.getCVParam readSubtree)::cvParams) userParams precs products (readOp() |> ignore)
+                    | "userParam"           -> loop id cvParams ((this.getUserParam readSubtree)::userParams) precs products   (readOp() |> ignore)
+                    | "scanList"            -> loop id cvParams userParams precs products read
+                    | "precursor"           -> loop id cvParams userParams (this.getPrecursor readSubtree) products read
+                    | "product"             -> loop id cvParams userParams precs (this.getProduct readSubtree) read
+                    | "binaryDataArrayList" -> chromatogram <- new Chromatogram(id, precs, products)
+                                               cvParams
+                                               |> List.iter(fun cvParam -> chromatogram.AddCvParam cvParam)
+                                               userParams
+                                               |> List.iter(fun userParam -> chromatogram.AddUserParam userParam)
+                                               chromatogram
+                    |   _                   -> chromatogram
                 else
                     if readOp()=true then loop id cvParams userParams precs products read
                     else chromatogram

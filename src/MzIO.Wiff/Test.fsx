@@ -15,6 +15,7 @@
 //#r @"../MzIO.Thermo\bin\Release\net451\ThermoFisher.CommonCore.Data.dll"
 //#r @"../MzIO.Thermo\bin\Release\net451\ThermoFisher.CommonCore.MassPrecisionEstimator.dll"
 //#r @"../MzIO.Thermo\bin\Release\net451\ThermoFisher.CommonCore.RawFileReader.dll"
+//#r @"../MzIO.Thermo\bin\Release\net451\MzIO.Thermo.dll"
 
 
 open System
@@ -38,16 +39,7 @@ open MzIO.Bruker
 open MzIO.IO.MzML
 open MzIO.IO.MzML.MzML
 open MzIO.IO
-//open ThermoFisher
-//open ThermoFisher.CommonCore
-//open ThermoFisher.CommonCore.RawFileReader
-//open ThermoFisher.CommonCore.RawFileReader.Writers
-//open ThermoFisher.CommonCore.Data
-//open ThermoFisher.CommonCore.Data.Business
-//open ThermoFisher.CommonCore.Data.FilterEnums
-//open ThermoFisher.CommonCore.Data.Interfaces
-//open ThermoFisher.CommonCore.BackgroundSubtraction
-//open ThermoFisher.CommonCore.MassPrecisionEstimator
+//open MzIO.Thermo
 
 //let test = Software()
 //let tests = SoftwareList()
@@ -489,14 +481,14 @@ let termoMzML       = @"C:\Users\Student\source\repos\wiffTestFiles\Thermo\data0
 //let wiffMzML            = new MzMLReader(mzMLOfWiffUni)
 
 let bafReader           = new BafFileReader(bafTestFile)
-let bafMzMLReader       = new MzMLReader(bafTestFile)
+let bafMzMLReader       = new MzMLReader(bafMzMLFile)
 
-//let thermoReader        = new ThermoFileReader(thermoUniPath)
+//let thermoReader        = new ThermoRawFileReader(thermoUniPath)
 //let thermoMzMLReader    = new MzMLReader(termoMzML)
 
 let spectra =
-    bafReader.Model.Runs.GetProperties false
-    |> Seq.collect (fun item -> bafReader.ReadMassSpectra (MzIOJson.FromJson<Run>(item.Value.ToString())).ID)
+    thermoReader.Model.Runs.GetProperties false
+    |> Seq.collect (fun item -> thermoReader.ReadMassSpectra (MzIOJson.FromJson<Run>(item.Value.ToString())).ID)
     |> Array.ofSeq
 
 spectra
@@ -504,7 +496,7 @@ spectra
 
 let seqPeaks =
     spectra
-    |> Seq.map (fun spectrum -> bafReader.ReadSpectrumPeaks(spectrum.ID))
+    |> Seq.map (fun spectrum -> thermoReader.ReadSpectrumPeaks(spectrum.ID))
 
 seqPeaks
 |> Seq.length
@@ -516,20 +508,23 @@ let randomSpectra =
 
 let randomPeaks =
     randomSpectra
-    |> Seq.map (fun spectrum -> bafReader.ReadSpectrumPeaks(spectrum.ID))
+    |> Seq.map (fun spectrum -> thermoReader.ReadSpectrumPeaks(spectrum.ID))
 
 randomPeaks
 |> Seq.length
 
 
 let spectraMzML =
-    wiffMzML.Model.Runs.GetProperties false
-    |> Seq.collect (fun item -> wiffMzML.ReadMassSpectra (MzIOJson.FromJson<Run>(item.Value.ToString())).ID)
+    bafMzMLReader.Model.Runs.GetProperties false
+    |> Seq.collect (fun item -> bafMzMLReader.ReadMassSpectra (MzIOJson.FromJson<Run>(item.Value.ToString())).ID)
     |> Array.ofSeq
 
+spectraMzML
+|> Seq.length
+
 let seqPeaksMzML =
-    wiffMzML.Model.Runs.GetProperties false
-    |> Seq.collect (fun item -> wiffMzML.ReadAllSpectrumPeaks (MzIOJson.FromJson<Run>(item.Value.ToString())).ID)
+    bafMzMLReader.Model.Runs.GetProperties false
+    |> Seq.collect (fun item -> bafMzMLReader.ReadAllSpectrumPeaks (MzIOJson.FromJson<Run>(item.Value.ToString())).ID)
 
 seqPeaksMzML
 |> Seq.length
@@ -541,9 +536,9 @@ let randomSpectraMzML =
 
 let randomPeaksMzML =
     randomSpectraMzML
-    |> Seq.map (fun item -> wiffMzML.ReadSpectrumPeaks(item.ID))
+    |> Seq.map (fun item -> bafMzMLReader.ReadSpectrumPeaks(item.ID))
 
 randomPeaksMzML
 |> Seq.length
 
-1+1
+//1+1
