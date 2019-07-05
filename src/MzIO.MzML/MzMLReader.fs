@@ -2,6 +2,8 @@
 
 
 open System
+open System.Collections.Generic
+open System.Linq
 open System.IO
 open System.IO.Compression
 open System.Xml
@@ -14,6 +16,8 @@ open MzIO.Commons.Arrays
 open MzIO.Binary
 open MzIO.IO
 open MzIO.Json
+open MzIO.Processing
+open MzIO.Processing.MzIOLinq
 
 
 module MzML =
@@ -1942,3 +1946,21 @@ module MzML =
         member this.ReadAllSpectrumPeaks(runID:string) =
 
             this.getAllPeak1DArrays(runID)
+
+        member this.RtProfile(rtIndex: IMzIOArray<RtIndexEntry>, rtRange: RangeQuery, mzRange: RangeQuery) =
+
+            reader <- XmlReader.Create(filePath)
+            let entries = RtIndexEntry.Search(rtIndex, rtRange).ToArray()
+            let profile = Array.zeroCreate<Peak2D> entries.Length
+            let rtIdxs = [0..entries.Length-1]
+            rtIdxs
+            |> List.iter (fun rtIdx ->
+                            let entry = entries.[rtIdx]
+                            let peaks = this.ReadSpectrumPeaks(entry).Peaks
+                            let p = 
+                                (RtIndexEntry.MzSearch (peaks, mzRange)).DefaultIfEmpty(new Peak1D(0., mzRange.LockValue))
+                                |> fun x -> RtIndexEntry.ClosestMz (x, mzRange.LockValue)
+                                |> fun x -> RtIndexEntry.AsPeak2D (x, entry.Rt)
+                            profile.[rtIdx] <- p
+                        )
+            profile

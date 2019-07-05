@@ -76,14 +76,6 @@ let jonWiff             = @"C:\Users\jonat\OneDrive\MP_Biotech\VP_Timo\MassSpecF
 let wiffTestPaeddetor   = @"D:\Users\Patrick\Desktop\BioInformatik\MzLiteTestFiles\WiffTestFiles\20180301_MS_JT88mutID122.wiff"
 let paddeTestPath       = @"D:\Users\Patrick\Desktop\BioInformatik\MzLiteTestFiles\WiffTestFiles\20180301_MS_JT88mutID122.wiff.mzIO"
 
-let wiffTestUni         = @"C:\Users\Student\source\repos\wiffTestFiles\WiffFiles\20171129 FW LWagg001.wiff"
-let mzMLOfWiffUni       = @"C:\Users\Student\source\repos\wiffTestFiles\WiffFiles\20171129 FW LWagg001.mzML"
-let uniTestPath         = @"C:\Users\Student\source\repos\wiffTestFiles\WiffFiles\20171129 FW LWagg001.wiff.mzIO"
-let thermoUniPath       = @"C:\Users\Student\source\repos\wiffTestFiles\Thermo\data02.RAW"
-
-let bafTestFile         = @"C:\Users\Student\source\repos\wiffTestFiles\Bruker\170922_4597.d\analysis.baf"
-let bafMzMLFile         = @"C:\Users\Student\source\repos\wiffTestFiles\Bruker\170922_4597.mzML"
-
 let mzIOFSharpDBPath    = @"C:\Users\Student\source\repos\wiffTestFiles\Databases\MzLiteFSHarpLWagg001.mzIO"
 
 
@@ -471,41 +463,87 @@ let insertMSSpectraBy insertSpectrumF outFilepath runID (reader:IMzIODataReader)
     db.Dispose()
 
 
-//let tmp = insertMSSpectraBy insertMSSpectrum (bafTestFile + ".mzio") ("run_1") reader "NoCompression" spectra
+let rand = new System.Random()
 
-let termoMzML = @"C:\Users\Student\source\repos\wiffTestFiles\Thermo\data02.mzML"
-//let xmlMzML = @"C:\Users\Patrick\source\repos\MzDatabasesLibrary\MzDatabasesLibrary\XMLs\small_miape.pwiz.1.1.txt"
+let swap (a: _[]) x y =
+    let tmp = a.[x]
+    a.[x] <- a.[y]
+    a.[y] <- tmp
+
+// shuffle an array (in-place)
+let shuffle a =
+    Array.iteri (fun i _ -> swap a i (rand.Next(i, Array.length a))) a
 
 
-let mutable mzMLReader = new MzMLReader(termoMzML)
+let wiffTestUni     = @"C:\Users\Student\source\repos\wiffTestFiles\WiffFiles\20171129 FW LWagg001.wiff"
+let mzMLOfWiffUni   = @"C:\Users\Student\source\repos\wiffTestFiles\WiffFiles\20171129 FW LWagg001.mzML"
 
-//let spectra =
-//    mzMLReader.Model.Runs.GetProperties false
-//    |> Seq.collect (fun item -> mzMLReader.ReadMassSpectra (MzIOJson.FromJson<Run>(item.Value.ToString())).ID)
-//    //|> List.ofSeq
+let bafTestFile     = @"C:\Users\Student\source\repos\wiffTestFiles\Bruker\170922_4597.d\analysis.baf"
+let bafMzMLFile     = @"C:\Users\Student\source\repos\wiffTestFiles\Bruker\170922_4597.mzML"
 
-//spectra
-//|> Seq.length
+let thermoUniPath   = @"C:\Users\Student\source\repos\wiffTestFiles\Thermo\data02.RAW"
+let termoMzML       = @"C:\Users\Student\source\repos\wiffTestFiles\Thermo\data02.mzML"
 
-//mzMLReader.ReadSpectrumPeaks "controllerType=0 controllerNumber=1 scan=1"
 
-let peaks =
-    mzMLReader.Model.Runs.GetProperties false
-    |> Seq.collect (fun item -> mzMLReader.ReadAllSpectrumPeaks (MzIOJson.FromJson<Run>(item.Value.ToString())).ID)
+//let wiffReader          = new WiffFileReader(wiffTestUni, licensePath)
+//let wiffMzML            = new MzMLReader(mzMLOfWiffUni)
 
-peaks
+let bafReader           = new BafFileReader(bafTestFile)
+let bafMzMLReader       = new MzMLReader(bafTestFile)
+
+//let thermoReader        = new ThermoFileReader(thermoUniPath)
+//let thermoMzMLReader    = new MzMLReader(termoMzML)
+
+let spectra =
+    bafReader.Model.Runs.GetProperties false
+    |> Seq.collect (fun item -> bafReader.ReadMassSpectra (MzIOJson.FromJson<Run>(item.Value.ToString())).ID)
+    |> Array.ofSeq
+
+spectra
 |> Seq.length
 
-//for i in peaks do
-//    printfn "%i" (Seq.length i.Peaks)
+let seqPeaks =
+    spectra
+    |> Seq.map (fun spectrum -> bafReader.ReadSpectrumPeaks(spectrum.ID))
+
+seqPeaks
+|> Seq.length
+
+let randomSpectra =
+    let tmp = Array.copy spectra
+    shuffle tmp
+    tmp
+
+let randomPeaks =
+    randomSpectra
+    |> Seq.map (fun spectrum -> bafReader.ReadSpectrumPeaks(spectrum.ID))
+
+randomPeaks
+|> Seq.length
 
 
-//spectra
-//|> Seq.length
+let spectraMzML =
+    wiffMzML.Model.Runs.GetProperties false
+    |> Seq.collect (fun item -> wiffMzML.ReadMassSpectra (MzIOJson.FromJson<Run>(item.Value.ToString())).ID)
+    |> Array.ofSeq
 
-//let brukaRTIndex = mzMLReader.BuildRtIndex("controllerType=0 controllerNumber=1 scan=2")
-//let brukaRT = mzMLReader.RtProfile(brukaRTIndex, (new MzIO.Processing.RangeQuery(1., 300., 600.)), (new MzIO.Processing.RangeQuery(1., 300., 600.)))
+let seqPeaksMzML =
+    wiffMzML.Model.Runs.GetProperties false
+    |> Seq.collect (fun item -> wiffMzML.ReadAllSpectrumPeaks (MzIOJson.FromJson<Run>(item.Value.ToString())).ID)
 
+seqPeaksMzML
+|> Seq.length
 
-//let reader = XmlReader.Create("Test")
-//reader.NodeType = XmlNodeType.Element
+let randomSpectraMzML =
+    let tmp = Array.copy spectraMzML
+    shuffle tmp
+    tmp
+
+let randomPeaksMzML =
+    randomSpectraMzML
+    |> Seq.map (fun item -> wiffMzML.ReadSpectrumPeaks(item.ID))
+
+randomPeaksMzML
+|> Seq.length
+
+1+1
