@@ -36,30 +36,92 @@
           
 <p>All readers in this project implement the interface of the IMzIODataReader. It contains abstract members
 to interact with the data. Thus all readers can be used with the same processing functions.</p>
-<h3><a name="ReadMassSpectra" class="anchor" href="#ReadMassSpectra">ReadMassSpectra</a></h3>
-<p>Uses a run ID to get all spectra saved in the model.</p>
-<table class="pre"><tr><td class="lines"><pre class="fssnip"><span class="l">1: </span>
-</pre></td>
-<td class="snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span onmouseout="hideTip(event, 'fs5', 8)" onmouseover="showTip(event, 'fs5', 8)" class="id">reader</span><span class="pn">.</span><span class="id">ReadMassSpectra</span> <span class="s">&quot;runID&quot;</span>
-</code></pre></td>
-</tr>
-</table>
 <h3><a name="ReadMassSpectrum" class="anchor" href="#ReadMassSpectrum">ReadMassSpectrum</a></h3>
-<p>Uses a spectrum ID to get the spectrum with this ID saved in the model.</p>
+<p>Uses a spectrum ID to get a specific spectrum contained by the model.</p>
 <table class="pre"><tr><td class="lines"><pre class="fssnip"><span class="l">1: </span>
 </pre></td>
-<td class="snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span onmouseout="hideTip(event, 'fs5', 9)" onmouseover="showTip(event, 'fs5', 9)" class="id">reader</span><span class="pn">.</span><span class="id">ReadMassSpectrum</span> <span class="s">&quot;spectrumID&quot;</span>
+<td class="snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span onmouseout="hideTip(event, 'fs5', 11)" onmouseover="showTip(event, 'fs5', 11)" class="fn">reader</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs8', 12)" onmouseover="showTip(event, 'fs8', 12)" class="id">ReadMassSpectrum</span> <span class="s">&quot;spectrumID&quot;</span>
 </code></pre></td>
 </tr>
 </table>
-<h3><a name="header" class="anchor" href="#header"></a></h3>
+<p>Returns a MassSpectrum which ID is equal to spectrumID or fails if no MassSpectrum has a fitting ID. This MassSpectrum does not contain intensity or m/z values but
+information about precusors, products and meta data information of the measured spectrum.</p>
+<h3><a name="ReadMassSpectra" class="anchor" href="#ReadMassSpectra">ReadMassSpectra</a></h3>
+<p>Uses a run ID to get all spectra contained by the model.</p>
+<table class="pre"><tr><td class="lines"><pre class="fssnip"><span class="l">1: </span>
+</pre></td>
+<td class="snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span onmouseout="hideTip(event, 'fs5', 13)" onmouseover="showTip(event, 'fs5', 13)" class="fn">reader</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs9', 14)" onmouseover="showTip(event, 'fs9', 14)" class="id">ReadMassSpectra</span> <span class="s">&quot;runID&quot;</span>
+</code></pre></td>
+</tr>
+</table>
+<p>This function call returns a sequence of all spectra that are part of the same run. This doesn't include any intensity and m/z values but the metadata associated
+with the spectra measurments.</p>
+<h3><a name="ReadSpectrumPeaks" class="anchor" href="#ReadSpectrumPeaks">ReadSpectrumPeaks</a></h3>
+<p>Uses a spectrum ID to get a Peak1DArray associated with a specific spectrum contained by the model.</p>
+<table class="pre"><tr><td class="lines"><pre class="fssnip"><span class="l">1: </span>
+</pre></td>
+<td class="snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span onmouseout="hideTip(event, 'fs5', 15)" onmouseover="showTip(event, 'fs5', 15)" class="fn">reader</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs10', 16)" onmouseover="showTip(event, 'fs10', 16)" class="id">ReadSpectrumPeaks</span> <span class="s">&quot;spectrumID&quot;</span>
+</code></pre></td>
+</tr>
+</table>
+<p>This function call returns a Peak1DArray of the MassSpectrum. This class contains the intensity and m/z values and additional information, like the compression mode and data format
+of the values. By changing the compression mode the compression mode of the values will be altered when they get inserted into the SQLite database.</p>
+<h3><a name="ReadMassSpectrumAsync" class="anchor" href="#ReadMassSpectrumAsync">ReadMassSpectrumAsync</a></h3>
+<p>Uses a spectrum ID to get a specific spectrum contained by the model. This function is executed multiple times in parallel.</p>
+<table class="pre"><tr><td class="lines"><pre class="fssnip"><span class="l">1: </span>
+</pre></td>
+<td class="snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span onmouseout="hideTip(event, 'fs5', 17)" onmouseover="showTip(event, 'fs5', 17)" class="fn">reader</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs11', 18)" onmouseover="showTip(event, 'fs11', 18)" class="id">ReadMassSpectrumAsync</span> <span class="s">&quot;spectrumID&quot;</span>
+</code></pre></td>
+</tr>
+</table>
+<p>Returns a MassSpectrum which ID is equal to spectrumID or fails if no MassSpectrum has a fitting ID. This MassSpectrum does not contain intensity or m/z values but
+information about precusors, products and meta data information of the measured spectrum. The operation is executed in parellel to increase the speed.</p>
+<h3><a name="ReadSpectrumPeaksAsync" class="anchor" href="#ReadSpectrumPeaksAsync">ReadSpectrumPeaksAsync</a></h3>
+<p>Uses a spectrum ID to get a Peak1DArray associated with a specific spectrum contained by the model. This function is executed multiple times in parallel.</p>
+<table class="pre"><tr><td class="lines"><pre class="fssnip"><span class="l">1: </span>
+</pre></td>
+<td class="snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span onmouseout="hideTip(event, 'fs5', 19)" onmouseover="showTip(event, 'fs5', 19)" class="fn">reader</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs12', 20)" onmouseover="showTip(event, 'fs12', 20)" class="id">ReadSpectrumPeaksAsync</span> <span class="s">&quot;spectrumID&quot;</span>
+</code></pre></td>
+</tr>
+</table>
+<p>This function call returns a Peak1DArray of the MassSpectrum. This class contains the intensity and m/z values and additional information, like the compression mode and data format
+of the values. By changing the compression mode the compression mode of the values will be altered when they get inserted into the SQLite database.
+The operation is executed in parellel to increase the speed.</p>
+<h3><a name="ReadChromatogram" class="anchor" href="#ReadChromatogram">ReadChromatogram</a></h3>
+<p>The functions which are required to read a Chromatogram are not implemented yet.</p>
+<table class="pre"><tr><td class="lines"><pre class="fssnip"><span class="l">1: </span>
+<span class="l">2: </span>
+<span class="l">3: </span>
+<span class="l">4: </span>
+<span class="l">5: </span>
+</pre></td>
+<td class="snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span onmouseout="hideTip(event, 'fs5', 21)" onmouseover="showTip(event, 'fs5', 21)" class="fn">reader</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs13', 22)" onmouseover="showTip(event, 'fs13', 22)" class="id">ReadChromatograms</span>            <span class="s">&quot;runID&quot;</span>
+<span onmouseout="hideTip(event, 'fs5', 23)" onmouseover="showTip(event, 'fs5', 23)" class="fn">reader</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs14', 24)" onmouseover="showTip(event, 'fs14', 24)" class="id">ReadChromatogram</span>             <span class="s">&quot;chromatogramID&quot;</span>
+<span onmouseout="hideTip(event, 'fs5', 25)" onmouseover="showTip(event, 'fs5', 25)" class="fn">reader</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs15', 26)" onmouseover="showTip(event, 'fs15', 26)" class="id">ReadChromatogramPeaks</span>        <span class="s">&quot;chromatogramID&quot;</span>
+<span onmouseout="hideTip(event, 'fs5', 27)" onmouseover="showTip(event, 'fs5', 27)" class="fn">reader</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs16', 28)" onmouseover="showTip(event, 'fs16', 28)" class="id">ReadChromatogramAsync</span>        <span class="s">&quot;chromatogramID&quot;</span>
+<span onmouseout="hideTip(event, 'fs5', 29)" onmouseover="showTip(event, 'fs5', 29)" class="fn">reader</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs17', 30)" onmouseover="showTip(event, 'fs17', 30)" class="id">ReadChromatogramPeaksAsync</span>   <span class="s">&quot;chromatogramID&quot;</span>
+</code></pre></td>
+</tr>
+</table>
+<p>The functions which are required to read a Chromatogram are not implemented yet.</p>
 
 <div class="tip" id="fs1">namespace MzIO</div>
 <div class="tip" id="fs2">namespace MzIO.IO</div>
 <div class="tip" id="fs3">namespace MzIO.IO.MzML</div>
 <div class="tip" id="fs4">module MzML<br /><br />from MzIO.IO.MzML</div>
-<div class="tip" id="fs5">val reader : MzMLReader</div>
-<div class="tip" id="fs6">Multiple items<br /><br />--------------------<br />new : filePath:string -&gt; MzMLReader</div>
+<div class="tip" id="fs5">val reader : IO.IMzIODataReader</div>
+<div class="tip" id="fs6">Multiple items<br />type MzMLReader =<br />&#160;&#160;interface IMzIODataReader<br />&#160;&#160;interface IMzIOIO<br />&#160;&#160;interface IDisposable<br />&#160;&#160;new : filePath:string -&gt; MzMLReader<br />&#160;&#160;member BeginTransaction : unit -&gt; ITransactionScope<br />&#160;&#160;member CreateDefaultModel : unit -&gt; MzIOModel<br />&#160;&#160;member Dispose : unit -&gt; unit<br />&#160;&#160;member private GetPeak1DArray : ?xmlReader:XmlReader -&gt; Peak1DArray<br />&#160;&#160;member ReadAllSpectrumPeaks : runID:string -&gt; seq&lt;Peak1DArray&gt;<br />&#160;&#160;member ReadChromatogramAsync : runID:string -&gt; Async&lt;Chromatogram&gt;<br />&#160;&#160;...<br /><br />--------------------<br />new : filePath:string -&gt; MzMLReader</div>
+<div class="tip" id="fs7">type IMzIODataReader =<br />&#160;&#160;interface<br />&#160;&#160;&#160;&#160;inherit IMzIOIO<br />&#160;&#160;&#160;&#160;abstract member ReadChromatogram : string -&gt; Chromatogram<br />&#160;&#160;&#160;&#160;abstract member ReadChromatogramAsync : string -&gt; Async&lt;Chromatogram&gt;<br />&#160;&#160;&#160;&#160;abstract member ReadChromatogramPeaks : string -&gt; Peak2DArray<br />&#160;&#160;&#160;&#160;abstract member ReadChromatogramPeaksAsync : string -&gt; Async&lt;Peak2DArray&gt;<br />&#160;&#160;&#160;&#160;abstract member ReadChromatograms : string -&gt; IEnumerable&lt;Chromatogram&gt;<br />&#160;&#160;&#160;&#160;abstract member ReadMassSpectra : string -&gt; IEnumerable&lt;MassSpectrum&gt;<br />&#160;&#160;&#160;&#160;abstract member ReadMassSpectrum : string -&gt; MassSpectrum<br />&#160;&#160;&#160;&#160;abstract member ReadMassSpectrumAsync : string -&gt; Task&lt;MassSpectrum&gt;<br />&#160;&#160;&#160;&#160;abstract member ReadSpectrumPeaks : string -&gt; Peak1DArray<br />&#160;&#160;&#160;&#160;...<br />&#160;&#160;end</div>
+<div class="tip" id="fs8">abstract member IO.IMzIODataReader.ReadMassSpectrum : string -&gt; Model.MassSpectrum</div>
+<div class="tip" id="fs9">abstract member IO.IMzIODataReader.ReadMassSpectra : string -&gt; System.Collections.Generic.IEnumerable&lt;Model.MassSpectrum&gt;</div>
+<div class="tip" id="fs10">abstract member IO.IMzIODataReader.ReadSpectrumPeaks : string -&gt; Binary.Peak1DArray</div>
+<div class="tip" id="fs11">abstract member IO.IMzIODataReader.ReadMassSpectrumAsync : string -&gt; System.Threading.Tasks.Task&lt;Model.MassSpectrum&gt;</div>
+<div class="tip" id="fs12">abstract member IO.IMzIODataReader.ReadSpectrumPeaksAsync : string -&gt; System.Threading.Tasks.Task&lt;Binary.Peak1DArray&gt;</div>
+<div class="tip" id="fs13">abstract member IO.IMzIODataReader.ReadChromatograms : string -&gt; System.Collections.Generic.IEnumerable&lt;Model.Chromatogram&gt;</div>
+<div class="tip" id="fs14">abstract member IO.IMzIODataReader.ReadChromatogram : string -&gt; Model.Chromatogram</div>
+<div class="tip" id="fs15">abstract member IO.IMzIODataReader.ReadChromatogramPeaks : string -&gt; Binary.Peak2DArray</div>
+<div class="tip" id="fs16">abstract member IO.IMzIODataReader.ReadChromatogramAsync : string -&gt; Async&lt;Model.Chromatogram&gt;</div>
+<div class="tip" id="fs17">abstract member IO.IMzIODataReader.ReadChromatogramPeaksAsync : string -&gt; Async&lt;Binary.Peak2DArray&gt;</div>
 
         </div>
         <div class="span3">
