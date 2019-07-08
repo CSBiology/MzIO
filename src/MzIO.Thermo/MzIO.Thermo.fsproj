@@ -24,6 +24,12 @@
     <None Include="paket.references" />
     <None Include="paket.template" />
   </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="ThermoFisher.CommonCore.BackgroundSubtraction" Version="4.0.107" />
+    <PackageReference Include="ThermoFisher.CommonCore.Data" Version="4.0.107" />
+    <PackageReference Include="ThermoFisher.CommonCore.MassPrecisionEstimator" Version="4.0.107" />
+    <PackageReference Include="ThermoFisher.CommonCore.RawFileReader" Version="4.0.107" />
+  </ItemGroup>
   <!--<ItemGroup>
     <PackageReference Include="ThermoFisher.CommonCore.BackgroundSubtraction" Version="4.0.107" />
     <PackageReference Include="ThermoFisher.CommonCore.Data" Version="4.0.107" />
@@ -31,11 +37,6 @@
     <PackageReference Include="ThermoFisher.CommonCore.RawFileReader" Version="4.0.107" />
   </ItemGroup>-->
   <ItemGroup>
-    <ProjectReference Include="..\MzIO.Bruker\MzIO.Bruker.fsproj" />
-    <ProjectReference Include="..\MzIO.MzML\MzIO.MzML.fsproj" />
-    <ProjectReference Include="..\MzIO.Processing\MzIO.Processing.fsproj" />
-    <ProjectReference Include="..\MzIO.SQL\MzIO.SQL.fsproj" />
-    <ProjectReference Include="..\MzIO.Wiff\MzIO.Wiff.fsproj" />
     <ProjectReference Include="..\MzIO\MzIO.fsproj" />
   </ItemGroup>
   <Import Project="..\..\.paket\Paket.Restore.targets" />

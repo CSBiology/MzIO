@@ -5,7 +5,7 @@
 #r @"../../../MzIO/src/MzIO.Processing/bin/Release/net45/MzIO.Processing.dll"
 open MzIO
 open MzIO.IO.MzML.MzML
-let reader = new MzMLReader("samplestring")
+let reader = new MzMLReader("samplestring") :> MzIO.IO.IMzIODataReader
 
 (**
 All readers in this project implement the interface of the IMzIODataReader. It contains abstract members 
