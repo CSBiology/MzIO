@@ -477,68 +477,69 @@ let thermoUniPath   = @"C:\Users\Student\source\repos\wiffTestFiles\Thermo\data0
 let termoMzML       = @"C:\Users\Student\source\repos\wiffTestFiles\Thermo\data02.mzML"
 
 
-//let wiffReader          = new WiffFileReader(wiffTestUni, licensePath)
+let wiffReader          = new WiffFileReader(wiffTestPaeddetor, licenseHome)
 //let wiffMzML            = new MzMLReader(mzMLOfWiffUni)
 
-let bafReader           = new BafFileReader(bafTestFile)
-let bafMzMLReader       = new MzMLReader(bafMzMLFile)
+//let bafReader           = new BafFileReader(bafTestFile)
+//let bafMzMLReader       = new MzMLReader(bafMzMLFile)
 
-let thermoReader        = new ThermoRawFileReader(thermoUniPath)
+//let thermoReader        = new ThermoRawFileReader(thermoUniPath)
 //let thermoMzMLReader    = new MzMLReader(termoMzML)
 
-let spectra =
-    thermoReader.Model.Runs.GetProperties false
-    |> Seq.collect (fun item -> thermoReader.ReadMassSpectra (MzIOJson.FromJson<Run>(item.Value.ToString())).ID)
-    |> Array.ofSeq
+//let spectra =
+//    wiffReader.Model.Runs.GetProperties false
+//    |> Seq.collect (fun item -> wiffReader.ReadMassSpectra (MzIOJson.FromJson<Run>(item.Value.ToString())).ID)
+//    |> Array.ofSeq
 
-spectra
-|> Seq.length
+//spectra
+//|> Seq.length
 
-let seqPeaks =
-    spectra
-    |> Seq.map (fun spectrum -> thermoReader.ReadSpectrumPeaks(spectrum.ID))
+//let seqPeaks =
+//    spectra
+//    |> Seq.map (fun spectrum -> wiffReader.ReadSpectrumPeaks(spectrum.ID))
 
-seqPeaks
-|> Seq.length
+//seqPeaks
+//|> Seq.length
 
-let randomSpectra =
-    let tmp = Array.copy spectra
-    shuffle tmp
-    tmp
+//let randomSpectra =
+//    let tmp = Array.copy spectra
+//    shuffle tmp
+//    tmp
 
-let randomPeaks =
-    randomSpectra
-    |> Seq.map (fun spectrum -> thermoReader.ReadSpectrumPeaks(spectrum.ID))
+//let randomPeaks =
+//    randomSpectra
+//    |> Seq.map (fun spectrum -> wiffReader.ReadSpectrumPeaks(spectrum.ID))
 
-randomPeaks
-|> Seq.length
+//randomPeaks
+//|> Seq.length
 
 
-let spectraMzML =
-    bafMzMLReader.Model.Runs.GetProperties false
-    |> Seq.collect (fun item -> bafMzMLReader.ReadMassSpectra (MzIOJson.FromJson<Run>(item.Value.ToString())).ID)
-    |> Array.ofSeq
+//let spectraMzML =
+//    wiffReader.Model.Runs.GetProperties false
+//    |> Seq.collect (fun item -> wiffReader.ReadMassSpectra (MzIOJson.FromJson<Run>(item.Value.ToString())).ID)
+//    |> Array.ofSeq
 
-spectraMzML
-|> Seq.length
+//spectraMzML
+//|> Seq.length
 
-let seqPeaksMzML =
-    bafMzMLReader.Model.Runs.GetProperties false
-    |> Seq.collect (fun item -> bafMzMLReader.ReadAllSpectrumPeaks (MzIOJson.FromJson<Run>(item.Value.ToString())).ID)
+//let seqPeaksMzML =
+//    wiffReader.Model.Runs.GetProperties false
+//    |> Seq.collect (fun item -> wiffReader.ReadAllSpectrumPeaks (MzIOJson.FromJson<Run>(item.Value.ToString())).ID)
 
-seqPeaksMzML
-|> Seq.length
+//seqPeaksMzML
+//|> Seq.length
 
-let randomSpectraMzML =
-    let tmp = Array.copy spectraMzML
-    shuffle tmp
-    tmp
+//let randomSpectraMzML =
+//    let tmp = Array.copy spectraMzML
+//    shuffle tmp
+//    tmp
 
-let randomPeaksMzML =
-    randomSpectraMzML
-    |> Seq.map (fun item -> bafMzMLReader.ReadSpectrumPeaks(item.ID))
+//let randomPeaksMzML =
+//    randomSpectraMzML
+//    |> Seq.map (fun item -> wiffReader.ReadSpectrumPeaks(item.ID))
 
-randomPeaksMzML
-|> Seq.length
+//randomPeaksMzML
+//|> Seq.length
 
-//1+1
+wiffReader.Model.Runs.GetProperties false
+|> Seq.map (fun item -> item.Value.ToString())
