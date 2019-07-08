@@ -11,11 +11,11 @@
 #r @"../MzIO.Processing\bin\Release\net45\MzIO.Processing.dll"
 #r @"../MzIO.Bruker\bin\Release\net45\MzIO.Bruker.dll"
 #r @"../MzIO.MzML\bin\Release\net45\MzIO.MzML.dll"
-//#r @"../MzIO.Thermo\bin\Release\net451\ThermoFisher.CommonCore.BackgroundSubtraction.dll"
-//#r @"../MzIO.Thermo\bin\Release\net451\ThermoFisher.CommonCore.Data.dll"
-//#r @"../MzIO.Thermo\bin\Release\net451\ThermoFisher.CommonCore.MassPrecisionEstimator.dll"
-//#r @"../MzIO.Thermo\bin\Release\net451\ThermoFisher.CommonCore.RawFileReader.dll"
-//#r @"../MzIO.Thermo\bin\Release\net451\MzIO.Thermo.dll"
+#r @"../MzIO.Thermo\bin\Release\net451\ThermoFisher.CommonCore.BackgroundSubtraction.dll"
+#r @"../MzIO.Thermo\bin\Release\net451\ThermoFisher.CommonCore.Data.dll"
+#r @"../MzIO.Thermo\bin\Release\net451\ThermoFisher.CommonCore.MassPrecisionEstimator.dll"
+#r @"../MzIO.Thermo\bin\Release\net451\ThermoFisher.CommonCore.RawFileReader.dll"
+#r @"../MzIO.Thermo\bin\Release\net451\MzIO.Thermo.dll"
 
 
 open System
@@ -39,7 +39,7 @@ open MzIO.Bruker
 open MzIO.IO.MzML
 open MzIO.IO.MzML.MzML
 open MzIO.IO
-//open MzIO.Thermo
+open MzIO.Thermo
 
 //let test = Software()
 //let tests = SoftwareList()
@@ -483,7 +483,7 @@ let termoMzML       = @"C:\Users\Student\source\repos\wiffTestFiles\Thermo\data0
 let bafReader           = new BafFileReader(bafTestFile)
 let bafMzMLReader       = new MzMLReader(bafMzMLFile)
 
-//let thermoReader        = new ThermoRawFileReader(thermoUniPath)
+let thermoReader        = new ThermoRawFileReader(thermoUniPath)
 //let thermoMzMLReader    = new MzMLReader(termoMzML)
 
 let spectra =
