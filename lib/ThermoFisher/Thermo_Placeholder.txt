@@ -1,0 +1,1 @@
+You can get the .net nuget packages for the raw file reader at: https://planetorbitrap.com/rawfilereader

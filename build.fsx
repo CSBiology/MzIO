@@ -268,7 +268,7 @@ Target.create "Build" (fun _ ->
             Configuration = buildConfiguration })*)
     let setParams (defaults:MSBuildParams) =
         { defaults with
-            Verbosity = Some(Quiet)
+            Verbosity = Some(MSBuildVerbosity.Quiet)
             Targets = ["Build"]
             Properties =
                 [

@@ -473,9 +473,9 @@ let mzMLOfWiffUni   = @"C:\Users\Student\source\repos\wiffTestFiles\WiffFiles\20
 let bafTestFile     = @"C:\Users\Student\source\repos\wiffTestFiles\Bruker\170922_4597.d\analysis.baf"
 let bafMzMLFile     = @"C:\Users\Student\source\repos\wiffTestFiles\Bruker\170922_4597.mzML"
 
-let thermoUniPath   = @"C:\Users\Student\source\repos\wiffTestFiles\Thermo\data02.RAW"
+let thermoUniPath   = @"C:\Users\jonat\OneDrive\MP_Biotech\VP_Timo\MassSpecFiles\data02.RAW"
 let termoMzML       = @"C:\Users\Student\source\repos\wiffTestFiles\Thermo\data02.mzML"
-
+#time
 
 //let wiffReader          = new WiffFileReader(wiffTestUni, licensePath)
 //let wiffMzML            = new MzMLReader(mzMLOfWiffUni)
@@ -490,6 +490,9 @@ let spectra =
     thermoReader.Model.Runs.GetProperties false
     |> Seq.collect (fun item -> thermoReader.ReadMassSpectra (MzIOJson.FromJson<Run>(item.Value.ToString())).ID)
     |> Array.ofSeq
+
+
+let insertThermo = insertMSSpectraBy insertMSSpectrum @"C:\SQLDestination\20171129 FW LWagg001_testThermo.mzIO" "run_1" thermoReader "NoCompression" spectra
 
 spectra
 |> Seq.length
