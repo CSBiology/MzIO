@@ -28,3 +28,7 @@ include-referenced-projects
     true
 files
 	../../bin/MzIO.Thermo ==> lib
+	!../../bin/MzIO.Thermo/**/ThermoFisher.CommonCore.BackgroundSubtraction.dll
+	!../../bin/MzIO.Thermo/**/ThermoFisher.CommonCore.Data.dll
+	!../../bin/MzIO.Thermo/**/ThermoFisher.CommonCore.MassPrecisionEstimator.dll
+	!../../bin/MzIO.Thermo/**/ThermoFisher.CommonCore.RawFileReader.dll
