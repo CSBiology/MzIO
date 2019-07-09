@@ -129,7 +129,7 @@ and MzIOSQL(encoder:BinaryDataEncoder,decoder:BinaryDataDecoder, model:MzIOModel
             //try
                 MzIOSQL.SqlInitSchema(currentScope.Value)
                 if not (MzIOSQL.SqlTrySelect(currentScope.Value, & model)) then
-                    model<- MzIOSQL.CreateDefaultModel(path)
+                    model <- MzIOSQL.CreateDefaultModel(path)
                     MzIOSQL.SqlSave(& cmd, model, & currentScope)
                 scope.Commit()
             //with
@@ -154,7 +154,8 @@ and MzIOSQL(encoder:BinaryDataEncoder,decoder:BinaryDataDecoder, model:MzIOModel
         (
             let content = cmd.ExecuteScalar()
             if (content :? string) then
-                model <- MzIOJson.FromJson<MzIOModel>(content :?> string)
+                //model <- MzIOJson.FromJson<MzIOModel>(content :?> string)
+                model <- MzIOJson.deSerializeMzIOModel(content.ToString())
                 true
                     
             else 

@@ -542,3 +542,7 @@ type WiffFileReader(dataProvider:AnalystWiffDataProvider, disposed:Boolean, wiff
     static member GetModelFilePath(wiffFilePath) =
 
         sprintf "%s%s" wiffFilePath ".MzIOmodel"
+
+    member this.GetTIC(msExperiment:MSExperiment) =
+
+        msExperiment.GetTotalIonChromatogram

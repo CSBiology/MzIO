@@ -41,19 +41,6 @@ open MzIO.IO.MzML.MzML
 open MzIO.IO
 open MzIO.Thermo
 
-//let test = Software()
-//let tests = SoftwareList()
-//let paramValue = ParamValue.CvValue("value")
-//let paramUnit = ParamValue.WithCvUnitAccession("value", "unit")
-
-//test
-//tests.Add(test)
-//tests.Item("id")
-
-//test.AddCvParam(CvParam.CvParam<string>("test", paramUnit))
-//test.AddCvParam(CvParam.CvParam<string>("value", paramValue))
-//test.AddCvParam(CvParam.UserParam<string>("testI", paramValue))
-
 
 let fileDir             = __SOURCE_DIRECTORY__
 let licensePath         = @"C:\Users\Student\source\repos\MzLiteFSharp\src\MzLiteFSharp.Wiff\License\Clearcore2.license.xml"
@@ -86,39 +73,6 @@ let createMzIOHelper (runID:string) (path:string) (spectrum:seq<MzIO.Model.MassS
         MzIOHelper.Peaks          = peaks
         MzIOHelper.Path           = path
     }
-
-
-//let wiffFileReader = new WiffFileReader(wiffTestUni, licensePath)
-//let massSpectra = 
-//    wiffFileReader.Model.Runs.GetProperties false
-//    |> Seq.map (fun run -> wiffFileReader.ReadMassSpectra run.Key)
-//    |> Seq.head
-//    |> Array.ofSeq
-
-//let massSpectrum = massSpectra.[0]
-
-//let peaks = wiffFileReader.ReadSpectrumPeaks massSpectrum.ID
-
-//massSpectrum.GetProperties false
-//let peak = (Array.ofSeq peaks.Peaks).[0]
-//peak
-
-//let model = wiffFileReader.CreateDefaultModel()
-
-//model.Runs.GetProperties false
-
-//let testii = (new MzIOSQL(uniTestPath))
-//let testiii = testii.MzIOSQL()
-
-//let testVI = testii.BeginTransaction()
-//testii.Insert("meh", massSpectra.[2], peaks)
-//testii.Insert("RunTest", massSpectra.[3], peaks)
-//let testIIII = testii.ReadMassSpectra("meh") |> Array.ofSeq
-//let testV = testii.ReadMassSpectra("RunTest") |> Array.ofSeq
-//testVI.Commit()
-//testVI.Dispose()
-//testIIII.[0]
-//testV.[0]
 
 //let wiffFilePaths =
 //    [
@@ -203,209 +157,6 @@ let getSpectrumPeaks (path:string) (spectrumID:string) =
 
     mzIOSQL.ReadSpectrumPeaks spectrumID
 
-
-#time
-//let wiffFileReader = getWiffFileReader wiffTestPaeddetor
-
-//let wiffSpectra =
-//    wiffFileReader.Model.Runs.GetProperties false
-//    |> Seq.map (fun item -> MzIOJson.FromJson(item.Value.ToString()) :> Run)
-//    //|> Seq.collect (fun (run:KeyValuePair<string, obj>) -> wiffFileReader.ReadMassSpectra run.Key)
-
-//wiffSpectra
-//|> Seq.length
-
-//wiffFileReader.Model.Runs.GetProperties false
-//|> Seq.length
-
-//let massSpectra = getMassSpectra wiffFileReader
-
-//wiffFileReader.Model.Runs.GetProperties false
-//|> (fun item -> (Seq.head item).Key)
-
-//wiffFileReader.ReadMassSpectra("sample=0")
-//|> Seq.item 1
-
-//wiffFileReader.ReadSpectrumPeaks
-
-//massSpectra
-//|> Seq.length
-
-//let helper = getMzIOHelper wiffTestPaeddetor BinaryDataCompressionType.NoCompression
-
-//let peak1DArrays = getPeak1DArrays wiffFileReader
-
-//let wiffPeaks = wiffFileReader.ReadSpectrumPeaks("sample=0 experiment=0 scan=0")
-
-//wiffPeaks.Peaks
-//|> Seq.length
-
-//peak1DArrays
-//|> Seq.length
-
-//let insertDB =
-//    getMzIOHelper wiffTestPaeddetor BinaryDataCompressionType.NoCompression
-//    |> (fun wiffFileReader -> insertIntoDB 100 wiffFileReader)
-
-//let mzMLReader = new MzMLReader(mzMLOfWiffUni)
-//mzMLReader.Model.Runs.GetProperties false
-//|> Seq.map (fun item -> MzIOJson.FromJson(item.Value.ToString()) :> Run)
-//|> Seq.head
-
-//spectra
-//|> Seq.length
-
-//mzMLReader.ReadChromatograms("_x0032_0171129_x0020_FW_x0020_LWagg001")
-//|> Seq.length
-
-//let Peak1DArray =
-//    mzMLReader.getMzIOModel().Runs.GetProperties false
-//    //mzMLReader.Model.Runs.GetProperties false
-//    //|> Seq.collect (fun (run:KeyValuePair<string, obj>) -> mzMLReader.ReadMassSpectra run.Key)
-
-//Peak1DArray
-//|> Seq.length
-
-//mzMLReader.ReadMassSpectra("run_1")
-
-//mzMLReader.ReadMassSpectrum("sample=1 period=1 cycle=2 experiment=1")
-//mzMLReader.ReadMassSpectrum("sample=1 period=1 cycle=1 experiment=1")
-
-//let spectrum =
-//    getSpectrum uniTestPath "sample=0 experiment=0 scan=0"
-
-//let spectra =
-//    getMzIOHelper wiffTestUni BinaryDataCompressionType.NoCompression
-//    |> getSpectra uniTestPath 
-
-//let peaks =
-//    spectra
-//    |> Seq.map (fun item -> getSpectrumPeaks uniTestPath item.ID)
-    //getSpectrumPeaks uniTestPath "sample=0 experiment=0 scan=0"
-
-//Seq.length peaks
-
-
-//for i in peaks do
-//    for peak in i.Peaks do
-//        printfn "%f %f" peak.Mz peak.Intensity
-
-//let tmp =
-//    helper.MassSpectrum |> List.ofSeq
-//    |> List.head
-
-//let mzsqlreader = new MzIOSQL(uniTestPath)
-
-//let tr = mzsqlreader.BeginTransaction()
-
-//let tmpX = mzsqlreader.ReadMassSpectra("sample=0") |> List.ofSeq |> List.head
-
-//let mutable idx1 = 0
-//tmpX.TryGetMsLevel(& idx1)
-//idx1
-
-//tmpX.TryGetValue(PSIMS_Spectrum.MsLevel)
-
-////tmpX.TryGetTypedValue<CvParam<IConvertible>>(PSIMS_Spectrum.MsLevel)
-
-//tmpX.Scans.GetProperties true
-
-//let rtIndexEntry = mzsqlreader.BuildRtIndex("sample=0")
-
-//let rtProfile = mzsqlreader.RtProfile (rtIndexEntry, (new MzIO.Processing.RangeQuery(1., 300., 600.)), (new MzIO.Processing.RangeQuery(1., 300., 600.)))
-
-//let tmpXY = (new Scan())
-//tmpXY.AddCvParam(new CvParam<string>("Test)"))
-
-//let scan = Seq.head (tmpX.Scans.GetProperties false)
-//MzIOJson.FromJson(scan.Value.ToString()) :> Scan
-
-//fileDir + "..\baf2sqlLib\win32/baf2sql_c.dll"
-
-////let test = new MassSpectrum()
-////let scanList = (new ScanList())
-////scanList.Add(new Scan())
-////test.Scans.Add(new Scan())
-////test.Scans.Count
-////let testJson = MzIOJson.ToJson(test)
-////let testUnJson = MzIOJson.FromJson(testJson) :> MassSpectrum
-//////MzIOJson.ToJson(testUnJson)
-////testUnJson.GetProperties false
-////testUnJson.Scans.Count
-//////let testJsonTextArray = (Seq.head (testUnJson.GetProperties false)).ToString()
-//////JArray.Parse(testJsonTextArray)
- 
-
-//////let xI =
-//////    JsonConvert.SerializeObject(test, MzIOJson.jsonSettings)
-//////    |> (fun item -> JsonConvert.DeserializeObject<MassSpectrum>(item))
-
-//////xI.Scans.Count
-
-//let brukerReader = new BafFileReader(bafTestFile)
-
-//let spectra =
-//    brukerReader.Model.Runs.GetProperties false
-//    |> Seq.collect (fun (run:KeyValuePair<string, obj>) -> brukerReader.ReadMassSpectra run.Key)
-//    //|> Seq.map (fun item -> brukerReader.RtProfile(item,  (new MzIO.Processing.RangeQuery(1., 300., 600.)), (new MzIO.Processing.RangeQuery(1., 300., 600.))))
-
-//let getBrukerHelper (path:string) (compressionType:BinaryDataCompressionType) =
-//    let bafFileReader = new BafFileReader(path)
-//    let runIDMassSpectra =
-//        bafFileReader.Model.Runs.GetProperties false
-//        |> Seq.map (fun (run:KeyValuePair<string, obj>) -> run.Key, bafFileReader.ReadMassSpectra run.Key)
-//    let tmp =
-//        runIDMassSpectra
-//        |> Seq.map (fun (runID, massSpectra) ->
-//            massSpectra
-//            |> Seq.map (fun spectrum -> (bafFileReader.ReadSpectrumPeaks spectrum.ID))
-//            |> Seq.map (fun peak -> peak.CompressionType <- compressionType
-//                                    peak)
-//            |> createMzIOHelper runID path massSpectra
-//            )
-//        |> Seq.head
-//    tmp
-
-//let insertBrukerIntoDB (helper:MzIOHelper) =
-//    let mzIOSQL = new MzIOSQL(helper.Path + ".mzIO")
-//    let bn = mzIOSQL.BeginTransaction()
-//    Seq.map2 (fun (spectrum:MzIO.Model.MassSpectrum) (peak:Peak1DArray) -> mzIOSQL.Insert(helper.RunID, spectrum, peak)) ((*Seq.take amount*) helper.MassSpectrum) ((*Seq.take amount*) helper.Peaks)
-//    |> Seq.length |> ignore
-//    bn.Commit()
-//    bn.Dispose()
-    
-
-//let brukaRTIndex = brukerReader.BuildRtIndex("run_1")
-//let brukaRT = brukerReader.RtProfile(brukaRTIndex, (new MzIO.Processing.RangeQuery(1., 300., 600.)), (new MzIO.Processing.RangeQuery(1., 300., 600.)))
-
-//let mzMLReader = new MzMLReader(bafMzMLFile)
-
-//mzMLReader.Model.Runs.GetProperties false
-//|> Seq.map(fun item -> mzMLReader.ReadMassSpectra(((MzIOJson.FromJson(item.Value.ToString())) :> Run).ID))
-
-//mzMLReader.ReadMassSpectra("_x0031_70922_4597")
-
-//for i in spectra do
-//    printfn "%A " (Seq.head spectra)
-
-//let rawtestFile = "D:\Users\Patrick\Desktop\BioInformatik\MzIOTestFiles\RawTestFiles\small.RAW"
-
-////ThermoFisher.CommonCore.Data.Business.IScanReader
-
-//let header = RawFileReaderAdapter.FileHeaderFactory(rawtestFile)
-//let rawFileFactory = RawFileReaderAdapter.FileFactory(rawtestFile)
-//let instruments = InstrumentMethodFileReader.OpenMethod(rawtestFile)
-//let processings = ProcessingMethodFileReader.OpenProcessingMethod(rawtestFile)
-//let sequenceFiles = SequenceFileReader.OpenSequence(rawtestFile)
-
-//let reader = new BafFileReader(bafTestFile)
-
-//let spectra =
-//    reader.Model.Runs.GetProperties false
-//    |> Seq.collect (fun (run:KeyValuePair<string, obj>) -> reader.ReadMassSpectra run.Key)
-
-
-
 /// Create a new file instance of the DB schema. DELETES already existing instance
 let initDB filePath =
     let _ = System.IO.File.Delete filePath  
@@ -466,7 +217,7 @@ let swap (a: _[]) x y =
 let shuffle a =
     Array.iteri (fun i _ -> swap a i (rand.Next(i, Array.length a))) a
 
-
+#time
 let wiffTestUni     = @"C:\Users\Student\source\repos\wiffTestFiles\WiffFiles\20171129 FW LWagg001.wiff"
 let mzMLOfWiffUni   = @"C:\Users\Student\source\repos\wiffTestFiles\WiffFiles\20171129 FW LWagg001.mzML"
 
@@ -486,10 +237,16 @@ let wiffReader          = new WiffFileReader(wiffTestPaeddetor, licenseHome)
 //let thermoReader        = new ThermoRawFileReader(thermoUniPath)
 //let thermoMzMLReader    = new MzMLReader(termoMzML)
 
-//let spectra =
-//    wiffReader.Model.Runs.GetProperties false
-//    |> Seq.collect (fun item -> wiffReader.ReadMassSpectra (MzIOJson.FromJson<Run>(item.Value.ToString())).ID)
-//    |> Array.ofSeq
+let spectra =
+    wiffReader.Model.Runs.GetProperties false
+    |> Seq.collect (fun run -> wiffReader.ReadMassSpectra (run.Value :?> Run).ID)
+    |> Seq.head
+
+spectra.Scans.GetProperties false
+|> Seq.head
+|> fun item -> (item.Value :?> Scan).GetProperties true
+
+let mzIOSQLReader = new MzIOSQL(wiffTestPaeddetor + ".mzIO")
 
 //spectra
 //|> Seq.length
@@ -540,3 +297,7 @@ let wiffReader          = new WiffFileReader(wiffTestPaeddetor, licenseHome)
 
 //randomPeaksMzML
 //|> Seq.length
+
+let rtIndexEntry = wiffReader.BuildRtIndex("sample=0")
+
+let rtProfile = wiffReader.RtProfile (rtIndexEntry, (new MzIO.Processing.RangeQuery(1., 300., 600.)), (new MzIO.Processing.RangeQuery(1., 300., 600.)))

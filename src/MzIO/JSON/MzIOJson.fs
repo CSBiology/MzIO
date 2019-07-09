@@ -116,8 +116,6 @@ type MzIOJson =
             tmp
 
     static member deserializeJObject(baseObj:DynamicObj, jsonObj:Object) =
-        printfn "1"
-        printfn "%s" (if jsonObj = null then "Null" else jsonObj.ToString())
         match jsonObj with
         | :? DynamicObj as value ->
             value.GetProperties true
@@ -139,34 +137,25 @@ type MzIOJson =
                         let jString = jsonObj.ToString()
                         match baseObj.ToString() with
                         | "MzIO.Model.FileDescription" ->
-                            printfn "1"
                             let tmp = JsonConvert.DeserializeObject<FileDescription>(jString)
-                            //printfn "FileDescription"
                             baseObj.SetValue(tmp.ToString(), tmp)
                         | "MzIO.Model.ScanList" -> 
                             let tmp = JsonConvert.DeserializeObject<Scan>(jString)
                             baseObj.SetValue(tmp.ToString(), tmp)
-                            //printfn "ScanList"
                             MzIOJson.deserializeJObject(tmp, tmp)
                         | "MzIO.Model.ProductList" -> 
                             let tmp = JsonConvert.DeserializeObject<Product>(jString)
                             baseObj.SetValue(tmp.ToString(), tmp)
-                            //printfn "ProductList"
                             MzIOJson.deserializeJObject(tmp, tmp)
                         | "MzIO.Model.PrecursorList" -> 
                             let tmp = JsonConvert.DeserializeObject<Precursor>(jString)
                             baseObj.SetValue(tmp.ToString(), tmp)
-                            //printfn "PrecursorList"
                             MzIOJson.deserializeJObject(tmp, tmp)
                         | "MzIO.Model.RunList" -> 
                             let tmp = JsonConvert.DeserializeObject<Run>(jString)
                             baseObj.SetValue(tmp.ToString(), tmp)
-                            //printfn "RunList"
                             MzIOJson.deserializeJObject(tmp, tmp)
-                        | _ -> 
-                            printfn "%s" (if jsonObj = null then "Null" else jsonObj.ToString())
-                            printfn "%A" (jsonObj :? Sample)
-                            ()
+                        | _ -> ()
             else ()
 
     static member ToJson(obj:Object) =
