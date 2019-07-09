@@ -75,7 +75,7 @@ module MzIOLinq =
         static member TryCreateEntry(ms: MassSpectrum, msLevel: int, entry: byref<RtIndexEntry>) =
             let mutable msLevel' = 0
             if   ms.TryGetMsLevel(& msLevel') = false || msLevel' <> msLevel then false
-            elif ms.Scans.Count < 1 then false
+            elif ms.Scans.Count() < 1 then false
             else
                  let scan = (*ms.Scans.[0]*)(ms.Scans.GetProperties false |> Seq.item 0).Value :?> Scan
                  let mutable rt = 0.

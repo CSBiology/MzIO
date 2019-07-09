@@ -540,6 +540,3 @@ let wiffReader          = new WiffFileReader(wiffTestPaeddetor, licenseHome)
 
 //randomPeaksMzML
 //|> Seq.length
-
-wiffReader.Model.Runs.GetProperties false
-|> Seq.map (fun item -> item.Value.ToString())

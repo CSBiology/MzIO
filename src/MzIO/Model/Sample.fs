@@ -44,15 +44,17 @@ type SamplePreparationList [<JsonConstructor>] internal (dict:Dictionary<string,
 /// </summary>
 [<Sealed>]
 [<JsonObject(MemberSerialization.OptIn, IsReference = true)>]
-type Sample [<JsonConstructor>] (id:string, name:string) =
+type Sample (id:string, name:string, treatments:SampleTreatmentList, preperations:SamplePreparationList) =
 
     inherit NamedModelItem(id, name)
 
-    let mutable treatments      = new SampleTreatmentList()
+    //let mutable treatments      = new SampleTreatmentList()
 
-    let mutable preperations    = new SamplePreparationList()
+    //let mutable preperations    = new SamplePreparationList()
 
-    new() = Sample("id", "name")
+    [<JsonConstructor>]
+    new(id, name) = new Sample(id, name, new SampleTreatmentList(), new SamplePreparationList())
+    new() = Sample("id", "name", new SampleTreatmentList(), new SamplePreparationList())
 
     [<JsonProperty>]
     member this.Preparations    = preperations

@@ -69,6 +69,7 @@ type MzIOJson =
         else
             try
                 MzIOJson.ReadJsonFile<MzIOModel>(path)
+                |> fun item -> MzIOJson.deSerializeMzIOModel(MzIOJson.ToJson(item))
             with
                 | :? Exception as ex
                     -> 
@@ -171,3 +172,70 @@ type MzIOJson =
     static member ToJson(obj:Object) =
 
         JsonConvert.SerializeObject(obj, MzIOJson.jsonSettings)
+
+
+
+    static member private deSerializeFileDescription(fileDescription:FileDescription) =
+        JsonConvert.DeserializeObject<FileDescription>(fileDescription.ToString())
+
+    static member private deSerializeSample(sample:string) =    
+        let sample = JsonConvert.DeserializeObject<Sample>(sample)
+        let treatments   = 
+            JsonConvert.DeserializeObject<SampleTreatmentList>(MzIOJson.ToJson(sample.Treatments))
+        let preperations = 
+            JsonConvert.DeserializeObject<SamplePreparationList>(MzIOJson.ToJson(sample.Preparations))
+        new Sample(sample.ID, sample.Name, treatments, preperations)
+
+    static member private deSerializeSamples(samples:SampleList) =
+        samples.GetProperties false
+        |> Seq.iter (fun sample -> samples.SetValue(sample.Key, JsonConvert.DeserializeObject<Sample>(sample.Value.ToString())))    
+        samples
+
+    static member private deSerializeSoftwares(softwares:SoftwareList) =
+        softwares.GetProperties false
+        |> Seq.iter (fun software -> softwares.SetValue(software.Key, JsonConvert.DeserializeObject<Software>(software.Value.ToString())))    
+        softwares
+    
+    static member private deSerializeDataProcessings(dataProcessings:DataProcessingList) =
+        dataProcessings.GetProperties false
+        |> Seq.iter (fun dataProcessing -> dataProcessings.SetValue(dataProcessing.Key, JsonConvert.DeserializeObject<DataProcessing>(dataProcessing.Value.ToString())))    
+        dataProcessings
+
+    static member private deSerializeInstruments(instruments:InstrumentList) =
+        instruments.GetProperties false
+        |> Seq.iter (fun instrument -> instruments.SetValue(instrument.Key, JsonConvert.DeserializeObject<Instrument>(instrument.Value.ToString())))    
+        instruments
+
+    static member private deSerializeRuns(runs:RunList) =
+        runs.GetProperties false
+        |> Seq.iter (fun run -> runs.SetValue(run.Key, JsonConvert.DeserializeObject<Run>(run.Value.ToString())))    
+        runs
+
+    static member deSerializeMzIOModel(model:string) =
+
+        let mzIOModel = JsonConvert.DeserializeObject<MzIOModel>(model)
+
+        //let fileDescription = 
+        //    (*deSerializeFileDescription*) mzIOModel.FileDescription
+        //mzIOModel.FileDescription <- fileDescription
+
+        let samples = 
+            MzIOJson.deSerializeSamples mzIOModel.Samples
+        mzIOModel.Samples <- samples
+
+        let softwares =
+            MzIOJson.deSerializeSoftwares mzIOModel.Softwares
+        mzIOModel.Softwares <- softwares
+
+        let dataProcessings = 
+            MzIOJson.deSerializeDataProcessings mzIOModel.DataProcessings
+        mzIOModel.DataProcessings <- dataProcessings
+
+        let instruments = 
+            MzIOJson.deSerializeInstruments mzIOModel.Instruments
+        mzIOModel.Instruments <- instruments
+
+        let runs = 
+            MzIOJson.deSerializeRuns mzIOModel.Runs
+        mzIOModel.Runs <- runs
+        mzIOModel
