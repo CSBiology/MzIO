@@ -322,7 +322,8 @@ type WiffFileReader(dataProvider:AnalystWiffDataProvider, disposed:Boolean, wiff
 
         (this :> IDisposable).Dispose()
 
-    member private this.model = MzIOJson.HandleExternalModelFile(this, WiffFileReader.GetModelFilePath(wiffFilePath))
+    member private this.model = 
+        MzIOJson.HandleExternalModelFile(this, WiffFileReader.GetModelFilePath(wiffFilePath))
 
     //potentiel failure due to exception
     interface IMzIOIO with

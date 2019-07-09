@@ -111,6 +111,6 @@ type ObservableCollection<'T when 'T :> DynamicObj> [<JsonConstructor>] internal
 
     new() = new ObservableCollection<'T>(new Dictionary<string, obj>())
 
-    member this.Count =
+    member this.Count() =
         this.GetProperties false
         |> Seq.length
