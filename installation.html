@@ -44,54 +44,28 @@ The readers for those formats can be installed individually.</p>
 <p>Currently, the nuget packages are only available at our github <a href="https://github.com/CSBiology/MzIO/tree/nuget">nuget branch</a>. At a later point they will be released at <a href="www.nuget.org">nuget.org</a>.
 You can either install them from there or build the binaries yourself.</p>
 <h1><a name="Building-the-binaries-yourself" class="anchor" href="#Building-the-binaries-yourself">Building the binaries yourself</a></h1>
-<p>First steps:</p>
 <ul>
 <li>Install <a href="https://dotnet.microsoft.com/download">.Net Core SDK</a></li>
-<li>Install the dotnet tool fake cli by <code>dotnet tool install fake-cli -g</code> for global installation, or <code>dotnet tool install fake-cli --tool-path yourtoolpath</code></li>
+<li>Install the dotnet tool fake cli by <code>dotnet tool install fake-cli -g</code> for global installation, or <code>dotnet tool install fake-cli --tool-path yourtoolpath</code>.</li>
+<li>Download the <a href="https://planetorbitrap.com/rawfilereader">RawFileReader nuget packages for the .net version</a> from Thermo Fisher Scientific and place them in <code>lib/ThermoFisher</code>.</li>
+<li>Open the console and navigate to the root folder of the repository. Then run the command <code>fake build</code></li>
 </ul>
-<h2><a name="Wiff" class="anchor" href="#Wiff">Wiff</a></h2>
-<p>To install the Wiff-Reader, you have to open the console and navigate to the folder of the repository.
-Then you run the command:</p>
-<p><code>fake build -t Wiff</code></p>
-<p>This command builds the projects MzIO, MzIO.Processing, MzIO.SQL and MzIO.Wiff.</p>
-<p>Important notes:</p>
+<h3><a name="Important-notes" class="anchor" href="#Important-notes">Important notes:</a></h3>
+<h4><a name="Wiff-Reader" class="anchor" href="#Wiff-Reader">Wiff-Reader</a></h4>
 <ul>
-<li>You have to run the projects in 32 bit mode for the Wiff-Reader to work properly</li>
+<li>You have to run the projects in 32 bit mode for the Wiff-Reader to work properly.</li>
 <li>
-You need a Clearcore2 license for the Clearcore2 dlls used in this project
+You need a Clearcore2 license for the Clearcore2 dlls used in this project.
 <ul>
-<li>A dummy file for the license which can be replaced is already located at the correct position in the project</li>
+<li>A dummy file for the license which can be replaced is already located at the correct position in the project.</li>
 </ul>
 </li>
 </ul>
-<h2><a name="Bruker" class="anchor" href="#Bruker">Bruker</a></h2>
-<p>To install the Bruker-Reader, you have to open the console and navigate to the folder of the repository.
-Then you run the command:</p>
-<p><code>fake build -t Bruker</code></p>
-<p>This command builds the projects MzIO, MzIO.Processing, MzIO.SQL and MzIO.Bruker.</p>
-<p>Important notes:</p>
+<h4><a name="Bruker-Reader" class="anchor" href="#Bruker-Reader">Bruker-Reader</a></h4>
 <ul>
 <li>You have to specify the platform on which the project runs, since bruker uses a different dll for 32 bit and 64 bit.</li>
-<li>You need to install <a href="https://www.microsoft.com/en-us/download/details.aspx?id=30679">Visual C++ Redistributable for Visual Studio 2012 Update 4</a></li>
+<li>You need to install <a href="https://www.microsoft.com/en-us/download/details.aspx?id=30679">Visual C++ Redistributable for Visual Studio 2012 Update 4</a>.</li>
 </ul>
-<h2><a name="Thermo-Fisher" class="anchor" href="#Thermo-Fisher">Thermo Fisher</a></h2>
-<p>To install the ThermoFisher-Reader, you have to open the console and navigate to the folder of the repository.
-Then you run the command:</p>
-<p><code>fake build -t Thermo</code></p>
-<p>This command builds the projects MzIO, MzIO.Processing, MzIO.SQL and MzIO.Thermo.</p>
-<p>Important notes:</p>
-<ul>
-<li>You need the <a href="https://planetorbitrap.com/rawfilereader">RawFileReader nuget packages for the .net version</a> from Thermo Fisher Scientific</li>
-</ul>
-<h2><a name="MzML" class="anchor" href="#MzML">MzML</a></h2>
-<p>To install the MzML-Reader, you have to open the console and navigate to the folder of the repository.
-Then you run the command:</p>
-<p><code>fake build -t MzML</code></p>
-<p>This command builds the projects MzIO, MzIO.Processing, MzIO.SQL and MzIO.MzML.</p>
-<h2><a name="Other" class="anchor" href="#Other">Other</a></h2>
-<p>All projects can be built at once if desired. The command for that is:</p>
-<p><code>fake build</code></p>
-<p>If you don't possess the dlls for the Thermo-Reader, this command end in an error due to missing dlls.</p>
 <h1><a name="Using-the-prerelease-packages-from-the-nuget-branch" class="anchor" href="#Using-the-prerelease-packages-from-the-nuget-branch">Using the prerelease packages from the nuget branch</a></h1>
 <p>If you are using paket, add the following line to your <code>paket.dependencies</code> file:</p>
 <p><code>git https://github.com/CSBiology/BioFSharp.git nuget Packages: /</code></p>
@@ -102,7 +76,26 @@ Then you run the command:</p>
 <p><code>nuget MzIO.Bruker</code> <br></p>
 <p><code>nuget MzIO.Thermo</code> <br></p>
 <p><code>nuget MzIO.MzML</code> <br></p>
-<p>Note: The important note for installing the binaries yourself apply to the nuget packages as well.</p>
+<h3><a name="Important-notes-1" class="anchor" href="#Important-notes-1">Important notes:</a></h3>
+<ul>
+<li>The important notes for installing the binaries yourself apply to the nuget packages as well.</li>
+<li>
+For the package MzIO.Thermo you need to do the following steps if you are managing your dependencies with paket:
+<ul>
+<li>Download the <a href="https://planetorbitrap.com/rawfilereader">RawFileReader nuget packages for the .net version</a> from Thermo Fisher Scientific and place them in <code>lib/ThermoFisher</code> or another folder of your choice</li>
+<li>
+Add <br>
+<code>source lib/ThermoFisher</code> (source may vary based on your chosen location)<br>
+<code>nuget ThermoFisher.CommonCore.BackgroundSubtraction</code><br>
+<code>nuget ThermoFisher.CommonCore.Data</code><br>
+<code>nuget ThermoFisher.CommonCore.MassPrecisionEstimator</code><br>
+<code>nuget ThermoFisher.CommonCore.RawFileReader</code><br>
+to your paket.dependencies file
+</li>
+<li>Run the command <code>paket update</code>, followed by <code>fake build</code></li>
+</ul>
+</li>
+</ul>
 
 
         </div>
