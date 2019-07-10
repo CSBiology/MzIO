@@ -172,6 +172,10 @@ packages/
 # Test results produced by build
 TestResults.xml
 
+# Testfiles
+/src/MzIO.Wiff/Test.fsx
+/src/MzIO.Thermo/ReaderTest.fsx
+
 # Nuget outputs
 nuget/*.nupkg
 release.cmd
