@@ -228,25 +228,26 @@ let thermoUniPath   = @"C:\Users\Student\source\repos\wiffTestFiles\Thermo\data0
 let termoMzML       = @"C:\Users\Student\source\repos\wiffTestFiles\Thermo\data02.mzML"
 
 
-let wiffReader          = new WiffFileReader(wiffTestPaeddetor, licenseHome)
+//let wiffReader          = new WiffFileReader(wiffTestPaeddetor, licenseHome)
 //let wiffMzML            = new MzMLReader(mzMLOfWiffUni)
 
 //let bafReader           = new BafFileReader(bafTestFile)
 //let bafMzMLReader       = new MzMLReader(bafMzMLFile)
 
-//let thermoReader        = new ThermoRawFileReader(thermoUniPath)
+let thermoReader        = new ThermoRawFileReader(thermoUniPath)
 //let thermoMzMLReader    = new MzMLReader(termoMzML)
 
+thermoReader.Model.Runs.GetProperties false
+|> Seq.map (fun item -> item.Value :?> Run)
+
 let spectra =
-    wiffReader.Model.Runs.GetProperties false
-    |> Seq.collect (fun run -> wiffReader.ReadMassSpectra (run.Value :?> Run).ID)
-    |> Seq.head
+    thermoReader.Model.Runs.GetProperties false
+    |> Seq.collect (fun run -> thermoReader.ReadMassSpectra (run.Value :?> Run).ID)
 
-spectra.Scans.GetProperties false
-|> Seq.head
-|> fun item -> (item.Value :?> Scan).GetProperties true
+spectra
+|> Seq.length
 
-let mzIOSQLReader = new MzIOSQL(wiffTestPaeddetor + ".mzIO")
+//let mzIOSQLReader = new MzIOSQL(wiffTestPaeddetor + ".mzIO")
 
 //spectra
 //|> Seq.length
@@ -298,6 +299,8 @@ let mzIOSQLReader = new MzIOSQL(wiffTestPaeddetor + ".mzIO")
 //randomPeaksMzML
 //|> Seq.length
 
-let rtIndexEntry = wiffReader.BuildRtIndex("sample=0")
+//let rtIndexEntry = wiffReader.BuildRtIndex("sample=0")
 
-let rtProfile = wiffReader.RtProfile (rtIndexEntry, (new MzIO.Processing.RangeQuery(1., 300., 600.)), (new MzIO.Processing.RangeQuery(1., 300., 600.)))
+//let rtProfile = wiffReader.RtProfile (rtIndexEntry, (new MzIO.Processing.RangeQuery(1., 300., 600.)), (new MzIO.Processing.RangeQuery(1., 300., 600.)))
+
+insertMSSpectraBy insertMSSpectrum (thermoUniPath+".mzIO") "run_1" thermoReader "NoCompression" spectra
