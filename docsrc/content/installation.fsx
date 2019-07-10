@@ -34,7 +34,7 @@ You can either install them from there or build the binaries yourself.
 
 If you are using paket, add the following line to your `paket.dependencies` file:
 
-`git https://github.com/CSBiology/BioFSharp.git nuget Packages: /`
+`git https://github.com/CSBiology/MzIO.git nuget Packages: /`
 
 you can then access the individual packages:
 
