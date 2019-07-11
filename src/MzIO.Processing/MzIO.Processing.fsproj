@@ -24,6 +24,7 @@
     <Compile Include="MzIOLinq.fs" />
     <Compile Include="SwathIndexer.fs" />
     <Compile Include="Query.fs" />
+    <Compile Include="Indexer.fs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="paket.references" />
