@@ -1,4 +1,4 @@
-﻿namespace MzIOTest
+﻿namespace MzIO.Processing
 
 
 module AccessMassSpectrum = 
