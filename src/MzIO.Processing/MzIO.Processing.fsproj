@@ -18,7 +18,6 @@
     <EmbeddedResource Remove="Scripts\**" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AccessPeakArray.fs" />
     <Compile Include="RangeQuery.fs" />
     <Compile Include="CSVReader.fs" />
     <Compile Include="BinarySearch.fs" />
@@ -27,6 +26,7 @@
     <Compile Include="Query.fs" />
     <Compile Include="Indexer.fs" />
     <Compile Include="AccessMassSpectrum.fs" />
+    <Compile Include="AccessPeakArray.fs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="paket.references" />
