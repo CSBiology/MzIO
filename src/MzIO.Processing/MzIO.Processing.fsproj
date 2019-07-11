@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFrameworks>net45</TargetFrameworks>
     <RootNamespace>MzIO</RootNamespace>
@@ -23,6 +23,7 @@
     <Compile Include="BinarySearch.fs" />
     <Compile Include="MzIOLinq.fs" />
     <Compile Include="SwathIndexer.fs" />
+    <Compile Include="Query.fs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="paket.references" />
