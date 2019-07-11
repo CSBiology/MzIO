@@ -25,6 +25,7 @@
     <Compile Include="SwathIndexer.fs" />
     <Compile Include="Query.fs" />
     <Compile Include="Indexer.fs" />
+    <Compile Include="AccessMassSpectrum.fs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="paket.references" />
