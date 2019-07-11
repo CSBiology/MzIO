@@ -111,11 +111,11 @@ let project = "MzIO"
 
 // Short summary of the project
 // (used as description in AssemblyInfo and as a short summary for NuGet package)
-let summary = "Generic data model to unify various reader and writer for different formats used in protein mass spectrometry"
+let summary = "Generic data model to unify various readers and writers for different formats used in protein mass spectrometry"
 
 // Longer description of the project
 // (used as a description for NuGet package; line breaks are automatically cleaned up)
-let description = "Generic data model to unify various reader and writer for different formats used in protein mass spectrometry"
+let description = "Generic data model to unify various readers and writers for different formats used in protein mass spectrometry"
 
 // List of author names (for NuGet package)
 let author = "Patrick Blume, Jonathan Ott"
