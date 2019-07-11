@@ -18,6 +18,7 @@
     <EmbeddedResource Remove="Scripts\**" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AccessPeakArray.fs" />
     <Compile Include="RangeQuery.fs" />
     <Compile Include="CSVReader.fs" />
     <Compile Include="BinarySearch.fs" />
