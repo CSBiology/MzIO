@@ -30,9 +30,8 @@ type MzIOSQLTransactionScope(connection: SQLiteConnection, transaction: SQLiteTr
     new(connection) = new MzIOSQLTransactionScope(connection, connection.BeginTransaction(), new Dictionary<string, SQLiteCommand>())
 
     member private this.RaiseDisposed() =
-
-            if disposed = true then printfn "%s" ((new ObjectDisposedException(this.GetType().Name)).ToString())
-
+            if disposed = true then 
+                raise (new ObjectDisposedException(this.GetType().Name))
             else ()
 
     //member private this.connection = connection
@@ -206,8 +205,8 @@ and MzIOSQL(encoder:BinaryDataEncoder,decoder:BinaryDataDecoder, model:MzIOModel
 
     member private this.RaiseDisposed() =
 
-            if disposed = true then printfn "%s" ((new ObjectDisposedException(this.GetType().Name)).ToString())
-
+            if disposed = true then 
+                raise (new ObjectDisposedException(this.GetType().Name))
             else ()
 
     member private this.IsOpenScope = currentScope.IsSome
@@ -383,11 +382,13 @@ and MzIOSQL(encoder:BinaryDataEncoder,decoder:BinaryDataDecoder, model:MzIOModel
                     seq{
                         while reader.Read() do
                             yield MzIOJson.FromJson<MassSpectrum>(reader.GetString(0))
-                       }    
-                       |> List.ofSeq
-                       |> (fun item -> item :> IEnumerable<MassSpectrum>)
+                        }    
+                        |> List.ofSeq
+                        |> (fun item -> item :> IEnumerable<MassSpectrum>)
                 )
             )
+        //connection.Close()
+        //this.Dispose()
         tmp
 
     member private this.SqlTrySelect(spectrumID: string, ms: byref<MassSpectrum>) =
