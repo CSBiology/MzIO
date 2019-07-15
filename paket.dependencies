@@ -25,7 +25,6 @@ clitool dotnet-fake
 
 group Thermo
 source lib/ThermoFisher
-
 nuget ThermoFisher.CommonCore.BackgroundSubtraction
 nuget ThermoFisher.CommonCore.Data
 nuget ThermoFisher.CommonCore.MassPrecisionEstimator

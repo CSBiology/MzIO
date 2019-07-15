@@ -111,11 +111,11 @@ let project = "MzIO"
 
 // Short summary of the project
 // (used as description in AssemblyInfo and as a short summary for NuGet package)
-let summary = "Generic data model to unify various reader and writer for different formats used in protein mass spectrometry"
+let summary = "Generic data model to unify various readers and writers for different formats used in protein mass spectrometry"
 
 // Longer description of the project
 // (used as a description for NuGet package; line breaks are automatically cleaned up)
-let description = "Generic data model to unify various reader and writer for different formats used in protein mass spectrometry"
+let description = "Generic data model to unify various readers and writers for different formats used in protein mass spectrometry"
 
 // List of author names (for NuGet package)
 let author = "Patrick Blume, Jonathan Ott"
@@ -200,46 +200,6 @@ Target.create "CopyBinaries" (fun _ ->
     |>  Seq.iter (fun (fromDir, toDir) -> Shell.copyDir toDir fromDir (fun _ -> true))
 )
 
-Target.create "CopyBinariesWiff" (fun _ ->
-    !! "src/**/*.??proj"
-    -- "src/MzIO.Bruker/MzIO.Bruker.fsproj"
-    -- "src/MzIO.MzML/MzIO.MzML.fsproj"
-    -- "src/MzIO.Thermo/MzIO.Thermo.fsproj"
-    -- "src/**/*.shproj"
-    |>  Seq.map (fun f -> ((Path.getDirectory f) </> "bin" </> configuration, "bin" </> (Path.GetFileNameWithoutExtension f)))
-    |>  Seq.iter (fun (fromDir, toDir) -> Shell.copyDir toDir fromDir (fun _ -> true))
-)
-
-Target.create "CopyBinariesMzML" (fun _ ->
-    !! "src/**/*.??proj"
-    -- "src/MzIO.Bruker/MzIO.Bruker.fsproj"
-    -- "src/MzIO.Thermo/MzIO.Thermo.fsproj"
-    -- "src/MzIO.Wiff/MzIO.Wiff.fsproj"
-    -- "src/**/*.shproj"
-    |>  Seq.map (fun f -> ((Path.getDirectory f) </> "bin" </> configuration, "bin" </> (Path.GetFileNameWithoutExtension f)))
-    |>  Seq.iter (fun (fromDir, toDir) -> Shell.copyDir toDir fromDir (fun _ -> true))
-)
-
-Target.create "CopyBinariesThermo" (fun _ ->
-    !! "src/**/*.??proj"
-    -- "src/MzIO.Bruker/MzIO.Bruker.fsproj"
-    -- "src/MzIO.MzML/MzIO.MzML.fsproj"
-    -- "src/MzIO.Wiff/MzIO.Wiff.fsproj"
-    -- "src/**/*.shproj"
-    |>  Seq.map (fun f -> ((Path.getDirectory f) </> "bin" </> configuration, "bin" </> (Path.GetFileNameWithoutExtension f)))
-    |>  Seq.iter (fun (fromDir, toDir) -> Shell.copyDir toDir fromDir (fun _ -> true))
-)
-
-Target.create "CopyBinariesBruker" (fun _ ->
-    !! "src/**/*.??proj"
-    -- "src/MzIO.MzML/MzIO.MzML.fsproj"
-    -- "src/MzIO.Thermo/MzIO.Thermo.fsproj"
-    -- "src/MzIO.Wiff/MzIO.Wiff.fsproj"
-    -- "src/**/*.shproj"
-    |>  Seq.map (fun f -> ((Path.getDirectory f) </> "bin" </> configuration, "bin" </> (Path.GetFileNameWithoutExtension f)))
-    |>  Seq.iter (fun (fromDir, toDir) -> Shell.copyDir toDir fromDir (fun _ -> true))
-)
-
 // --------------------------------------------------------------------------------------
 // Clean build results
 
@@ -275,82 +235,6 @@ Target.create "Build" (fun _ ->
                     "Optimize", "True"
                     "DebugSymbols", "True"
                     "Configuration", configuration
-                ]
-         }
-    MSBuild.build setParams solutionFile
-)
-
-Target.create "BuildWiff" (fun _ ->
-    (*solutionFile
-    |> DotNet.build (fun p ->
-        { p with
-            Configuration = buildConfiguration })*)
-    let setParams (defaults:MSBuildParams) =
-        { defaults with
-            Verbosity = Some(Quiet)
-            Targets = ["Build"]
-            Properties =
-                [
-                    "Optimize", "True"
-                    "DebugSymbols", "True"
-                    "Configuration", "Wiff"
-                ]
-         }
-    MSBuild.build setParams solutionFile
-)
-
-Target.create "BuildMzML" (fun _ ->
-    (*solutionFile
-    |> DotNet.build (fun p ->
-        { p with
-            Configuration = buildConfiguration })*)
-    let setParams (defaults:MSBuildParams) =
-        { defaults with
-            Verbosity = Some(Quiet)
-            Targets = ["Build"]
-            Properties =
-                [
-                    "Optimize", "True"
-                    "DebugSymbols", "True"
-                    "Configuration", "MzML"
-                ]
-         }
-    MSBuild.build setParams solutionFile
-)
-
-Target.create "BuildThermo" (fun _ ->
-    (*solutionFile
-    |> DotNet.build (fun p ->
-        { p with
-            Configuration = buildConfiguration })*)
-    let setParams (defaults:MSBuildParams) =
-        { defaults with
-            Verbosity = Some(Quiet)
-            Targets = ["Build"]
-            Properties =
-                [
-                    "Optimize", "True"
-                    "DebugSymbols", "True"
-                    "Configuration", "Thermo"
-                ]
-         }
-    MSBuild.build setParams solutionFile
-)
-
-Target.create "BuildBruker" (fun _ ->
-    (*solutionFile
-    |> DotNet.build (fun p ->
-        { p with
-            Configuration = buildConfiguration })*)
-    let setParams (defaults:MSBuildParams) =
-        { defaults with
-            Verbosity = Some(Quiet)
-            Targets = ["Build"]
-            Properties =
-                [
-                    "Optimize", "True"
-                    "DebugSymbols", "True"
-                    "Configuration", "Bruker"
                 ]
          }
     MSBuild.build setParams solutionFile
@@ -617,14 +501,6 @@ Target.create "ReleaseConfirmation" (fun _ -> match promptYesNo releaseMsg with 
 
 Target.create "All" ignore
 
-Target.create "Wiff" ignore
-
-Target.create "MzML" ignore
-
-Target.create "Bruker" ignore
-
-Target.create "Thermo" ignore
-
 "Clean"
   ==> "AssemblyInfo"
   ==> "Restore"
@@ -660,37 +536,6 @@ Target.create "Thermo" ignore
 
 "All"
   ==> "ReleaseLocal"
-
-"Clean"
-  ==> "AssemblyInfo"
-  ==> "Restore"
-  ==> "BuildWiff"
-  ==> "CopyBinariesWiff"
-  ==> "Wiff"
-
-
-"Clean"
-  ==> "AssemblyInfo"
-  ==> "Restore"
-  ==> "BuildBruker"
-  ==> "CopyBinariesBruker"
-  ==> "Bruker"
-
-
-"Clean"
-  ==> "AssemblyInfo"
-  ==> "Restore"
-  ==> "BuildMzML"
-  ==> "CopyBinariesMzML"
-  ==> "MzML"
-
-
-"Clean"
-  ==> "AssemblyInfo"
-  ==> "Restore"
-  ==> "BuildThermo"
-  ==> "CopyBinariesThermo"
-  ==> "Thermo"
 
 
 
