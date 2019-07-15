@@ -24,7 +24,7 @@ nuget Expecto.VisualStudio.TestAdapter version_in_path: true
 clitool dotnet-fake
 
 group Thermo
-source https://thermofisher-my.sharepoint.com/:f:/r/personal/jim_shofstahl_thermofisher_com/Documents/Shared%20with%20Everyone/RawFileReader?csf=1&e=HvnEur
+source lib/ThermoFisher
 
 nuget ThermoFisher.CommonCore.BackgroundSubtraction
 nuget ThermoFisher.CommonCore.Data
