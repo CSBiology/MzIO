@@ -179,7 +179,6 @@ type ProductList [<JsonConstructor>] internal (dict:Dictionary<string, obj>) =
 
 [<Sealed>]
 [<JsonObject(MemberSerialization.OptIn)>]
-//[<JsonConverter(typeof<DynamicObjectConverter>)>]
 type MassSpectrum [<JsonConstructor>] (id:string, precursors:PrecursorList, scans:ScanList, products:ProductList,  sourceFileReference:string) =
 
     //inherit with variables or default constructors?
@@ -211,47 +210,6 @@ type MassSpectrum [<JsonConstructor>] (id:string, precursors:PrecursorList, scan
     member this.SourceFileReference
         with get() = sourceFileReference
         and private set(value) = sourceFileReference <- value            
-
-and DynamicObjectConverter() =  
-
-        inherit JsonConverter()
-
-        override this.CanConvert(objectType:Type) =
-
-            raise (new NotSupportedException("JsonConverter.CanConvert()"))
-
-        override this.ReadJson(reader:JsonReader, objectType:Type, existingValue:Object, serializer:JsonSerializer) =           
-            let jt = JToken.Load(reader)
-            if jt.Type = JTokenType.Null then null
-                else
-                    if jt.Type = JTokenType.Object then
-                        let jo = jt.ToObject<JObject>()
-                        let mutable jtval = JToken.FromObject(jo) 
-                        if jo.TryGetValue("id",& jtval) && jo.TryGetValue("Precursors",& jtval) then
-                            jo.ToObject<MassSpectrum>(serializer) :> Object
-                    //    if jo.["CvAccession"] = null then
-                    //        if jo.["Name"] = null then
-                    //            raise (new JsonSerializationException("Could not determine concrete param type."))
-                    //        else
-                    //            let values = ParamBaseConverter.createParamValue jo
-                    //            new UserParam<IConvertible>(jo.["Name"].ToString(), values) :> Object
-                    //    else
-                    //        let values = ParamBaseConverter.createParamValue jo
-                    //        new CvParam<IConvertible>(jo.["CvAccession"].ToString(), values) :> Object
-                        else 
-                            raise (new JsonSerializationException("Object token expected."))
-                    else 
-                        raise (new JsonSerializationException("Object token expected."))
-
-        override this.WriteJson(writer: JsonWriter, value: Object, serializer: JsonSerializer) =
-            if value = null then
-                writer.WriteNull()
-            else
-                match value with
-                | :? MassSpectrum -> serializer.Serialize(writer, value.ToString())
-                //| :? CvParam<byte>  as value -> serializer.Serialize(writer, ParamBaseConverter.createJsonParam value)
-                //| _     -> raise ((new JsonSerializationException("Type not supported: " + value.GetType().FullName))
-                | _ -> serializer.Serialize(writer, value.ToString())
 
 [<Sealed>]
 [<JsonObject(MemberSerialization.OptIn)>]
