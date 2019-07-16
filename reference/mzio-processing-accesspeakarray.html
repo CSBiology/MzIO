@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8"/>
-    <title>SwathSpectrumEntry - MzIO</title>
+    <title>AccessPeakArray - MzIO</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <meta name="description" content=""/>
     <meta name="author" content="Patrick Blume, Jonathan Ott"/>
@@ -37,146 +37,119 @@
 
 
 
-<h1>SwathSpectrumEntry</h1>
+<h1>AccessPeakArray</h1>
 <p>
-
-    <span>Namespace: MzIO.Processing</span><br />
-        <span>Parent Module: <a href="mzio-processing-swathindexer.html">SwathIndexer</a></span><br />
-    </p>
+  <span>Namespace: MzIO.Processing</span><br />
+  </p>
 <div class="xmldoc">
 </div>
-  <h3>Constructors</h3>
+
+<!-- Render nested types and modules, if there are any -->
+
+  <h3>Functions and values</h3>
   <table class="table table-bordered member-list">
     <thead>
-      <tr><td>Constructor</td><td>Description</td></tr>
+      <tr><td>Function or value</td><td>Description</td></tr>
     </thead>
     <tbody>
       <tr>
         <td class="member-name">
 
-          <code onmouseout="hideTip(event, '490', 490)" onmouseover="showTip(event, '490', 490)">
-            new(...)
+          <code onmouseout="hideTip(event, '80', 80)" onmouseover="showTip(event, '80', 80)">
+            createPeak1DArray(...)
           </code>
-          <div class="tip" id="490">
-            <strong>Signature:</strong> (spectrumID:string * targetMz:float * lowMz:float * heighMz:double * rt:double) -&gt; SwathSpectrumEntry<br />
+          <div class="tip" id="80">
+            <strong>Signature:</strong> compression:string -&gt; mzBinaryDataType:BinaryDataType -&gt; intensityBinaryDataType:BinaryDataType -&gt; mzData:float [] -&gt; intensityData:float [] -&gt; Peak1DArray<br />
                                   </div>
         </td>
         <td class="xmldoc">
-                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.Processing/SwathIndexer.fs#L62-62" class="github-link">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.Processing/AccessPeakArray.fs#L34-34" class="github-link">
               <img src="../content/img/github.png" class="normal" />
               <img src="../content/img/github-blue.png" class="hover" />
             </a>
-          
-              <p>CompiledName: <code>.ctor</code></p>
-        </td>
-      </tr>
-    </tbody>
-  </table>
-  <h3>Instance members</h3>
-  <table class="table table-bordered member-list">
-    <thead>
-      <tr><td>Instance member</td><td>Description</td></tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td class="member-name">
+          <p>Creates Peak1DArray of mzData array and intensityData Array</p>
 
-          <code onmouseout="hideTip(event, '491', 491)" onmouseover="showTip(event, '491', 491)">
-            x.Rt()
-          </code>
-          <div class="tip" id="491">
-            <strong>Signature:</strong> unit -&gt; unit<br />
-                                  </div>
-        </td>
-        <td class="xmldoc">
-                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.Processing/SwathIndexer.fs#L76-76" class="github-link">
-              <img src="../content/img/github.png" class="normal" />
-              <img src="../content/img/github-blue.png" class="hover" />
-            </a>
-          
-              <p>CompiledName: <code>get_Rt</code></p>
+
         </td>
       </tr>
       <tr>
         <td class="member-name">
 
-          <code onmouseout="hideTip(event, '492', 492)" onmouseover="showTip(event, '492', 492)">
-            x.SpectrumID()
+          <code onmouseout="hideTip(event, '81', 81)" onmouseover="showTip(event, '81', 81)">
+            getPeak1DArray reader msID
           </code>
-          <div class="tip" id="492">
-            <strong>Signature:</strong> unit -&gt; unit<br />
+          <div class="tip" id="81">
+            <strong>Signature:</strong> reader:IMzIODataReader -&gt; msID:string -&gt; Peak1DArray<br />
                                   </div>
         </td>
         <td class="xmldoc">
-                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.Processing/SwathIndexer.fs#L68-68" class="github-link">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.Processing/AccessPeakArray.fs#L11-11" class="github-link">
               <img src="../content/img/github.png" class="normal" />
               <img src="../content/img/github-blue.png" class="hover" />
             </a>
-          
-              <p>CompiledName: <code>get_SpectrumID</code></p>
+          <p>Returns a MzLite.Binary.Peak1DArray</p>
+
+
         </td>
       </tr>
       <tr>
         <td class="member-name">
 
-          <code onmouseout="hideTip(event, '493', 493)" onmouseover="showTip(event, '493', 493)">
-            x.SwathWindow()
+          <code onmouseout="hideTip(event, '82', 82)" onmouseover="showTip(event, '82', 82)">
+            intensityDataOf(peak1DArray)
           </code>
-          <div class="tip" id="493">
-            <strong>Signature:</strong> unit -&gt; unit<br />
+          <div class="tip" id="82">
+            <strong>Signature:</strong> peak1DArray:Peak1DArray -&gt; float []<br />
                                   </div>
         </td>
         <td class="xmldoc">
-                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.Processing/SwathIndexer.fs#L72-72" class="github-link">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.Processing/AccessPeakArray.fs#L21-21" class="github-link">
               <img src="../content/img/github.png" class="normal" />
               <img src="../content/img/github-blue.png" class="hover" />
             </a>
-          
-              <p>CompiledName: <code>get_SwathWindow</code></p>
-        </td>
-      </tr>
-    </tbody>
-  </table>
-  <h3>Static members</h3>
-  <table class="table table-bordered member-list">
-    <thead>
-      <tr><td>Static member</td><td>Description</td></tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td class="member-name">
+          <p>Returns a intensityData Array of a peak1DArray</p>
 
-          <code onmouseout="hideTip(event, '494', 494)" onmouseover="showTip(event, '494', 494)">
-            SwathSpectrumEntry.Scan(spectra)
-          </code>
-          <div class="tip" id="494">
-            <strong>Signature:</strong> spectra:IEnumerable&lt;MassSpectrum&gt; -&gt; seq&lt;SwathSpectrumEntry&gt;<br />
-                                  </div>
-        </td>
-        <td class="xmldoc">
-                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.Processing/SwathIndexer.fs#L103-103" class="github-link">
-              <img src="../content/img/github.png" class="normal" />
-              <img src="../content/img/github-blue.png" class="hover" />
-            </a>
-          
+
         </td>
       </tr>
       <tr>
         <td class="member-name">
 
-          <code onmouseout="hideTip(event, '495', 495)" onmouseover="showTip(event, '495', 495)">
-            SwathSpectrumEntry.TryCreateSwathSpectrum(...)
+          <code onmouseout="hideTip(event, '83', 83)" onmouseover="showTip(event, '83', 83)">
+            mzDataOf(peak1DArray)
           </code>
-          <div class="tip" id="495">
-            <strong>Signature:</strong> ms:MassSpectrum -&gt; SwathSpectrumEntry option<br />
+          <div class="tip" id="83">
+            <strong>Signature:</strong> peak1DArray:Peak1DArray -&gt; float []<br />
                                   </div>
         </td>
         <td class="xmldoc">
-                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.Processing/SwathIndexer.fs#L80-80" class="github-link">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.Processing/AccessPeakArray.fs#L15-15" class="github-link">
               <img src="../content/img/github.png" class="normal" />
               <img src="../content/img/github-blue.png" class="hover" />
             </a>
-          
+          <p>Returns a mzData Array of a peak1DArray</p>
+
+
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '84', 84)" onmouseover="showTip(event, '84', 84)">
+            mzIntensityArrayOf(peak1DArray)
+          </code>
+          <div class="tip" id="84">
+            <strong>Signature:</strong> peak1DArray:Peak1DArray -&gt; float [] * float []<br />
+                                  </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.Processing/AccessPeakArray.fs#L27-27" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          <p>Returns tuple of a mzData Array and intensityData Array of a peak1DArray</p>
+
+
         </td>
       </tr>
     </tbody>

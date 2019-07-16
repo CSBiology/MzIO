@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8"/>
-    <title>SwathSpectrumEntry - MzIO</title>
+    <title>Query - MzIO</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <meta name="description" content=""/>
     <meta name="author" content="Patrick Blume, Jonathan Ott"/>
@@ -37,124 +37,33 @@
 
 
 
-<h1>SwathSpectrumEntry</h1>
+<h1>Query</h1>
 <p>
-
-    <span>Namespace: MzIO.Processing</span><br />
-        <span>Parent Module: <a href="mzio-processing-swathindexer.html">SwathIndexer</a></span><br />
-    </p>
+  <span>Namespace: MzIO.Processing</span><br />
+  </p>
 <div class="xmldoc">
 </div>
-  <h3>Constructors</h3>
+
+<!-- Render nested types and modules, if there are any -->
+
+  <h3>Functions and values</h3>
   <table class="table table-bordered member-list">
     <thead>
-      <tr><td>Constructor</td><td>Description</td></tr>
+      <tr><td>Function or value</td><td>Description</td></tr>
     </thead>
     <tbody>
       <tr>
         <td class="member-name">
 
-          <code onmouseout="hideTip(event, '490', 490)" onmouseover="showTip(event, '490', 490)">
-            new(...)
+          <code onmouseout="hideTip(event, '100', 100)" onmouseover="showTip(event, '100', 100)">
+            createRangeQuery v offset
           </code>
-          <div class="tip" id="490">
-            <strong>Signature:</strong> (spectrumID:string * targetMz:float * lowMz:float * heighMz:double * rt:double) -&gt; SwathSpectrumEntry<br />
+          <div class="tip" id="100">
+            <strong>Signature:</strong> v:float -&gt; offset:float -&gt; RangeQuery<br />
                                   </div>
         </td>
         <td class="xmldoc">
-                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.Processing/SwathIndexer.fs#L62-62" class="github-link">
-              <img src="../content/img/github.png" class="normal" />
-              <img src="../content/img/github-blue.png" class="hover" />
-            </a>
-          
-              <p>CompiledName: <code>.ctor</code></p>
-        </td>
-      </tr>
-    </tbody>
-  </table>
-  <h3>Instance members</h3>
-  <table class="table table-bordered member-list">
-    <thead>
-      <tr><td>Instance member</td><td>Description</td></tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td class="member-name">
-
-          <code onmouseout="hideTip(event, '491', 491)" onmouseover="showTip(event, '491', 491)">
-            x.Rt()
-          </code>
-          <div class="tip" id="491">
-            <strong>Signature:</strong> unit -&gt; unit<br />
-                                  </div>
-        </td>
-        <td class="xmldoc">
-                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.Processing/SwathIndexer.fs#L76-76" class="github-link">
-              <img src="../content/img/github.png" class="normal" />
-              <img src="../content/img/github-blue.png" class="hover" />
-            </a>
-          
-              <p>CompiledName: <code>get_Rt</code></p>
-        </td>
-      </tr>
-      <tr>
-        <td class="member-name">
-
-          <code onmouseout="hideTip(event, '492', 492)" onmouseover="showTip(event, '492', 492)">
-            x.SpectrumID()
-          </code>
-          <div class="tip" id="492">
-            <strong>Signature:</strong> unit -&gt; unit<br />
-                                  </div>
-        </td>
-        <td class="xmldoc">
-                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.Processing/SwathIndexer.fs#L68-68" class="github-link">
-              <img src="../content/img/github.png" class="normal" />
-              <img src="../content/img/github-blue.png" class="hover" />
-            </a>
-          
-              <p>CompiledName: <code>get_SpectrumID</code></p>
-        </td>
-      </tr>
-      <tr>
-        <td class="member-name">
-
-          <code onmouseout="hideTip(event, '493', 493)" onmouseover="showTip(event, '493', 493)">
-            x.SwathWindow()
-          </code>
-          <div class="tip" id="493">
-            <strong>Signature:</strong> unit -&gt; unit<br />
-                                  </div>
-        </td>
-        <td class="xmldoc">
-                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.Processing/SwathIndexer.fs#L72-72" class="github-link">
-              <img src="../content/img/github.png" class="normal" />
-              <img src="../content/img/github-blue.png" class="hover" />
-            </a>
-          
-              <p>CompiledName: <code>get_SwathWindow</code></p>
-        </td>
-      </tr>
-    </tbody>
-  </table>
-  <h3>Static members</h3>
-  <table class="table table-bordered member-list">
-    <thead>
-      <tr><td>Static member</td><td>Description</td></tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td class="member-name">
-
-          <code onmouseout="hideTip(event, '494', 494)" onmouseover="showTip(event, '494', 494)">
-            SwathSpectrumEntry.Scan(spectra)
-          </code>
-          <div class="tip" id="494">
-            <strong>Signature:</strong> spectra:IEnumerable&lt;MassSpectrum&gt; -&gt; seq&lt;SwathSpectrumEntry&gt;<br />
-                                  </div>
-        </td>
-        <td class="xmldoc">
-                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.Processing/SwathIndexer.fs#L103-103" class="github-link">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.Processing/Query.fs#L11-11" class="github-link">
               <img src="../content/img/github.png" class="normal" />
               <img src="../content/img/github-blue.png" class="hover" />
             </a>
@@ -164,15 +73,123 @@
       <tr>
         <td class="member-name">
 
-          <code onmouseout="hideTip(event, '495', 495)" onmouseover="showTip(event, '495', 495)">
-            SwathSpectrumEntry.TryCreateSwathSpectrum(...)
+          <code onmouseout="hideTip(event, '101', 101)" onmouseover="showTip(event, '101', 101)">
+            createSwathQuery(...)
           </code>
-          <div class="tip" id="495">
-            <strong>Signature:</strong> ms:MassSpectrum -&gt; SwathSpectrumEntry option<br />
+          <div class="tip" id="101">
+            <strong>Signature:</strong> targetMz:double -&gt; rtQuery:RangeQuery -&gt; ms2MzQueries:RangeQuery [] -&gt; SwathQuery<br />
                                   </div>
         </td>
         <td class="xmldoc">
-                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.Processing/SwathIndexer.fs#L80-80" class="github-link">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.Processing/Query.fs#L27-27" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '102', 102)" onmouseover="showTip(event, '102', 102)">
+            getMS1RTIdx reader runId
+          </code>
+          <div class="tip" id="102">
+            <strong>Signature:</strong> reader:IMzIODataReader -&gt; runId:string -&gt; ListWrapper&lt;RtIndexEntry&gt;<br />
+                                  </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.Processing/Query.fs#L15-15" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '103', 103)" onmouseover="showTip(event, '103', 103)">
+            getSwathIdx reader runId
+          </code>
+          <div class="tip" id="103">
+            <strong>Signature:</strong> reader:IMzIODataReader -&gt; runId:string -&gt; SwathIndexer<br />
+                                  </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.Processing/Query.fs#L31-31" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '104', 104)" onmouseover="showTip(event, '104', 104)">
+            getSwathXics reader swathIdx swathQuery
+          </code>
+          <div class="tip" id="104">
+            <strong>Signature:</strong> reader:IMzIODataReader -&gt; swathIdx:SwathIndexer -&gt; swathQuery:SwathQuery -&gt; Peak2D []<br />
+                                  </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.Processing/Query.fs#L35-35" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '105', 105)" onmouseover="showTip(event, '105', 105)">
+            getSwathXICsBy(...)
+          </code>
+          <div class="tip" id="105">
+            <strong>Signature:</strong> reader:IMzIODataReader -&gt; swathIdx:SwathIndexer -&gt; rtQuery:RangeQuery -&gt; ms2MzQueries:RangeQuery [] -&gt; tarMz:double -&gt; Peak2D []<br />
+                                  </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.Processing/Query.fs#L39-39" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '106', 106)" onmouseover="showTip(event, '106', 106)">
+            getXIC reader rtIdx rtQuery mzQuery
+          </code>
+          <div class="tip" id="106">
+            <strong>Signature:</strong> reader:IMzIODataReader -&gt; rtIdx:IMzIOArray&lt;RtIndexEntry&gt; -&gt; rtQuery:RangeQuery -&gt; mzQuery:RangeQuery -&gt; Peak2D []<br />
+                                  </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.Processing/Query.fs#L19-19" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '107', 107)" onmouseover="showTip(event, '107', 107)">
+            getXICs reader rtIdx rtQuery mzQueries
+          </code>
+          <div class="tip" id="107">
+            <strong>Signature:</strong> reader:IMzIODataReader -&gt; rtIdx:IMzIOArray&lt;RtIndexEntry&gt; -&gt; rtQuery:RangeQuery -&gt; mzQueries:RangeQuery [] -&gt; Peak2D [,]<br />
+                                  </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.Processing/Query.fs#L23-23" class="github-link">
               <img src="../content/img/github.png" class="normal" />
               <img src="../content/img/github-blue.png" class="hover" />
             </a>

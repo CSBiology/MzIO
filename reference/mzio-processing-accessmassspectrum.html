@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8"/>
-    <title>ReflectionHelper - MzIO</title>
+    <title>AccessMassSpectrum - MzIO</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <meta name="description" content=""/>
     <meta name="author" content="Patrick Blume, Jonathan Ott"/>
@@ -37,9 +37,9 @@
 
 
 
-<h1>ReflectionHelper</h1>
+<h1>AccessMassSpectrum</h1>
 <p>
-  <span>Namespace: MzIO.Model</span><br />
+  <span>Namespace: MzIO.Processing</span><br />
   </p>
 <div class="xmldoc">
 </div>
@@ -55,19 +55,19 @@
       <tr>
         <td class="member-name">
 
-          <code onmouseout="hideTip(event, '54', 54)" onmouseover="showTip(event, '54', 54)">
-            buildApply(applyStyle)
+          <code onmouseout="hideTip(event, '67', 67)" onmouseover="showTip(event, '67', 67)">
+            createIDIdxedMS(massSpectrum)
           </code>
-          <div class="tip" id="54">
-            <strong>Signature:</strong> applyStyle:(&#39;a -&gt; &#39;a) -&gt; &#39;a<br />
-                          <strong>Type parameters:</strong> 'a                      </div>
+          <div class="tip" id="67">
+            <strong>Signature:</strong> massSpectrum:MassSpectrum -&gt; IndexedItem&lt;string,MassSpectrum&gt;<br />
+                                  </div>
         </td>
         <td class="xmldoc">
-                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO/Model/ParamContainer.fs#L27-27" class="github-link">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.Processing/AccessMassSpectrum.fs#L31-31" class="github-link">
               <img src="../content/img/github.png" class="normal" />
               <img src="../content/img/github-blue.png" class="hover" />
             </a>
-          <p>Creates an instance of the Object according to applyStyle and applies the function..</p>
+          <p>Returns a id-indexed massSpectrum</p>
 
 
         </td>
@@ -75,15 +75,115 @@
       <tr>
         <td class="member-name">
 
-          <code onmouseout="hideTip(event, '55', 55)" onmouseover="showTip(event, '55', 55)">
-            getPublicProperties(t)
+          <code onmouseout="hideTip(event, '68', 68)" onmouseover="showTip(event, '68', 68)">
+            createMsLevelIdxedMS(massSpectrum)
           </code>
-          <div class="tip" id="55">
-            <strong>Signature:</strong> t:Type -&gt; PropertyInfo []<br />
+          <div class="tip" id="68">
+            <strong>Signature:</strong> massSpectrum:MassSpectrum -&gt; IndexedItem&lt;int,MassSpectrum&gt;<br />
                                   </div>
         </td>
         <td class="xmldoc">
-                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO/Model/ParamContainer.fs#L20-20" class="github-link">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.Processing/AccessMassSpectrum.fs#L46-46" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          <p>Returns a msLevel-indexed massSpectrum</p>
+
+
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '69', 69)" onmouseover="showTip(event, '69', 69)">
+            createPrecursorMZIdxedMS(massSpectrum)
+          </code>
+          <div class="tip" id="69">
+            <strong>Signature:</strong> massSpectrum:MassSpectrum -&gt; IndexedItem&lt;double,MassSpectrum&gt;<br />
+                                  </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.Processing/AccessMassSpectrum.fs#L74-74" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          <p>Returns a precursorMZ-indexed massSpectrum</p>
+
+
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '70', 70)" onmouseover="showTip(event, '70', 70)">
+            createScanTimeIdxedMS(massSpectrum)
+          </code>
+          <div class="tip" id="70">
+            <strong>Signature:</strong> massSpectrum:MassSpectrum -&gt; IndexedItem&lt;double,MassSpectrum&gt;<br />
+                                  </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.Processing/AccessMassSpectrum.fs#L60-60" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          <p>Returns a msLevel-indexed massSpectrum</p>
+
+
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '71', 71)" onmouseover="showTip(event, '71', 71)">
+            createScanTimeRange
+          </code>
+          <div class="tip" id="71">
+            <strong>Signature:</strong> MassSpectrum -&gt; MassSpectrum -&gt; double * double<br />
+                                  </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.Processing/AccessMassSpectrum.fs#L86-86" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          <p>Returns function which can be used to determine the range between the scanTime of two MassSpectra.</p>
+
+
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '72', 72)" onmouseover="showTip(event, '72', 72)">
+            getID(massSpectrum)
+          </code>
+          <div class="tip" id="72">
+            <strong>Signature:</strong> massSpectrum:MassSpectrum -&gt; string<br />
+                                  </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.Processing/AccessMassSpectrum.fs#L27-27" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          <p>Returns the ID of the MassSpectrum</p>
+
+
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '73', 73)" onmouseover="showTip(event, '73', 73)">
+            getMassSpectra(reader)
+          </code>
+          <div class="tip" id="73">
+            <strong>Signature:</strong> reader:IMzIODataReader -&gt; seq&lt;MassSpectrum&gt;<br />
+                                  </div>
+        </td>
+        <td class="xmldoc">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.Processing/AccessMassSpectrum.fs#L18-18" class="github-link">
               <img src="../content/img/github.png" class="normal" />
               <img src="../content/img/github-blue.png" class="hover" />
             </a>
@@ -93,59 +193,19 @@
       <tr>
         <td class="member-name">
 
-          <code onmouseout="hideTip(event, '56', 56)" onmouseover="showTip(event, '56', 56)">
-            optApply applyStyle item
+          <code onmouseout="hideTip(event, '74', 74)" onmouseover="showTip(event, '74', 74)">
+            getMassSpectraBy reader runID
           </code>
-          <div class="tip" id="56">
-            <strong>Signature:</strong> applyStyle:(&#39;a -&gt; &#39;a) option -&gt; item:&#39;a -&gt; &#39;a<br />
-                          <strong>Type parameters:</strong> 'a                      </div>
-        </td>
-        <td class="xmldoc">
-                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO/Model/ParamContainer.fs#L39-39" class="github-link">
-              <img src="../content/img/github.png" class="normal" />
-              <img src="../content/img/github-blue.png" class="hover" />
-            </a>
-          <p>Applies Some 'applyStyle' to item. If None it returns 'item' unchanged.</p>
-
-
-        </td>
-      </tr>
-      <tr>
-        <td class="member-name">
-
-          <code onmouseout="hideTip(event, '57', 57)" onmouseover="showTip(event, '57', 57)">
-            optBuildApply applyStyle item
-          </code>
-          <div class="tip" id="57">
-            <strong>Signature:</strong> applyStyle:(&#39;a -&gt; &#39;a) -&gt; item:&#39;a option -&gt; &#39;a<br />
-                          <strong>Type parameters:</strong> 'a                      </div>
-        </td>
-        <td class="xmldoc">
-                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO/Model/ParamContainer.fs#L33-33" class="github-link">
-              <img src="../content/img/github.png" class="normal" />
-              <img src="../content/img/github-blue.png" class="hover" />
-            </a>
-          <p>Applies 'applyStyle' to item option. If None it creates a new instance.</p>
-
-
-        </td>
-      </tr>
-      <tr>
-        <td class="member-name">
-
-          <code onmouseout="hideTip(event, '58', 58)" onmouseover="showTip(event, '58', 58)">
-            removeProperty o propName
-          </code>
-          <div class="tip" id="58">
-            <strong>Signature:</strong> o:obj -&gt; propName:string -&gt; bool<br />
+          <div class="tip" id="74">
+            <strong>Signature:</strong> reader:IMzIODataReader -&gt; runID:string -&gt; IEnumerable&lt;MassSpectrum&gt;<br />
                                   </div>
         </td>
         <td class="xmldoc">
-                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO/Model/ParamContainer.fs#L106-106" class="github-link">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.Processing/AccessMassSpectrum.fs#L15-15" class="github-link">
               <img src="../content/img/github.png" class="normal" />
               <img src="../content/img/github-blue.png" class="hover" />
             </a>
-          <p>Removes property</p>
+          <p>accesses the Header of the WiffFile referenced by the path</p>
 
 
         </td>
@@ -153,19 +213,19 @@
       <tr>
         <td class="member-name">
 
-          <code onmouseout="hideTip(event, '59', 59)" onmouseover="showTip(event, '59', 59)">
-            tryGetPropertyInfo o propName
+          <code onmouseout="hideTip(event, '75', 75)" onmouseover="showTip(event, '75', 75)">
+            getMsLevel(massSpectrum)
           </code>
-          <div class="tip" id="59">
-            <strong>Signature:</strong> o:obj -&gt; propName:string -&gt; PropertyInfo option<br />
+          <div class="tip" id="75">
+            <strong>Signature:</strong> massSpectrum:MassSpectrum -&gt; int<br />
                                   </div>
         </td>
         <td class="xmldoc">
-                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO/Model/ParamContainer.fs#L51-51" class="github-link">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.Processing/AccessMassSpectrum.fs#L35-35" class="github-link">
               <img src="../content/img/github.png" class="normal" />
               <img src="../content/img/github-blue.png" class="hover" />
             </a>
-          <p>Try to get the PropertyInfo by name using reflection</p>
+          <p>Returns the MsLevel of the MassSpectrum</p>
 
 
         </td>
@@ -173,19 +233,19 @@
       <tr>
         <td class="member-name">
 
-          <code onmouseout="hideTip(event, '60', 60)" onmouseover="showTip(event, '60', 60)">
-            tryGetPropertyName(expr)
+          <code onmouseout="hideTip(event, '76', 76)" onmouseover="showTip(event, '76', 76)">
+            getPrecursorMZ(massSpectrum)
           </code>
-          <div class="tip" id="60">
-            <strong>Signature:</strong> expr:Expr -&gt; string option<br />
+          <div class="tip" id="76">
+            <strong>Signature:</strong> massSpectrum:MassSpectrum -&gt; double<br />
                                   </div>
         </td>
         <td class="xmldoc">
-                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO/Model/ParamContainer.fs#L45-45" class="github-link">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.Processing/AccessMassSpectrum.fs#L64-64" class="github-link">
               <img src="../content/img/github.png" class="normal" />
               <img src="../content/img/github-blue.png" class="hover" />
             </a>
-          <p>Returns the proptery name from quotation expression</p>
+          <p>Returns PrecursorMZ of MS2 spectrum</p>
 
 
         </td>
@@ -193,19 +253,19 @@
       <tr>
         <td class="member-name">
 
-          <code onmouseout="hideTip(event, '61', 61)" onmouseover="showTip(event, '61', 61)">
-            tryGetPropertyValue o propName
+          <code onmouseout="hideTip(event, '77', 77)" onmouseover="showTip(event, '77', 77)">
+            getScanTime(massSpectrum)
           </code>
-          <div class="tip" id="61">
-            <strong>Signature:</strong> o:obj -&gt; propName:string -&gt; obj option<br />
+          <div class="tip" id="77">
+            <strong>Signature:</strong> massSpectrum:MassSpectrum -&gt; double<br />
                                   </div>
         </td>
         <td class="xmldoc">
-                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO/Model/ParamContainer.fs#L68-68" class="github-link">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.Processing/AccessMassSpectrum.fs#L50-50" class="github-link">
               <img src="../content/img/github.png" class="normal" />
               <img src="../content/img/github-blue.png" class="hover" />
             </a>
-          <p>Gets property value as option using reflection</p>
+          <p>Returns the ScanTime (formerly: RetentionTime) of the MassSpectrum</p>
 
 
         </td>
@@ -213,19 +273,19 @@
       <tr>
         <td class="member-name">
 
-          <code onmouseout="hideTip(event, '62', 62)" onmouseover="showTip(event, '62', 62)">
-            tryGetPropertyValueAs o propName
+          <code onmouseout="hideTip(event, '78', 78)" onmouseover="showTip(event, '78', 78)">
+            initCreateLastRange(...)
           </code>
-          <div class="tip" id="62">
-            <strong>Signature:</strong> o:obj -&gt; propName:string -&gt; &#39;a option<br />
-                          <strong>Type parameters:</strong> 'a                      </div>
+          <div class="tip" id="78">
+            <strong>Signature:</strong> getter:(MassSpectrum -&gt; &#39;b) -&gt; infinityVal:&#39;b -&gt; lastMS:MassSpectrum -&gt; &#39;b * &#39;b<br />
+                          <strong>Type parameters:</strong> 'b                      </div>
         </td>
         <td class="xmldoc">
-                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO/Model/ParamContainer.fs#L78-78" class="github-link">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.Processing/AccessMassSpectrum.fs#L82-82" class="github-link">
               <img src="../content/img/github.png" class="normal" />
               <img src="../content/img/github-blue.png" class="hover" />
             </a>
-          <p>Gets property value as 'a option using reflection. Cast to 'a</p>
+          <p>Returns Range theoretical Range between a real feature of the last MassSpectra and a type dependend infinityValue</p>
 
 
         </td>
@@ -233,79 +293,21 @@
       <tr>
         <td class="member-name">
 
-          <code onmouseout="hideTip(event, '63', 63)" onmouseover="showTip(event, '63', 63)">
-            trySetPropertyValue o propName value
+          <code onmouseout="hideTip(event, '79', 79)" onmouseover="showTip(event, '79', 79)">
+            initCreateRange getter ms consMS
           </code>
-          <div class="tip" id="63">
-            <strong>Signature:</strong> o:obj -&gt; propName:string -&gt; value:obj -&gt; obj option<br />
-                                  </div>
+          <div class="tip" id="79">
+            <strong>Signature:</strong> getter:(MassSpectrum -&gt; &#39;b) -&gt; ms:MassSpectrum -&gt; consMS:MassSpectrum -&gt; &#39;b * &#39;b<br />
+                          <strong>Type parameters:</strong> 'b                      </div>
         </td>
         <td class="xmldoc">
-                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO/Model/ParamContainer.fs#L56-56" class="github-link">
+                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO.Processing/AccessMassSpectrum.fs#L78-78" class="github-link">
               <img src="../content/img/github.png" class="normal" />
               <img src="../content/img/github-blue.png" class="hover" />
             </a>
-          <p>Sets property value using reflection</p>
+          <p>Returns Range between two Features of two MassSpectra.</p>
 
 
-        </td>
-      </tr>
-      <tr>
-        <td class="member-name">
-
-          <code onmouseout="hideTip(event, '64', 64)" onmouseover="showTip(event, '64', 64)">
-            tryUpdatePropertyValue o expr f
-          </code>
-          <div class="tip" id="64">
-            <strong>Signature:</strong> o:obj -&gt; expr:Expr -&gt; f:(&#39;a -&gt; &#39;a) -&gt; obj option<br />
-                          <strong>Type parameters:</strong> 'a                      </div>
-        </td>
-        <td class="xmldoc">
-                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO/Model/ParamContainer.fs#L94-94" class="github-link">
-              <img src="../content/img/github.png" class="normal" />
-              <img src="../content/img/github-blue.png" class="hover" />
-            </a>
-          <p>Updates property value by given function</p>
-
-
-        </td>
-      </tr>
-      <tr>
-        <td class="member-name">
-
-          <code onmouseout="hideTip(event, '65', 65)" onmouseover="showTip(event, '65', 65)">
-            tryUpdatePropertyValueFromName(...)
-          </code>
-          <div class="tip" id="65">
-            <strong>Signature:</strong> o:obj -&gt; propName:string -&gt; f:(&#39;a -&gt; &#39;a) -&gt; obj option<br />
-                          <strong>Type parameters:</strong> 'a                      </div>
-        </td>
-        <td class="xmldoc">
-                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO/Model/ParamContainer.fs#L88-88" class="github-link">
-              <img src="../content/img/github.png" class="normal" />
-              <img src="../content/img/github-blue.png" class="hover" />
-            </a>
-          <p>Updates property value by given function</p>
-
-
-        </td>
-      </tr>
-      <tr>
-        <td class="member-name">
-
-          <code onmouseout="hideTip(event, '66', 66)" onmouseover="showTip(event, '66', 66)">
-            updatePropertyValueAndIgnore o expr f
-          </code>
-          <div class="tip" id="66">
-            <strong>Signature:</strong> o:obj -&gt; expr:Expr -&gt; f:(&#39;a -&gt; &#39;a) -&gt; unit<br />
-                          <strong>Type parameters:</strong> 'a                      </div>
-        </td>
-        <td class="xmldoc">
-                      <a href="https://github.com/CSBiology/MzIO/tree/master/src/MzIO/Model/ParamContainer.fs#L101-101" class="github-link">
-              <img src="../content/img/github.png" class="normal" />
-              <img src="../content/img/github-blue.png" class="hover" />
-            </a>
-          
         </td>
       </tr>
     </tbody>
