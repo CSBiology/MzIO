@@ -155,8 +155,7 @@ and MzIOSQL(encoder:BinaryDataEncoder,decoder:BinaryDataDecoder, model:MzIOModel
             if (content :? string) then
                 //model <- MzIOJson.FromJson<MzIOModel>(content :?> string)
                 model <- MzIOJson.deSerializeMzIOModel(content.ToString())
-                true
-                    
+                true                    
             else 
                 model<- new MzIOModel()
                 false
@@ -248,6 +247,26 @@ and MzIOSQL(encoder:BinaryDataEncoder,decoder:BinaryDataDecoder, model:MzIOModel
             this.RaiseDisposed()
             new MzIOModel(Path.GetFileNameWithoutExtension(path))
 
+    member this.BeginTransaction() =
+
+        (this :> IMzIOIO).BeginTransaction()
+
+    member this.Model =
+
+        (this :> IMzIOIO).Model
+        
+    member this.CreateDefaultModel() =
+
+        (this :> IMzIOIO).CreateDefaultModel()
+
+    member this.SaveModel() =
+
+        (this :> IMzIOIO).SaveModel()
+
+    static member CreateDefaultModel(path) =
+
+        new MzIOModel(Path.GetFileNameWithoutExtension(path))
+
     static member internal ReleaseTransactionScope(currentScope:byref<MzIOSQLTransactionScope option>) =
 
         currentScope <- None
@@ -255,22 +274,6 @@ and MzIOSQL(encoder:BinaryDataEncoder,decoder:BinaryDataDecoder, model:MzIOModel
     member private this.RaiseNotInScope() =
         if not (this.IsOpenScope) then
             failwith "No transaction scope was initialized."
-
-    member this.CreateDefaultModel() =
-
-        (this :> IMzIOIO).CreateDefaultModel()
-
-    static member CreateDefaultModel(path) =
-
-        new MzIOModel(Path.GetFileNameWithoutExtension(path))
-
-    member this.Model =
-
-        (this :> IMzIOIO).Model
-
-    member this.BeginTransaction() =
-
-        (this :> IMzIOIO).BeginTransaction()
 
     static member BeginTransaction(connection:SQLiteConnection, currentScope:byref<MzIOSQLTransactionScope option>, disposed:byref<bool>) =
 
@@ -382,7 +385,7 @@ and MzIOSQL(encoder:BinaryDataEncoder,decoder:BinaryDataDecoder, model:MzIOModel
                     seq{
                         while reader.Read() do
                             yield MzIOJson.FromJson<MassSpectrum>(reader.GetString(0))
-                        }    
+                       }    
                         |> List.ofSeq
                         |> (fun item -> item :> IEnumerable<MassSpectrum>)
                 )

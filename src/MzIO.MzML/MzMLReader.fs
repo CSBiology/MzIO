@@ -561,7 +561,7 @@ module MzML =
             let rec loop addParam read =
                 if readSubtree.NodeType=XmlNodeType.Element then
                     match readSubtree.Name with
-                    | "scanWindow"  ->  loop (scanWindowList.Add(this.getScanWindow readSubtree)) (readOp() |> ignore)
+                    | "scanWindow"  ->  loop (scanWindowList.Add(Guid.NewGuid().ToString(), this.getScanWindow readSubtree)) (readOp() |> ignore)
                     |   _           ->  loop addParam (readOp() |> ignore)
                 else
                     if readOp()=true then loop addParam read
@@ -615,7 +615,7 @@ module MzML =
             let rec loop scans read =
                 if readSubtree.NodeType=XmlNodeType.Element then
                     match readSubtree.Name with
-                    | "scan"    ->  loop (scanList.Add(this.getScan readSubtree)) (readOp() |> ignore)
+                    | "scan"    ->  loop (scanList.Add(Guid.NewGuid().ToString(), this.getScan readSubtree)) (readOp() |> ignore)
                     |   _       ->  loop scans (readOp() |> ignore)
                 else
                     if readOp()=true then loop scans read
@@ -678,7 +678,7 @@ module MzML =
             let rec loop addParam read =
                 if readSubtree.NodeType=XmlNodeType.Element then
                     match readSubtree.Name with
-                    | "selectedIon" ->  loop (selectedIonList.Add(this.getSelectedIon readSubtree)) (readOp() |> ignore)
+                    | "selectedIon" ->  loop (selectedIonList.Add(Guid.NewGuid().ToString(), this.getSelectedIon readSubtree)) (readOp() |> ignore)
                     |   _           ->  loop addParam (readOp() |> ignore)
                 else
                     if readOp()=true then loop addParam read
@@ -750,7 +750,7 @@ module MzML =
             let rec loop scans read =
                 if readSubtree.NodeType=XmlNodeType.Element then
                     match readSubtree.Name with
-                    | "precursor"    ->  loop (precursorList.Add(this.getPrecursor readSubtree)) (readOp() |> ignore)
+                    | "precursor"    ->  loop (precursorList.Add(Guid.NewGuid().ToString(), this.getPrecursor readSubtree)) (readOp() |> ignore)
                     |   _       ->  loop scans (readOp() |> ignore)
                 else
                     if readOp()=true then loop scans read
@@ -792,7 +792,7 @@ module MzML =
             let rec loop products read =
                 if readSubtree.NodeType=XmlNodeType.Element then
                     match readSubtree.Name with
-                    | "product" ->  loop (productList.Add(this.getProduct readSubtree)) (readOp() |> ignore)
+                    | "product" ->  loop (productList.Add(Guid.NewGuid().ToString(), this.getProduct readSubtree)) (readOp() |> ignore)
                     |   _       ->  loop products (readOp() |> ignore)
                 else
                     if readOp()=true then loop products read
@@ -1825,11 +1825,11 @@ module MzML =
 
                 let sampleName = Path.GetFileNameWithoutExtension(filePath)
                 let sample = new Sample("sample_1", sampleName);
-                model.Samples.Add(sample)
+                model.Samples.Add(sample.ID, sample)
 
                 let run = new Run("run_1")
                 run.Sample <- sample
-                model.Runs.Add(run)
+                model.Runs.Add(run.ID, run)
                 model
 
             member this.Model =

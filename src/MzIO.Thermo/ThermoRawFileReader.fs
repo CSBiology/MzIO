@@ -251,7 +251,7 @@ type ThermoRawFileReader(rawFilePath:string) =(* : IMzLiteDataReader*)
         //Maybe orther type than Name needed
         scan.SetFilterString(ThermoRawFileReader.GetFilterString(rawFile, scanNo).ToString())
         scan.SetScanStartTime(ThermoRawFileReader.GetRetentionTime(rawFile, scanNo)).UO_Minute() |> ignore
-        spectrum.Scans.Add(scan)
+        spectrum.Scans.Add(Guid.NewGuid().ToString(), scan)
 
         // precursor
         if (msLevel > 1) then 
@@ -270,8 +270,8 @@ type ThermoRawFileReader(rawFilePath:string) =(* : IMzLiteDataReader*)
             selectedIon.SetSelectedIonMz(precursorMz)   |> ignore
             selectedIon.SetChargeState(chargeState)     |> ignore
 
-            precursor.SelectedIons.Add(selectedIon)
-            spectrum.Precursors.Add(precursor)
+            precursor.SelectedIons.Add(Guid.NewGuid().ToString(), selectedIon)
+            spectrum.Precursors.Add(Guid.NewGuid().ToString(), precursor)
 
             spectrum
 
@@ -431,11 +431,11 @@ type ThermoRawFileReader(rawFilePath:string) =(* : IMzLiteDataReader*)
 
             let sampleName  = Path.GetFileNameWithoutExtension(rawFilePath)
             let sample      = new Sample("sample_1", sampleName)
-            model.Samples.Add(sample)
+            model.Samples.Add(sample.ID, sample)
 
             let run         = new Run("run_1")
             run.Sample      = sample |> ignore
-            model.Runs.Add(run)
+            model.Runs.Add(run.ID, run)
 
             model
 

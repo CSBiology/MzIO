@@ -195,11 +195,11 @@ type BafFileReader(bafFilePath:string) =
 
             let sampleName = Path.GetFileNameWithoutExtension(bafFilePath)
             let sample = new Sample("sample_1", sampleName);
-            model.Samples.Add(sample)
+            model.Samples.Add(sample.ID, sample)
 
             let run = new Run("run_1")
             run.Sample <- sample
-            model.Runs.Add(run)
+            model.Runs.Add(run.ID, run)
             model
 
         member this.Model =
@@ -549,7 +549,7 @@ type BafFileReader(bafFilePath:string) =
         if bafSpec.Rt.HasValue then
             let scan = new Scan()
             scan.SetScanStartTime(bafSpec.Rt.Value).UO_Second() |> ignore
-            ms.Scans.Add(scan)
+            ms.Scans.Add(Guid.NewGuid().ToString(), scan)
         else
             ()
 
@@ -596,7 +596,7 @@ type BafFileReader(bafFilePath:string) =
                 |> Seq.iter (fun ion ->
                                 if ion.Mass.HasValue then
                                     let selectedIon = new SelectedIon()
-                                    precursor.SelectedIons.Add(selectedIon)
+                                    precursor.SelectedIons.Add(Guid.NewGuid().ToString(), selectedIon)
                                     selectedIon.SetSelectedIonMz(ion.Mass.Value) |> ignore
                                     selectedIon.SetValue("Number", ion.Number.Value)
                                     selectedIon.SetUserParam("IsolationType", ion.IsolationType.Value)  |> ignore
@@ -614,7 +614,7 @@ type BafFileReader(bafFilePath:string) =
                     precursor.SpectrumReference <- new SpectrumReference(bafSpec.Parent.ToString())
                 else
                     ()
-                ms.Precursors.Add(precursor) |> ignore
+                ms.Precursors.Add(Guid.NewGuid().ToString(), precursor) |> ignore
             else ()
         else ()
         ms
