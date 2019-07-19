@@ -571,12 +571,22 @@ module CvParam =
             properties.Add (newName, item)
 
         member this.Add(key:string, item:'T) =
-            properties.Add(key, item)
-
-        member this.Add(item:'T) =
-            if this.TryGetItemByKey(item.ToString(), item) then ()
+            if this.TryGetItemByKey(key, item) = false then
+                properties.Add(key, item)
             else
-                this.SetValue(item.ToString(), item)
+                failwith "Object with current key already exists"
+
+        member this.TryAdd(key:string, item:'T) =
+            if this.TryGetItemByKey(key, item) = false then
+                properties.Add(key, item)
+                true
+            else
+                false
+
+        //member this.Add(item:'T) =
+        //    if this.TryGetItemByKey(item.ToString(), item) then ()
+        //    else
+        //        this.SetValue(item.ToString(), item)
 
         member this.Count() =
             this.GetProperties false
