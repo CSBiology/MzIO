@@ -606,3 +606,71 @@ type MzMLWriter(path:string) =
             | :? Exception as ex ->
                 currentWriteState <- MzMLWriteState.ERROR
                 raise (MzIOIOException("Error writing mzml output file.", ex))
+
+    interface IMzIOIO with
+
+        member this.CreateDefaultModel() =
+
+            failwith "interface not supported yet"
+
+        member this.Model =
+            
+            failwith "interface not supported yet"
+
+        member this.SaveModel() =
+
+            failwith "interface not supported yet"
+
+        member this.BeginTransaction() =
+
+            failwith "interface not supported yet"
+
+    member this.BeginTransaction() =
+
+        (this :> IMzIOIO).BeginTransaction()
+
+    member this.CreateDefaultModel() =
+
+        (this :> IMzIOIO).CreateDefaultModel()
+
+    member this.SaveModel() =
+
+        (this :> IMzIOIO).SaveModel()
+
+    member this.Model =
+        (this :> IMzIOIO).Model
+
+
+    interface IMzIODataWriter with
+        
+        member this.InsertMass(spectrumID: string, ms: MzIO.Model.MassSpectrum, peak1D: Peak1DArray) =
+            
+            failwith "interface not supported yet"
+
+        member this.InsertChrom(chromatogramID: string, chrom: Chromatogram, peak2D: Peak2DArray) =
+
+            failwith "interface not supported yet"
+
+        member this.InsertAsyncMass(spectrumID: string, ms: MzIO.Model.MassSpectrum, peak1D: Peak1DArray) =
+            
+            failwith "interface not supported yet"
+
+        member this.InsertAsyncChrom(chromatogramID: string, chrom: Chromatogram, peak2D: Peak2DArray) =
+
+            failwith "interface not supported yet"
+
+    member this.InsertMass(spectrumID: string, ms: MzIO.Model.MassSpectrum, peak1D: Peak1DArray) =
+        
+        (this :> IMzIODataWriter).InsertMass
+
+    member this.InsertChrom(chromatogramID: string, chrom: Chromatogram, peak2D: Peak2DArray) =
+
+        (this :> IMzIODataWriter).InsertChrom
+
+    member this.InsertAsyncMass(spectrumID: string, ms: MzIO.Model.MassSpectrum, peak1D: Peak1DArray) =
+
+        (this :> IMzIODataWriter).InsertAsyncMass
+
+    member this.InsertAsyncChrom(chromatogramID: string, chrom: Chromatogram, peak2D: Peak2DArray) =
+
+        (this :> IMzIODataWriter).InsertAsyncChrom
