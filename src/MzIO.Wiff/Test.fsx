@@ -20,6 +20,7 @@
 
 open System
 open System.Data
+open System.Data.SQLite
 open System.IO
 open System.Threading.Tasks
 open System.Xml
@@ -351,21 +352,16 @@ let spectra =
 //    randomBafSpectra
 //    |> Seq.map (fun spectrum -> mzSQLReader.ReadSpectrumPeaks spectrum.ID)
 
-
-open System.Data.SQLite
-
-let sqlFilePath = sprintf "%s%s" wiffTestUni "111.mzIO"
-
 let prepareSqlSelectMassSpectra (cn:SQLiteConnection) (tr:SQLiteTransaction) =
-    let querystring = "SELECT Description FROM Spectrum WHERE RunID = @runID"
-    let cmd = new SQLiteCommand(querystring, cn, tr)
+    let queryString = "SELECT Description FROM Spectrum WHERE RunID = @runID"
+    let cmd = new SQLiteCommand(queryString, cn, tr)
     cmd.Parameters.Add("@runID", Data.DbType.String) |> ignore
     let rec loop (reader:SQLiteDataReader) acc =
         seq
             {
                 match reader.Read() with
                 | true  -> 
-                    yield MzIOJson.FromJson<MassSpectrum>(reader.GetString(0))
+                    yield MzIOJson.deSerializeMassSpectrum(reader.GetString(0))
                     yield! loop reader acc
                 | false -> 
                     yield! acc 
@@ -379,8 +375,8 @@ let prepareSqlSelectMassSpectra (cn:SQLiteConnection) (tr:SQLiteTransaction) =
 
 let prepareSelectPeak1DArray (cn:SQLiteConnection) (tr:SQLiteTransaction) =
     let decoder = new BinaryDataDecoder()
-    let querystring = "SELECT PeakArray, PeakData FROM Spectrum WHERE SpectrumID = @spectrumID"
-    let cmd = new SQLiteCommand(querystring, cn, tr)
+    let queryString = "SELECT PeakArray, PeakData FROM Spectrum WHERE SpectrumID = @spectrumID"
+    let cmd = new SQLiteCommand(queryString, cn, tr)
     cmd.Parameters.Add("@spectrumID", Data.DbType.String) |> ignore
     let rec loop (reader:SQLiteDataReader) peaks =
         match reader.Read() with
@@ -391,8 +387,8 @@ let prepareSelectPeak1DArray (cn:SQLiteConnection) (tr:SQLiteTransaction) =
     use reader = cmd.ExecuteReader()            
     loop reader (new Peak1DArray())
     
-let selectPeak1DArrays (runID:string) =
-    let cn = new SQLiteConnection(sprintf "Data Source=%s;Version=3" sqlFilePath)
+let selectPeak1DArrays (runID:string) path =
+    let cn = new SQLiteConnection(sprintf "Data Source=%s;Version=3" path)
     cn.Open()
     let tr = cn.BeginTransaction()
     let selectSpectra = prepareSqlSelectMassSpectra cn tr
@@ -434,7 +430,7 @@ let prepareUpdateRunIDOfMzIOModel (cn:SQLiteConnection) (tr:SQLiteTransaction) =
 let prepareInsertMassSpectrum (cn:SQLiteConnection) (tr:SQLiteTransaction) =
     let encoder = new BinaryDataEncoder()
     let updateRunID = prepareUpdateRunIDOfMzIOModel cn tr
-    let querystring = 
+    let queryString = 
         "INSERT INTO Spectrum (
             RunID,
             SpectrumID,
@@ -447,7 +443,7 @@ let prepareInsertMassSpectrum (cn:SQLiteConnection) (tr:SQLiteTransaction) =
                 @description,
                 @peakArray,
                 @peakData)"
-    let cmd = new SQLiteCommand(querystring, cn, tr)
+    let cmd = new SQLiteCommand(queryString, cn, tr)
     cmd.Parameters.Add("@runID"         ,Data.DbType.String)    |> ignore
     cmd.Parameters.Add("@spectrumID"    ,Data.DbType.String)    |> ignore
     cmd.Parameters.Add("@description"   ,Data.DbType.String)    |> ignore
@@ -462,28 +458,6 @@ let prepareInsertMassSpectrum (cn:SQLiteConnection) (tr:SQLiteTransaction) =
         cmd.Parameters.["@peakData"].Value      <- encoder.Encode(peaks)
         cmd.ExecuteNonQuery() |> ignore
     )
-
-//let cn = new SQLiteConnection(sprintf "Data Source=%s;Version=3" (wiffTestUni + "111.mzIO"))
-//cn.Open()
-//let tr = cn.BeginTransaction()
-
-//let insertMassSpectrum =
-//    prepareInsertMassSpectrum cn tr
-
-//let insertedPeaks =
-//    spectra
-//    |> Seq.take 100
-//    |> Seq.iter (fun spectrum ->
-//        let tmp =
-//            let peakArray = (wiffReader.ReadSpectrumPeaks(spectrum.ID))
-//            let clonedP = new Peak1DArray(BinaryDataCompressionType.NoCompression,peakArray.IntensityDataType,peakArray.MzDataType)
-//            clonedP.Peaks <- peakArray.Peaks
-//            clonedP
-//        insertMassSpectrum "sample=0" spectrum tmp)
-
-//tr.Commit()
-//cn.Close()
-
 
 type private MzSQLTransactionScope() =
 
@@ -516,6 +490,8 @@ type MzSQL(path) =
 
     let mutable disposed = false
 
+    let encoder = new BinaryDataEncoder()
+
     let sqlitePath = 
         if String.IsNullOrWhiteSpace(path) then
                 raise (ArgumentNullException("sqlitePath"))
@@ -534,13 +510,11 @@ type MzSQL(path) =
         MzSQL.RaiseConnectionState(cn)
         cn.BeginTransaction()
 
-    let model =
-        MzSQL.SqlInitSchema(cn)
-        MzSQL.RaiseConnectionState(cn)
-        MzSQL.trySelectModel(cn, &tr)
-
     let insertModel =
         MzSQL.prepareInsertModel(cn, &tr)
+
+    let selectModel =
+        MzSQL.prepareSelectModel(cn, &tr)
 
     let insertMassSpectrum =
         MzSQL.prepareInsertMassSpectrum(cn, &tr)
@@ -566,26 +540,27 @@ type MzSQL(path) =
     let selectPeak2DArray =
         MzSQL.prepareSelectPeak2DArray(cn, &tr)
 
-    member private this.model =
-        match model with
-        | Some model -> 
-            model
-        | None ->
-                MzSQL.SqlInitSchema(cn)
-                MzSQL.RaiseConnectionState(cn)
-                match MzSQL.trySelectModel(cn, &tr) with
-                | Some model ->
-                    model
-                | None ->
-                    let tmp = this.CreateDefaultModel()
-                    this.SaveModel()
-                    tmp
+    let model =
+        let potMdoel = MzSQL.trySelectModel(cn, &tr)
+        match potMdoel with
+        | Some model    -> model
+        | None          -> 
+            printfn "1"
+            let tmp = new MzIOModel(Path.GetFileNameWithoutExtension(sqlitePath))
+            insertModel tmp
+            tr.Commit()
+            tmp
 
-    member this.Commit() = tr.Commit()
+    member this.Commit() = 
+        MzSQL.RaiseConnectionState(cn)
+        MzSQL.RaiseTransactionState(cn, &tr)
+        tr.Commit()
 
-    member this.createConnection() = new SQLiteConnection(sprintf "Data Source=%s;Version=3" sqlitePath)
+    member this.CreateConnection() =
+        disposed <- false
+        new SQLiteConnection(sprintf "Data Source=%s;Version=3" sqlitePath)
 
-    member this.Close() = cn.Close()
+    member this.Close() = cn.Close() 
 
     static member RaiseConnectionState(cn:SQLiteConnection) =
         if (cn.State=ConnectionState.Open) then 
@@ -604,7 +579,8 @@ type MzSQL(path) =
 
             if disposed then 
                 raise (new ObjectDisposedException(this.GetType().Name))
-            else ()
+            else 
+                ()
 
     static member private SqlInitSchema(cn:SQLiteConnection) =
         MzSQL.RaiseConnectionState(cn)
@@ -616,6 +592,9 @@ type MzSQL(path) =
         cmd.ExecuteNonQuery() |> ignore
 
     static member private trySelectModel(cn:SQLiteConnection, tr:byref<SQLiteTransaction>) =
+        MzSQL.SqlInitSchema(cn)
+        MzSQL.RaiseConnectionState(cn)
+        MzSQL.RaiseTransactionState(cn, &tr)
         let querySelect = "SELECT Content FROM Model WHERE Lock = 0"
         let cmdSelect = new SQLiteCommand(querySelect, cn, tr)
         let selectReader = cmdSelect.ExecuteReader()
@@ -626,15 +605,16 @@ type MzSQL(path) =
         loopSelect selectReader None
 
     static member private prepareInsertModel(cn:SQLiteConnection, tr:byref<SQLiteTransaction>) =
+        MzSQL.RaiseConnectionState(cn)
         MzSQL.RaiseTransactionState(cn, &tr)
-        let querystring = 
+        let queryString = 
             "INSERT INTO Model (
                 Lock,
                 Content)
                 VALUES(
                     @lock,
                     @content)"
-        let cmd = new SQLiteCommand(querystring, cn, tr)
+        let cmd = new SQLiteCommand(queryString, cn, tr)
         cmd.Parameters.Add("@lock"      ,Data.DbType.Int64)     |> ignore
         cmd.Parameters.Add("@content"   ,Data.DbType.String)    |> ignore
         (fun (model:MzIOModel) ->
@@ -643,31 +623,37 @@ type MzSQL(path) =
             cmd.ExecuteNonQuery() |> ignore
         ) 
 
-    static member private prepareUpdateRunIDOfMzIOModel(cn:SQLiteConnection, tr:SQLiteTransaction) =
+    static member prepareSelectModel(cn:SQLiteConnection, tr:byref<SQLiteTransaction>) =
         let querySelect = "SELECT Content FROM Model WHERE Lock = 0"
-        let cmdSelect = new SQLiteCommand(querySelect, cn, tr)
-        let selectReader = cmdSelect.ExecuteReader()
-        let model =
-            let rec loopSelect (reader:SQLiteDataReader) model =
-                match reader.Read() with
-                | true  -> loopSelect reader (MzIOJson.deSerializeMzIOModel(reader.GetString(0)))
-                | false -> model           
-            loopSelect selectReader (new MzIOModel())
-        fun runID ->
-            if model.Runs.TryAdd(runID, new Run(runID)) then
-                let jsonModel = MzIOJson.ToJson(model)
-                let queryUpdate = sprintf "UPDATE Model SET Content = '%s' WHERE Lock = 0" jsonModel
-                let cmdUpdate = new SQLiteCommand(queryUpdate, cn, tr)
-                cmdUpdate.ExecuteNonQuery() |> ignore
-            else
+        let cmd = new SQLiteCommand(querySelect, cn, tr)
+        fun () ->
+        let rec loopSelect (reader:SQLiteDataReader) model =
+            match reader.Read() with
+            | true  -> loopSelect reader (MzIOJson.deSerializeMzIOModel(reader.GetString(0)))
+            | false -> model  
+        use reader = cmd.ExecuteReader()
+        loopSelect reader (new MzIOModel())
+
+    member this.SelectModel =
+        selectModel
+
+    static member private prepareUpdateRunIDOfMzIOModel(cn:SQLiteConnection, tr:byref<SQLiteTransaction>) =
+        //let jsonModel = MzIOJson.ToJson(model)
+        let queryString = "UPDATE Model SET Content = @model WHERE Lock = 0"
+        let cmd = new SQLiteCommand(queryString, cn, tr)
+        cmd.Parameters.Add("@model" ,Data.DbType.String)    |> ignore
+        fun (runID:string) (model:MzIOModel) ->
+            if model.Runs.TryAdd(runID, new Run()) then
+                cmd.Parameters.["@model"].Value <- MzIOJson.ToJson(model)
+                cmd.ExecuteNonQuery() |> ignore
+            else 
                 ()
 
     ///Prepare function to insert MzQuantMLDocument-record.
     static member private prepareInsertMassSpectrum(cn:SQLiteConnection, tr:byref<SQLiteTransaction>) =
+        MzSQL.RaiseConnectionState(cn)
         MzSQL.RaiseTransactionState(cn, &tr)
-        let encoder = new BinaryDataEncoder()
-        let updateRunID = MzSQL.prepareUpdateRunIDOfMzIOModel(cn, tr)
-        let querystring = 
+        let queryString = 
             "INSERT INTO Spectrum (
                 RunID,
                 SpectrumID,
@@ -680,14 +666,13 @@ type MzSQL(path) =
                     @description,
                     @peakArray,
                     @peakData)"
-        let cmd = new SQLiteCommand(querystring, cn, tr)
+        let cmd = new SQLiteCommand(queryString, cn, tr)
         cmd.Parameters.Add("@runID"         ,Data.DbType.String)    |> ignore
         cmd.Parameters.Add("@spectrumID"    ,Data.DbType.String)    |> ignore
         cmd.Parameters.Add("@description"   ,Data.DbType.String)    |> ignore
         cmd.Parameters.Add("@peakArray"     ,Data.DbType.String)    |> ignore
         cmd.Parameters.Add("@peakData"      ,Data.DbType.Binary)    |> ignore
-        (fun (runID:string) (spectrum:MassSpectrum) (peaks:Peak1DArray) ->
-            updateRunID runID
+        (fun (encoder:BinaryDataEncoder) (runID:string) (spectrum:MassSpectrum) (peaks:Peak1DArray) ->
             cmd.Parameters.["@runID"].Value         <- runID
             cmd.Parameters.["@spectrumID"].Value    <- spectrum.ID
             cmd.Parameters.["@description"].Value   <- MzIOJson.ToJson(spectrum)
@@ -700,17 +685,18 @@ type MzSQL(path) =
         insertMassSpectrum
 
     static member private prepareSelectMassSpectrum(cn:SQLiteConnection, tr:byref<SQLiteTransaction>) =
+        MzSQL.RaiseConnectionState(cn)
         MzSQL.RaiseTransactionState(cn, &tr)
-        let querystring = "SELECT Description FROM Spectrum WHERE SpectrumID = @spectrumID"
-        let cmd = new SQLiteCommand(querystring, cn, tr)
+        let queryString = "SELECT Description FROM Spectrum WHERE SpectrumID = @spectrumID"
+        let cmd = new SQLiteCommand(queryString, cn, tr)
         cmd.Parameters.Add("@spectrumID", Data.DbType.String) |> ignore
         let rec loop (reader:SQLiteDataReader) (acc:MassSpectrum option) =
             match reader.Read() with
-                    | true  -> loop reader (Some (MzIOJson.FromJson<MassSpectrum>(reader.GetString(0))))
+                    | true  -> loop reader (Some (MzIOJson.deSerializeMassSpectrum(reader.GetString(0))))
                     | false -> acc 
         fun (id:string) ->
         cmd.Parameters.["@spectrumID"].Value <- id            
-        use reader = cmd.ExecuteReader()            
+        use reader = cmd.ExecuteReader()
         match loop reader None with
         | Some spectrum -> spectrum
         | None          -> failwith ("No enum with this SpectrumID found")
@@ -719,16 +705,17 @@ type MzSQL(path) =
         selectMassSpectrum
 
     static member private prepareSelectMassSpectra(cn:SQLiteConnection, tr:byref<SQLiteTransaction>) =
+        MzSQL.RaiseConnectionState(cn)
         MzSQL.RaiseTransactionState(cn, &tr)
-        let querystring = "SELECT Description FROM Spectrum WHERE RunID = @runID"
-        let cmd = new SQLiteCommand(querystring, cn, tr)
+        let queryString = "SELECT Description FROM Spectrum WHERE RunID = @runID"
+        let cmd = new SQLiteCommand(queryString, cn, tr)
         cmd.Parameters.Add("@runID", Data.DbType.String) |> ignore
         let rec loop (reader:SQLiteDataReader) acc =
             seq
                 {
                     match reader.Read() with
                     | true  -> 
-                        yield MzIOJson.FromJson<MassSpectrum>(reader.GetString(0))
+                        yield MzIOJson.deSerializeMassSpectrum(reader.GetString(0))
                         yield! loop reader acc
                     | false -> 
                         yield! acc 
@@ -745,10 +732,11 @@ type MzSQL(path) =
         selectMassSpectra
 
     static member private prepareSelectPeak1DArray(cn:SQLiteConnection, tr:byref<SQLiteTransaction>) =
+        MzSQL.RaiseConnectionState(cn)
         MzSQL.RaiseTransactionState(cn, &tr)
         let decoder = new BinaryDataDecoder()
-        let querystring = "SELECT PeakArray, PeakData FROM Spectrum WHERE SpectrumID = @spectrumID"
-        let cmd = new SQLiteCommand(querystring, cn, tr)
+        let queryString = "SELECT PeakArray, PeakData FROM Spectrum WHERE SpectrumID = @spectrumID"
+        let cmd = new SQLiteCommand(queryString, cn, tr)
         cmd.Parameters.Add("@spectrumID", Data.DbType.String) |> ignore
         let rec loop (reader:SQLiteDataReader) peaks =
             match reader.Read() with
@@ -763,10 +751,12 @@ type MzSQL(path) =
         selectPeak1DArray
 
     static member private prepareInsertChromatogram(cn:SQLiteConnection, tr:byref<SQLiteTransaction>) =
+        MzSQL.RaiseConnectionState(cn)
         MzSQL.RaiseTransactionState(cn, &tr)
         let encoder = new BinaryDataEncoder()
-        let updateRunID = MzSQL.prepareUpdateRunIDOfMzIOModel(cn, tr)
-        let querystring = 
+        let selectModel = MzSQL.prepareSelectModel(cn, &tr)
+        let updateRunID = MzSQL.prepareUpdateRunIDOfMzIOModel(cn, &tr)
+        let queryString = 
             "INSERT INTO Chromatogram (
                 RunID,
                 ChromatogramID,
@@ -779,14 +769,14 @@ type MzSQL(path) =
                     @description,
                     @peakArray,
                     @peakData)"
-        let cmd = new SQLiteCommand(querystring, cn, tr)
+        let cmd = new SQLiteCommand(queryString, cn, tr)
         cmd.Parameters.Add("@runID"         ,Data.DbType.String)    |> ignore
         cmd.Parameters.Add("@chromatogramID"  ,Data.DbType.String)    |> ignore
         cmd.Parameters.Add("@description"   ,Data.DbType.String)    |> ignore
         cmd.Parameters.Add("@peakArray"     ,Data.DbType.String)    |> ignore
         cmd.Parameters.Add("@peakData"      ,Data.DbType.Binary)    |> ignore
         (fun (runID:string) (chromatogram:Chromatogram) (peaks:Peak2DArray) ->
-            updateRunID runID
+            updateRunID runID (selectModel())
             cmd.Parameters.["@runID"].Value         <- runID
             cmd.Parameters.["@chromatogramID"].Value  <- chromatogram.ID
             cmd.Parameters.["@description"].Value   <- MzIOJson.ToJson(chromatogram)
@@ -799,9 +789,10 @@ type MzSQL(path) =
         insertChromatogram
 
     static member private prepareSelectChromatogram(cn:SQLiteConnection, tr:byref<SQLiteTransaction>) =
+        MzSQL.RaiseConnectionState(cn)
         MzSQL.RaiseTransactionState(cn, &tr)
-        let querystring = "SELECT Description FROM Chromatogram WHERE RunID = @runID"
-        let cmd = new SQLiteCommand(querystring, cn, tr)
+        let queryString = "SELECT Description FROM Chromatogram WHERE RunID = @runID"
+        let cmd = new SQLiteCommand(queryString, cn, tr)
         cmd.Parameters.Add("@runID", Data.DbType.String) |> ignore
         let rec loop (reader:SQLiteDataReader) (acc:Chromatogram) =
             match reader.Read() with
@@ -816,9 +807,10 @@ type MzSQL(path) =
         selectChromatogram
 
     static member private prepareSelectChromatograms(cn:SQLiteConnection, tr:byref<SQLiteTransaction>) =
+        MzSQL.RaiseConnectionState(cn)
         MzSQL.RaiseTransactionState(cn, &tr)
-        let querystring = "SELECT Description FROM Chromatogram WHERE ChromatogramID = @chromatogramID"
-        let cmd = new SQLiteCommand(querystring, cn, tr)
+        let queryString = "SELECT Description FROM Chromatogram WHERE ChromatogramID = @chromatogramID"
+        let cmd = new SQLiteCommand(queryString, cn, tr)
         cmd.Parameters.Add("@chromatogramID", Data.DbType.String) |> ignore
         let rec loop (reader:SQLiteDataReader) acc =
             seq
@@ -841,10 +833,11 @@ type MzSQL(path) =
         selectChromatograms
 
     static member private prepareSelectPeak2DArray(cn:SQLiteConnection, tr:byref<SQLiteTransaction>) =
+        MzSQL.RaiseConnectionState(cn)
         MzSQL.RaiseTransactionState(cn, &tr)
         let decoder = new BinaryDataDecoder()
-        let querystring = "SELECT PeakArray, PeakData FROM Chromatogram WHERE ChromatogramID = @chromatogramID"
-        let cmd = new SQLiteCommand(querystring, cn, tr)
+        let queryString = "SELECT PeakArray, PeakData FROM Chromatogram WHERE ChromatogramID = @chromatogramID"
+        let cmd = new SQLiteCommand(queryString, cn, tr)
         cmd.Parameters.Add("@chromatogramID", Data.DbType.String) |> ignore
         let rec loop (reader:SQLiteDataReader) peaks =
             match reader.Read() with
@@ -930,7 +923,7 @@ type MzSQL(path) =
 
         member this.InsertMass(runID: string, spectrum: MassSpectrum, peaks: Peak1DArray) =
             this.RaiseDisposed()
-            this.InsertMassSpectrum runID spectrum peaks
+            this.InsertMassSpectrum encoder runID spectrum peaks
 
         member this.InsertChrom(runID: string, chromatogram: Chromatogram, peaks: Peak2DArray) =
             this.RaiseDisposed()
@@ -969,10 +962,7 @@ type MzSQL(path) =
 
         member this.BeginTransaction() =
             this.RaiseDisposed()
-            cn <- new SQLiteConnection(sqlitePath)
-            if cn.State = ConnectionState.Closed then
-                cn.Open()
-            else ()
+            MzSQL.RaiseConnectionState(cn)
             MzSQL.RaiseTransactionState(cn, &tr)
             new MzSQLTransactionScope() :> ITransactionScope
 
@@ -985,17 +975,9 @@ type MzSQL(path) =
             insertModel this.Model
             tr.Commit()
 
-        member this.Model =
-            this.RaiseDisposed()
-            if model.IsNone then
-                let tmp = this.CreateDefaultModel()
-                insertModel tmp
-                this.Commit()
-                tmp
-            else 
-                this.model
+        member this.Model = model
 
-    member private this.BeginTransaction() =
+    member this.BeginTransaction() =
         
         (this :> IMzIOIO).BeginTransaction()
 
@@ -1008,26 +990,64 @@ type MzSQL(path) =
     member this.Model = 
         (this :> IMzIOIO).Model
 
+    /// copies MassSpectrum into DB schema
+    member this.insertMSSpectrum (runID:string) (reader:IMzIODataReader) (compress: BinaryDataCompressionType) (spectrum: MassSpectrum)= 
+        let peakArray = reader.ReadSpectrumPeaks(spectrum.ID)
+        match compress with 
+        | BinaryDataCompressionType.NoCompression  -> 
+            let clonedP = new Peak1DArray(BinaryDataCompressionType.NoCompression, peakArray.IntensityDataType,peakArray.MzDataType)
+            clonedP.Peaks <- peakArray.Peaks
+            this.InsertMass(runID, spectrum, clonedP)
+        | BinaryDataCompressionType.ZLib -> 
+            let clonedP = new Peak1DArray(BinaryDataCompressionType.ZLib, peakArray.IntensityDataType,peakArray.MzDataType)
+            clonedP.Peaks <- peakArray.Peaks
+            this.InsertMass(runID, spectrum, clonedP)
+        | BinaryDataCompressionType.NumPress ->
+            let clonedP = new Peak1DArray(BinaryDataCompressionType.NumPress, peakArray.IntensityDataType,peakArray.MzDataType)
+            clonedP.Peaks <- peakArray.Peaks
+            this.InsertMass(runID, spectrum, clonedP)
+        | BinaryDataCompressionType.NumPressZLib ->
+            let clonedP = new Peak1DArray(BinaryDataCompressionType.NumPressZLib, peakArray.IntensityDataType,peakArray.MzDataType)
+            clonedP.Peaks <- peakArray.Peaks
+            this.InsertMass(runID, spectrum, clonedP)
+        | _ ->
+            failwith "Not a valid compression Method"
 
-let test = new MzSQL(wiffTestPaeddetor + ".mzIO")
+    /// modifies spectrum according to the used spectrumPeaksModifierF and inserts the result into the DB schema 
+    member this.insertModifiedSpectrumBy (spectrumPeaksModifierF: IMzIODataReader -> MassSpectrum -> BinaryDataCompressionType -> Peak1DArray) (runID:string) (reader:IMzIODataReader) (compress: BinaryDataCompressionType) (spectrum: MassSpectrum) = 
+        let modifiedP = spectrumPeaksModifierF reader spectrum compress
+        this.InsertMass(runID, spectrum, modifiedP)
 
-spectra
-|> Seq.take 100
-|> Seq.iter (fun spectrum -> 
-    let tmp =
-        let peakArray = (wiffReader.ReadSpectrumPeaks(spectrum.ID))
-        let clonedP = new Peak1DArray(BinaryDataCompressionType.NoCompression,peakArray.IntensityDataType,peakArray.MzDataType)
-        clonedP.Peaks <- peakArray.Peaks
-        clonedP
-    test.InsertMass("sample=0", spectrum, tmp))
+    /// Starts bulkinsert of mass spectra into a MzLiteSQL database
+    member this.insertMSSpectraBy insertSpectrumF (runID:string) (reader:IMzIODataReader) (compress: BinaryDataCompressionType) (spectra: seq<MassSpectrum>) = 
+        let selectModel = MzSQL.prepareSelectModel(cn, &tr)
+        let updateRunID = MzSQL.prepareUpdateRunIDOfMzIOModel(cn, &tr)
+        updateRunID runID (selectModel())
+        let bulkInsert spectra = 
+            spectra
+            |> Seq.iter (insertSpectrumF runID reader compress)
+        bulkInsert spectra
+        this.Commit()
+        this.Dispose()
 
-test.Commit()
 
-test.ReadMassSpectra "sample=0"
+let mzIOSQL = new MzIOSQL(wiffTestPaeddetor + ".mzIOSQL")
+let mzSQL   = new MzSQL(wiffTestPaeddetor + ".mzSQL")
 
-//spectra
-//|> Seq.take 100
-//|> Seq.map (fun spectrum -> test.ReadMassSpectrum spectrum.ID)
-//|> Seq.length
+insertMSSpectraBy insertMSSpectrum (wiffTestPaeddetor + ".mzIOSQL") ("sample_0") wiffReader "NoCompression" (spectra |> Seq.take 5000)
+mzSQL.insertMSSpectraBy(mzSQL.insertMSSpectrum) ("sample_0") wiffReader BinaryDataCompressionType.NoCompression (spectra |> Seq.take 5000)
 
-//test.Model.Runs.GetProperties false
+//let mzMLTiny = "D:/Users/Patrick/Desktop/BioInformatik/MzLiteTestFiles/MzMLTestFiles/tiny.pwiz.1.1.txt"
+//let xmlTestPath = "D:\Users\Patrick\Desktop\BioInformatik\MzLiteTestFiles\MzMLTestFiles\Test.xml"
+
+//let mzMLReader = new MzMLReader(mzMLTiny)
+//let mzMLWriter = new MzIOMLDataWriter(xmlTestPath) 
+
+//let run = (Seq.head (mzMLReader.Model.Runs.GetProperties false)).Value :?> Run
+
+//let mzMLSpectra = mzMLReader.ReadMassSpectra(run.ID)        |> List.ofSeq
+//let mzMLpeaks   = mzMLReader.ReadAllSpectrumPeaks(run.ID)   |> List.ofSeq
+
+//mzMLWriter.WriteIndexedMzML(mzMLReader.Model, mzMLSpectra, mzMLpeaks)
+
+//1+1
