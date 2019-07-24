@@ -384,7 +384,7 @@ and MzIOSQL(encoder:BinaryDataEncoder,decoder:BinaryDataDecoder, model:MzIOModel
                 (
                     seq{
                         while reader.Read() do
-                            yield MzIOJson.FromJson<MassSpectrum>(reader.GetString(0))
+                            yield MzIOJson.deSerializeMassSpectrum(reader.GetString(0))
                        }    
                         |> List.ofSeq
                         |> (fun item -> item :> IEnumerable<MassSpectrum>)
@@ -404,7 +404,7 @@ and MzIOSQL(encoder:BinaryDataEncoder,decoder:BinaryDataDecoder, model:MzIOModel
         cmd.Parameters.AddWithValue("@spectrumID", spectrumID) |> ignore
         let desc = cmd.ExecuteScalar()
         if (desc :? string) then
-            ms <- MzIOJson.FromJson<MassSpectrum>(desc :?> string)
+            ms <- MzIOJson.deSerializeMassSpectrum(desc :?> string)
             true
         else
             ms <- new MassSpectrum()
