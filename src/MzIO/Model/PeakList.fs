@@ -179,10 +179,10 @@ type ProductList [<JsonConstructor>] internal (dict:Dictionary<string, obj>) =
 
 [<Sealed>]
 [<JsonObject(MemberSerialization.OptIn)>]
-type MassSpectrum [<JsonConstructor>] (id:string, precursors:PrecursorList, scans:ScanList, products:ProductList,  sourceFileReference:string) =
+type MassSpectrum [<JsonConstructor>] (id:string, dataPRocessingReference:string, precursors:PrecursorList, scans:ScanList, products:ProductList,  sourceFileReference:string) =
 
     //inherit with variables or default constructors?
-    inherit PeakList(id)
+    inherit PeakList(id, dataPRocessingReference)
 
     //let precursors = new PrecursorList()
 
@@ -193,7 +193,7 @@ type MassSpectrum [<JsonConstructor>] (id:string, precursors:PrecursorList, scan
     let mutable sourceFileReference = sourceFileReference
 
     //[<JsonConstructor>]
-    new(id:string) = MassSpectrum(id, new PrecursorList(), new ScanList(), new ProductList(), null)
+    new(id:string) = MassSpectrum(id, null, new PrecursorList(), new ScanList(), new ProductList(), null)
 
     new() = MassSpectrum("id")
 
