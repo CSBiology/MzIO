@@ -2,12 +2,12 @@
 
 
 open System
-open System.Collections.Generic
+open System.Data
 open System.Data.Linq
 open System.Data.Linq.Mapping
 open System.Data.SQLite
 open System.Linq
-
+open System.Collections.Generic
 
 module Linq2BafSql =
 
@@ -321,9 +321,10 @@ module Linq2BafSql =
 
         ///Prepare function to select all ProteinList-entities by FKMzQuantMLDocument as records.
         member this.PrepareGetBafSqlSpectrum (cn:SQLiteConnection) =
+            Linq2BafSql.RaiseConnectionState(cn)
             let querystring = 
                 "SELECT * FROM Spectra WHERE Id = @fk"
-            let cmd = new SQLiteCommand(querystring, cn(*, tr*))
+            let cmd = new SQLiteCommand(querystring, cn)
             cmd.Parameters.Add("@fk", Data.DbType.String) |> ignore
             let rec readerloop (reader:SQLiteDataReader) (acc) =
                 match reader.Read() with
@@ -335,60 +336,60 @@ module Linq2BafSql =
                             Linq2BafSql.GetNullableUInt reader 6, Nullable(reader.GetDouble(7)), Nullable(reader.GetDouble(8)), 
                             Linq2BafSql.GetNullableUInt reader 9, Linq2BafSql.GetNullableUInt reader 10, Linq2BafSql.GetNullableUInt reader 11, 
                             Linq2BafSql.GetNullableUInt reader 12, Linq2BafSql.GetNullableUInt reader 13, Linq2BafSql.GetNullableUInt reader 14, 
-                            Linq2BafSql.GetNullableUInt reader 15, Linq2BafSql.GetNullableUInt reader 16, Linq2BafSql.GetNullableUInt reader 17):: acc
+                            Linq2BafSql.GetNullableUInt reader 15, Linq2BafSql.GetNullableUInt reader 16, Linq2BafSql.GetNullableUInt reader 17)
                         )
                 | false -> acc 
-            fun fk ->
+            fun (fk:Nullable<UInt64>) ->
             cmd.Parameters.["@fk"].Value <- fk
             use reader = cmd.ExecuteReader()
-            //reader.Dispose()
-            readerloop reader []
+            readerloop reader (new BafSqlSpectrum())
 
         member this.PrepareGetBafSqlAcquisitionKey (cn:SQLiteConnection) =
-
+            Linq2BafSql.RaiseConnectionState(cn)
             //CompiledQuery.Compile(fun _ -> context.GetTable<BafSqlAcquisitionKey>().Where(fun x -> x.Id = id).SingleOrDefault())
 
             let querystring = 
                 "SELECT * FROM AcquisitionKeys WHERE Id = @fk"
-            let cmd = new SQLiteCommand(querystring, cn(*, tr*))
+            let cmd = new SQLiteCommand(querystring, cn)
             cmd.Parameters.Add("@fk", Data.DbType.String) |> ignore
-            let rec readerloop (reader:SQLiteDataReader) (acc) =
+            let rec readerloop (reader:SQLiteDataReader) (acc:BafSqlAcquisitionKey) =
                 match reader.Read() with
                 | true  -> 
                     readerloop reader 
                         (new BafSqlAcquisitionKey(
                             Linq2BafSql.GetNullableUInt reader 0, Nullable(reader.GetInt64(1)), Nullable(reader.GetInt64(2)), 
-                            Nullable(reader.GetInt64(3)), Nullable(reader.GetInt64(4))):: acc
+                            Nullable(reader.GetInt64(3)), Nullable(reader.GetInt64(4)))
                         )
                 | false -> acc 
-            fun fk ->
+            fun (fk:Nullable<UInt64>) ->
             cmd.Parameters.["@fk"].Value <- fk
             use reader = cmd.ExecuteReader()
             //reader.Dispose()
-            readerloop reader []
+            readerloop reader (new BafSqlAcquisitionKey())
 
         member this.PrepareGetBafSqlSteps (cn:SQLiteConnection) =
 
             //CompiledQuery.Compile(fun _ -> context.GetTable<BafSqlStep>().Where(fun x -> x.TargetSpectrum = id))
-
+            Linq2BafSql.RaiseConnectionState(cn)
             let querystring = 
                 "SELECT * FROM Steps WHERE TargetSpectrum = @fk"
-            let cmd = new SQLiteCommand(querystring, cn(*, tr*))
+            let cmd = new SQLiteCommand(querystring, cn)
             cmd.Parameters.Add("@fk", Data.DbType.String) |> ignore
-            let rec readerloop (reader:SQLiteDataReader) (acc) =
-                match reader.Read() with
-                | true  -> 
-                    readerloop reader 
-                        (new BafSqlStep(
-                            Linq2BafSql.GetNullableUInt reader 0, Nullable(reader.GetInt64(1)), Nullable(reader.GetInt64(2)), 
-                            Nullable(reader.GetInt64(3)), Nullable(reader.GetInt64(4)), Nullable(reader.GetDouble(5))):: acc
-                        )
-                | false -> acc 
-            fun fk ->
+            let rec readerloop (reader:SQLiteDataReader) (acc:seq<BafSqlStep>) =
+                seq
+                    {
+                        match reader.Read() with
+                        | true  -> 
+                            yield (new BafSqlStep(Linq2BafSql.GetNullableUInt reader 0, Nullable(reader.GetInt64(1)), Nullable(reader.GetInt64(2)), Nullable(reader.GetInt64(3)), Nullable(reader.GetInt64(4)), Nullable(reader.GetDouble(5))))
+                            yield! readerloop reader acc
+                                
+                        | false -> yield! acc
+                    }
+            fun (fk:Nullable<UInt64>) ->
             cmd.Parameters.["@fk"].Value <- fk
             use reader = cmd.ExecuteReader()
             //reader.Dispose()
-            readerloop reader []
+            readerloop reader Seq.empty
 
         //member this.GetPerSpectrumVariables(context, id) =
         //    CompiledQuery.Compile(fun db id -> db.GetTable<BafSqlPerSpectrumVariable>().Where(fun x -> x.Spectrum = id).SingleOrDefault())
@@ -403,21 +404,28 @@ module Linq2BafSql =
         member this.PrepareGetPerSpectrumVariables(cn:SQLiteConnection) =
 
             //CompiledQuery.Compile(fun _ -> context.GetTable<BafSqlPerSpectrumVariable>().Where(fun x -> x.Spectrum.HasValue && x.Spectrum.Value = id))
-
+            Linq2BafSql.RaiseConnectionState(cn)
             let querystring = 
                 "SELECT * FROM PerSpectrumVariables WHERE Spectrum = @fk"
             let cmd = new SQLiteCommand(querystring, cn(*, tr*))
             cmd.Parameters.Add("@fk", Data.DbType.String) |> ignore
-            let rec readerloop (reader:SQLiteDataReader) (acc) =
-                match reader.Read() with
-                | true  -> 
-                    readerloop reader 
-                        (new BafSqlPerSpectrumVariable(
-                            Linq2BafSql.GetNullableUInt reader 0, Linq2BafSql.GetNullableUInt reader 1, Linq2BafSql.getDecimal(reader, 2)):: acc
-                        )
-                | false -> acc 
-            fun fk ->
+            let rec readerloop (reader:SQLiteDataReader) (acc:seq<BafSqlPerSpectrumVariable>) =
+                seq
+                    {
+                        match reader.Read() with
+                        | true  -> 
+                            yield (new BafSqlPerSpectrumVariable(Linq2BafSql.GetNullableUInt reader 0, Linq2BafSql.GetNullableUInt reader 1, Linq2BafSql.getDecimal(reader, 2)))
+                            yield! readerloop reader acc
+                        | false -> yield! acc
+                    }
+            fun (fk:UInt64) ->
             cmd.Parameters.["@fk"].Value <- fk
             use reader = cmd.ExecuteReader()
             //reader.Dispose()
             readerloop reader []
+
+        static member RaiseConnectionState(cn:SQLiteConnection) =
+            if (cn.State=ConnectionState.Open) then 
+                ()
+            else
+                cn.Open()

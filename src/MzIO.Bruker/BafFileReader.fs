@@ -184,6 +184,18 @@ type BafFileReader(bafFilePath:string) =
 
     //member private this.model = MzIOJson.HandleExternalModelFile(this, BafFileReader.GetModelFilePath(bafFilePath))
 
+    let getBafSqlSpectrum =
+        linq2BafSql.PrepareGetBafSqlSpectrum cn
+
+    let getBafSqlAcquisitionKey =
+        linq2BafSql.PrepareGetBafSqlAcquisitionKey cn
+
+    let getBafSqlSteps =
+        linq2BafSql.PrepareGetBafSqlSteps cn
+
+    let getPerSpectrumVariables =
+        linq2BafSql.PrepareGetPerSpectrumVariables cn
+
     interface IMzIOIO with
 
         member this.CreateDefaultModel() =
@@ -284,28 +296,9 @@ type BafFileReader(bafFilePath:string) =
 
     member private this.YieldMassSpectra() =
 
-        let mutable ids = linq2BafSql.Spectra(*.Where<BafSqlSpectrum>(fun x -> x.Id.HasValue)*).OrderBy(fun x -> x.Rt).Select(fun x -> x.Id)
-        //let massSpecArr = Array.zeroCreate<MassSpectrum> ids.Length
+        let mutable ids = linq2BafSql.Spectra.OrderBy(fun x -> x.Rt).Select(fun x -> x.Id)
 
         if not (cn.State = ConnectionState.Open) then cn.Open()
-            
-        let getBafSqlSpectrum (spectrumId:Nullable<UInt64>) =
-
-            (linq2BafSql.PrepareGetBafSqlSpectrum cn) spectrumId
-            |> List.head
-
-        let getBafSqlAcquisitionKey (spectrumId:Nullable<UInt64>) =
-
-            (linq2BafSql.PrepareGetBafSqlAcquisitionKey cn) spectrumId
-            |> List.head
-
-        let getBafSqlSteps(spectrumId:Nullable<UInt64>) =
-
-            (linq2BafSql.PrepareGetBafSqlSteps cn) spectrumId
-
-        let getPerSpectrumVariables(spectrumId:UInt64) =
-
-                (linq2BafSql.PrepareGetPerSpectrumVariables cn) spectrumId
 
         let tmp =
             ids
@@ -318,24 +311,6 @@ type BafFileReader(bafFilePath:string) =
         this.RaiseDisposed()
 
         try
-            
-            let getBafSqlSpectrum (spectrumId:Nullable<UInt64>) =
-
-                (linq2BafSql.PrepareGetBafSqlSpectrum cn) spectrumId
-                |> List.head
-
-            let getBafSqlAcquisitionKey (spectrumId:Nullable<UInt64>) =
-
-                (linq2BafSql.PrepareGetBafSqlAcquisitionKey cn) spectrumId
-                |> List.head
-
-            let getBafSqlSteps(spectrumId:Nullable<UInt64>) =
-
-                (linq2BafSql.PrepareGetBafSqlSteps cn) spectrumId
-
-            let getPerSpectrumVariables(spectrumId:UInt64) =
-
-                (linq2BafSql.PrepareGetPerSpectrumVariables cn) spectrumId
             
             let id = UInt64.Parse(spectrumID)
             this.ReadSpectrumPeaks(getBafSqlSpectrum, id, getCentroids)
@@ -373,24 +348,6 @@ type BafFileReader(bafFilePath:string) =
 
             cn.Open()
 
-            let getBafSqlSpectrum (spectrumId:Nullable<UInt64>) =
-
-                (linq2BafSql.PrepareGetBafSqlSpectrum cn) spectrumId
-                |> List.head
-
-            let getBafSqlAcquisitionKey (spectrumId:Nullable<UInt64>) =
-
-                (linq2BafSql.PrepareGetBafSqlAcquisitionKey cn) spectrumId
-                |> List.head
-
-            let getBafSqlSteps(spectrumId:Nullable<UInt64>) =
-
-                (linq2BafSql.PrepareGetBafSqlSteps cn) spectrumId
-
-            let getPerSpectrumVariables(spectrumId:UInt64) =
-
-                (linq2BafSql.PrepareGetPerSpectrumVariables cn) spectrumId
-
             try
                 let id = UInt64.Parse(spectrumID)
                 this.ReadMassSpectrum(getBafSqlSpectrum, getBafSqlAcquisitionKey, getBafSqlSteps, getPerSpectrumVariables, id)
@@ -410,24 +367,6 @@ type BafFileReader(bafFilePath:string) =
 
             try
                 let id = UInt64.Parse(spectrumID)
-
-                let getBafSqlSpectrum (spectrumId:Nullable<UInt64>) =
-
-                    (linq2BafSql.PrepareGetBafSqlSpectrum cn) spectrumId
-                    |> List.head
-
-                let getBafSqlAcquisitionKey (spectrumId:Nullable<UInt64>) =
-
-                    (linq2BafSql.PrepareGetBafSqlAcquisitionKey cn) spectrumId
-                    |> List.head
-
-                let getBafSqlSteps(spectrumId:Nullable<UInt64>) =
-
-                    (linq2BafSql.PrepareGetBafSqlSteps cn) spectrumId
-
-                let getPerSpectrumVariables(spectrumId:UInt64) =
-
-                    (linq2BafSql.PrepareGetPerSpectrumVariables cn) spectrumId
 
                 this.ReadSpectrumPeaks(getBafSqlSpectrum, id, false)
 
@@ -492,7 +431,7 @@ type BafFileReader(bafFilePath:string) =
                     raise (new MzIOIOException(ex.Message, ex))
 
     member private this.ReadMassSpectrum(getBafSqlSpectrum:Nullable<UInt64>->BafSqlSpectrum, getBafSqlAcquisitionKey:Nullable<UInt64>->BafSqlAcquisitionKey,
-                                         getBafSqlSteps:Nullable<UInt64>->BafSqlStep list, getBafPerSpecVariables:UInt64->BafSqlPerSpectrumVariable list,
+                                         getBafSqlSteps:Nullable<UInt64>->seq<BafSqlStep>, getBafPerSpecVariables:UInt64->seq<BafSqlPerSpectrumVariable>,
                                          spectrumId:UInt64) =
 
         let bafSpec =
