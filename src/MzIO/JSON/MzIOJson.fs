@@ -108,12 +108,12 @@ type MzIOJson =
         if String.IsNullOrWhiteSpace(json) then 
             raise (ArgumentNullException("json"))
         else
-            (*JsonConvert.DeserializeObject<'T>(json)*)
-            let tmp = JsonConvert.DeserializeObject<'T>(json)
-            match tmp :> Object with
-            | :? DynamicObj as item -> MzIOJson.deserializeJObject(item, tmp :> Object)
-            | _                     -> ()
-            tmp
+            JsonConvert.DeserializeObject<'T>(json)
+            //let tmp = JsonConvert.DeserializeObject<'T>(json)
+            //match tmp :> Object with
+            //| :? DynamicObj as item -> MzIOJson.deserializeJObject(item, tmp :> Object)
+            //| _                     -> ()
+            //tmp
 
     static member deserializeJObject(baseObj:DynamicObj, jsonObj:Object) =
         match jsonObj with
@@ -161,8 +161,6 @@ type MzIOJson =
     static member ToJson(obj:Object) =
 
         JsonConvert.SerializeObject(obj, MzIOJson.jsonSettings)
-
-
 
     static member private deSerializeFileDescription(fileDescription:FileDescription) =
         JsonConvert.DeserializeObject<FileDescription>(fileDescription.ToString())
@@ -228,3 +226,68 @@ type MzIOJson =
             MzIOJson.deSerializeRuns mzIOModel.Runs
         mzIOModel.Runs <- runs
         mzIOModel
+
+    
+    static member deSerializeParams(item:#DynamicObj) =
+        item.GetProperties false
+        |> Seq.iter (fun param -> 
+            let tmp = param.Value :?> JObject
+            match tmp.["Name"] with
+            | null  -> item.SetValue(param.Key, JsonConvert.DeserializeObject<CvParam<IConvertible>>(tmp.ToString()))
+            | _     -> item.SetValue(param.Key, JsonConvert.DeserializeObject<UserParam<IConvertible>>(tmp.ToString()))
+                    )
+
+    static member deSerializeProducts(products:ProductList) =
+        products.GetProperties false
+        |> Seq.iter (fun item -> 
+            let tmp = item.Value :?> JObject
+            let product = JsonConvert.DeserializeObject<Product>(tmp.ToString())
+            MzIOJson.deSerializeParams(product)
+            products.SetValue(item.Key, product)
+                    )
+        products
+
+    static member deSerializeScans(scans:ScanList) =
+        scans.GetProperties false
+        |> Seq.iter (fun item -> 
+            let tmp = item.Value :?> JObject
+            let scan = JsonConvert.DeserializeObject<Scan>(tmp.ToString())
+            MzIOJson.deSerializeParams(scan)
+            printfn "%s" item.Key
+            scans.SetValue(item.Key, scan)
+                    )
+        scans
+
+    static member deSerializePrecursors(precursors:PrecursorList) =
+        precursors.GetProperties false
+        |> Seq.iter (fun item -> 
+            let tmp = item.Value :?> JObject
+            let precursor = JsonConvert.DeserializeObject<Precursor>(tmp.ToString())
+            MzIOJson.deSerializeParams(precursor)
+            precursors.SetValue(item.Key, precursor)
+                    )
+        precursors
+
+    static member deSerializeMassSpectrum (jsonString:string) =
+        let jsonObj = JsonConvert.DeserializeObject<JObject>(jsonString)
+        let precursors =
+            match jsonObj.["Precursors"] with
+            | null  -> failwith "Nope"
+            | _     ->
+                let tmp = jsonObj.["Precursors"] :?> JObject
+                MzIOJson.deSerializePrecursors(JsonConvert.DeserializeObject<PrecursorList>(tmp.ToString()))
+        let scans =
+            match jsonObj.["Scans"] with
+            | null  -> failwith "Nope"
+            | _     ->
+                let tmp = jsonObj.["Scans"] :?> JObject
+                MzIOJson.deSerializeScans(JsonConvert.DeserializeObject<ScanList>(tmp.ToString()))
+        let products =
+            match jsonObj.["Products"] with
+            | null  -> failwith "Nope"
+            | _     ->
+                let tmp = jsonObj.["Products"] :?> JObject
+                MzIOJson.deSerializeProducts(JsonConvert.DeserializeObject<ProductList>(tmp.ToString()))
+        let spectrum = JsonConvert.DeserializeObject<MassSpectrum>(jsonObj.ToString())
+        new MassSpectrum(spectrum.ID, spectrum.DataProcessingReference, precursors, scans, products, spectrum.SourceFileReference)
+
