@@ -747,13 +747,13 @@ module MzML =
                 loop false
             let readOp = readSubtree.Read
             let precursorList = new PrecursorList()
-            let rec loop scans read =
+            let rec loop precursors read =
                 if readSubtree.NodeType=XmlNodeType.Element then
                     match readSubtree.Name with
                     | "precursor"    ->  loop (precursorList.Add(Guid.NewGuid().ToString(), this.getPrecursor readSubtree)) (readOp() |> ignore)
-                    |   _       ->  loop scans (readOp() |> ignore)
+                    |   _       ->  loop precursors (readOp() |> ignore)
                 else
-                    if readOp()=true then loop scans read
+                    if readOp()=true then loop precursors read
                     else precursorList
             loop () ()
 
@@ -809,21 +809,22 @@ module MzML =
                 loop false
             let readOp = readSubtree.Read
             let mutable spectrum = new MassSpectrum()
-            let rec loop id sourceRef cvParams userParams scans precs products read =
+            let rec loop id sourceRef dataProcRef cvParams userParams scans precs products read =
                 if readSubtree.NodeType=XmlNodeType.Element then
                     match readSubtree.Name with
                     | "spectrum"                    -> loop
                                                         (this.getAttribute ("id", readSubtree))
                                                         (this.tryGetAttribute ("sourceFileRef", readSubtree))
+                                                        (this.tryGetAttribute ("dataProcessingRef", readSubtree))
                                                         cvParams userParams scans precs products
                                                         (readOp() |> ignore)
-                    | "referenceableParamGroupRef"  -> loop id sourceRef cvParams userParams scans precs products (readOp() |> ignore)
-                    | "cvParam"                     -> loop id sourceRef ((this.getCVParam readSubtree)::cvParams) userParams scans precs products (readOp() |> ignore)
-                    | "userParam"                   -> loop id sourceRef cvParams ((this.getUserParam readSubtree)::userParams) scans precs products   (readOp() |> ignore)
-                    | "scanList"                    -> loop id sourceRef cvParams userParams (this.getScanList readSubtree) precs products read
-                    | "precursorList"               -> loop id sourceRef cvParams userParams scans (this.getPrecursorList readSubtree) products read
-                    | "productList"                 -> loop id sourceRef cvParams userParams scans precs (this.getProductList readSubtree) read
-                    | "binaryDataArrayList"         -> spectrum <- new MassSpectrum(id, precs, scans, products, if sourceRef.IsSome then sourceRef.Value else null)
+                    | "referenceableParamGroupRef"  -> loop id sourceRef dataProcRef cvParams userParams scans precs products (readOp() |> ignore)
+                    | "cvParam"                     -> loop id sourceRef dataProcRef ((this.getCVParam readSubtree)::cvParams) userParams scans precs products (readOp() |> ignore)
+                    | "userParam"                   -> loop id sourceRef dataProcRef cvParams ((this.getUserParam readSubtree)::userParams) scans precs products   (readOp() |> ignore)
+                    | "scanList"                    -> loop id sourceRef dataProcRef cvParams userParams (this.getScanList readSubtree) precs products read
+                    | "precursorList"               -> loop id sourceRef dataProcRef cvParams userParams scans (this.getPrecursorList readSubtree) products read
+                    | "productList"                 -> loop id sourceRef dataProcRef cvParams userParams scans precs (this.getProductList readSubtree) read
+                    | "binaryDataArrayList"         -> spectrum <- new MassSpectrum(id, (if dataProcRef.IsSome then dataProcRef.Value else null), precs, scans, products, if sourceRef.IsSome then sourceRef.Value else null)
                                                        (this.getDataProcessingReference (spectrum, readSubtree))
                                                        cvParams
                                                        |> List.iter(fun cvParam -> spectrum.AddCvParam cvParam)
@@ -832,9 +833,9 @@ module MzML =
                                                        spectrum
                     |   _                           -> spectrum
                 else
-                    if readOp()=true then loop id sourceRef cvParams userParams scans precs products read
+                    if readOp()=true then loop id sourceRef dataProcRef cvParams userParams scans precs products read
                     else spectrum
-            loop null None [] [] (new ScanList()) (new PrecursorList()) (new ProductList()) ()
+            loop null None None [] [] (new ScanList()) (new PrecursorList()) (new ProductList()) ()
 
         member this.getSpectra() =
             let rec outerLoop acc =
@@ -1024,6 +1025,27 @@ module MzML =
                     outerLoop (reader.Read())
             outerLoop false
 
+        member this.getDefaultDataProcessingRef (?xmlReader:XmlReader) =
+            let xmlReader = defaultArg xmlReader reader
+            let readSubtree =
+                let rec loop acc =
+                    if xmlReader.NodeType=XmlNodeType.Element && xmlReader.Name="spectrumList" || 
+                       xmlReader.NodeType=XmlNodeType.Element && xmlReader.Name="chromatogramList" then
+                        xmlReader.ReadSubtree()
+                    else loop (xmlReader.Read())
+                loop false
+            let readOp = readSubtree.Read
+            let rec loop id read =
+                if readSubtree.NodeType=XmlNodeType.Element then
+                    match readSubtree.Name with
+                    | "spectrumList"        -> loop (this.getAttribute ("defaultDataProcessingRef", readSubtree)) (readOp() |> ignore)
+                    | "chromatogramList"    -> loop (this.getAttribute ("defaultDataProcessingRef", readSubtree)) (readOp() |> ignore)
+                    |   _                   -> loop id (readOp() |> ignore)
+                else
+                    if readOp()=true then loop id read
+                    else id
+            loop null ()
+
         member this.getRun(?xmlReader: XmlReader) =
             let xmlReader = defaultArg xmlReader reader
             let readSubtree =
@@ -1039,8 +1061,8 @@ module MzML =
                     | "run"                 ->  loop (this.getAttribute ("id", readSubtree)) (this.getAttribute ("defaultInstrumentConfigurationRef", readSubtree)) (this.tryGetAttribute ("defaultSourceFileRef", readSubtree)) (this.tryGetAttribute ("sampleRef", readSubtree)) cvParams userParams spectrumProcessing chromaProcessing (readOp() |> ignore)
                     | "cvParam"             ->  loop id instrumentRef sourceFileRef sampleRef ((this.getCVParam readSubtree)::cvParams) userParams spectrumProcessing chromaProcessing (readOp() |> ignore)
                     | "userParam"           ->  loop id instrumentRef sourceFileRef sampleRef cvParams ((this.getUserParam readSubtree)::userParams) spectrumProcessing chromaProcessing (readOp() |> ignore)
-                    | "spectrumList"        ->  loop id instrumentRef sourceFileRef sampleRef cvParams userParams (this.getAttribute ("defaultDataProcessingRef", readSubtree)) chromaProcessing (readOp() |> ignore)
-                    | "chromatogramList"    ->  loop id instrumentRef sourceFileRef sampleRef cvParams userParams spectrumProcessing (this.tryGetAttribute ("defaultDataProcessingRef", readSubtree)) (readOp() |> ignore)
+                    | "spectrumList"        ->  loop id instrumentRef sourceFileRef sampleRef cvParams userParams (this.getDefaultDataProcessingRef(readSubtree)) chromaProcessing (readOp() |> ignore)
+                    | "chromatogramList"    ->  loop id instrumentRef sourceFileRef sampleRef cvParams userParams spectrumProcessing (this.getDefaultDataProcessingRef(readSubtree)) (readOp() |> ignore)
                     |   _                   ->  loop id instrumentRef sourceFileRef sampleRef cvParams userParams spectrumProcessing chromaProcessing (readOp() |> ignore)
                 else
                     if readOp()=true then loop id instrumentRef sourceFileRef sampleRef cvParams userParams spectrumProcessing chromaProcessing read
@@ -1050,7 +1072,7 @@ module MzML =
                                     id,
                                     (if sampleRef.IsSome then new Sample(sampleRef.Value, "default") else new Sample()),
                                     new Instrument(instrumentRef), new DataProcessing(spectrumProcessing),
-                                    if chromaProcessing.IsSome then new DataProcessing(chromaProcessing.Value) else new DataProcessing()
+                                    if chromaProcessing <> null then new DataProcessing(chromaProcessing) else new DataProcessing()
                                    )
                         cvParams
                         |> Seq.iter (fun cvParam -> run.AddCvParam cvParam)
@@ -1059,7 +1081,7 @@ module MzML =
                         let runList = new RunList()
                         runList.AddModelItem(run)
                         runList
-            loop null null None None [] [] null None ()
+            loop null null None None [] [] null null ()
 
         member this.getProcessingMethod(?xmlReader: XmlReader) =
             let xmlReader = defaultArg xmlReader reader
@@ -1070,17 +1092,17 @@ module MzML =
                     else loop (xmlReader.Read())
                 loop false
             let readOp = readSubtree.Read
-            let rec loop id softwareRef cvParams userParams read =
+            let rec loop name softwareRef cvParams userParams read =
                 if readSubtree.NodeType=XmlNodeType.Element then
                     match readSubtree.Name with
                     | "processingMethod"    ->  loop (this.getAttribute ("order", readSubtree)) (this.getAttribute ("softwareRef", readSubtree)) cvParams userParams (readOp() |> ignore)
-                    | "cvParam"             ->  loop id softwareRef ((this.getCVParam readSubtree)::cvParams) userParams (readOp() |> ignore)
-                    | "userParam"           ->  loop id softwareRef cvParams ((this.getUserParam readSubtree)::userParams) (readOp() |> ignore)
-                    |   _                   ->  loop id softwareRef cvParams userParams (readOp() |> ignore)
+                    | "cvParam"             ->  loop name softwareRef ((this.getCVParam readSubtree)::cvParams) userParams (readOp() |> ignore)
+                    | "userParam"           ->  loop name softwareRef cvParams ((this.getUserParam readSubtree)::userParams) (readOp() |> ignore)
+                    |   _                   ->  loop name softwareRef cvParams userParams (readOp() |> ignore)
                 else
-                    if readOp()=true then loop id softwareRef cvParams userParams read
+                    if readOp()=true then loop name softwareRef cvParams userParams read
                     else
-                        let dataProcStep = new DataProcessingStep(id, new Software(softwareRef))
+                        let dataProcStep = new DataProcessingStep(name, new Software(softwareRef))
                         cvParams
                         |> Seq.iter (fun cvParam -> dataProcStep.AddCvParam cvParam)
                         userParams
@@ -1149,11 +1171,11 @@ module MzML =
                     else dataProcessingList
             loop () ()
 
-        member this.getComponentList(?xmlReader: XmlReader) =
+        member this.GetDetector(?xmlReader: XmlReader) =
             let xmlReader = defaultArg xmlReader reader
             let readSubtree =
                 let rec loop acc =
-                    if xmlReader.NodeType=XmlNodeType.Element && xmlReader.Name="componentList" then
+                    if xmlReader.NodeType=XmlNodeType.Element && xmlReader.Name="detector" then
                         xmlReader.ReadSubtree()
                     else loop (xmlReader.Read())
                 loop false
@@ -1167,13 +1189,94 @@ module MzML =
                 else
                     if readOp()=true then loop cvParams userParams read
                     else
-                        let componentList = new ComponentList()
+                        let componentList = new DetectorComponent()
                         cvParams
                         |> Seq.iter (fun cvParam -> componentList.AddCvParam cvParam)
                         userParams
                         |> Seq.iter (fun userParam -> componentList.AddUserParam userParam)
                         componentList
             loop [] [] ()
+
+        member this.GetAnalyzer(?xmlReader: XmlReader) =
+            let xmlReader = defaultArg xmlReader reader
+            let readSubtree =
+                let rec loop acc =
+                    if xmlReader.NodeType=XmlNodeType.Element && xmlReader.Name="analyzer" then
+                        xmlReader.ReadSubtree()
+                    else loop (xmlReader.Read())
+                loop false
+            let readOp = readSubtree.Read
+            let rec loop cvParams userParams read =
+                if readSubtree.NodeType=XmlNodeType.Element then
+                    match readSubtree.Name with
+                    | "cvParam"     ->  loop ((this.getCVParam readSubtree)::cvParams) userParams (readOp() |> ignore)
+                    | "userParam"   ->  loop cvParams ((this.getUserParam readSubtree)::userParams) (readOp() |> ignore)
+                    |   _           ->  loop cvParams userParams (readOp() |> ignore)
+                else
+                    if readOp()=true then loop cvParams userParams read
+                    else
+                        let componentList = new AnalyzerComponent()
+                        cvParams
+                        |> Seq.iter (fun cvParam -> componentList.AddCvParam cvParam)
+                        userParams
+                        |> Seq.iter (fun userParam -> componentList.AddUserParam userParam)
+                        componentList
+            loop [] [] ()
+
+        member this.GetSource(?xmlReader: XmlReader) =
+            let xmlReader = defaultArg xmlReader reader
+            let readSubtree =
+                let rec loop acc =
+                    if xmlReader.NodeType=XmlNodeType.Element && xmlReader.Name="source" then
+                        xmlReader.ReadSubtree()
+                    else loop (xmlReader.Read())
+                loop false
+            let readOp = readSubtree.Read
+            let rec loop cvParams userParams read =
+                if readSubtree.NodeType=XmlNodeType.Element then
+                    match readSubtree.Name with
+                    | "cvParam"     ->  loop ((this.getCVParam readSubtree)::cvParams) userParams (readOp() |> ignore)
+                    | "userParam"   ->  loop cvParams ((this.getUserParam readSubtree)::userParams) (readOp() |> ignore)
+                    |   _           ->  loop cvParams userParams (readOp() |> ignore)
+                else
+                    if readOp()=true then loop cvParams userParams read
+                    else
+                        let componentList = new SourceComponent()
+                        cvParams
+                        |> Seq.iter (fun cvParam -> componentList.AddCvParam cvParam)
+                        userParams
+                        |> Seq.iter (fun userParam -> componentList.AddUserParam userParam)
+                        componentList
+            loop [] [] ()
+
+        member this.getComponentList(?xmlReader: XmlReader) =
+            let xmlReader = defaultArg xmlReader reader
+            let readSubtree =
+                let rec loop acc =
+                    if xmlReader.NodeType=XmlNodeType.Element && xmlReader.Name="componentList" then
+                        xmlReader.ReadSubtree()
+                    else loop (xmlReader.Read())
+                loop false
+            let readOp = readSubtree.Read
+            let rec loop sources analyzers detectors read =
+                if readSubtree.NodeType=XmlNodeType.Element then
+                    match readSubtree.Name with
+                    | "source"      ->  loop ((this.GetSource readSubtree)::sources) analyzers detectors (readOp() |> ignore)
+                    | "analyzer"    ->  loop sources ((this.GetAnalyzer readSubtree)::analyzers) detectors (readOp() |> ignore)
+                    | "detector"    ->  loop sources analyzers ((this.GetDetector readSubtree)::detectors) (readOp() |> ignore)
+                    |   _           ->  loop sources analyzers detectors (readOp() |> ignore)
+                else
+                    if readOp()=true then loop sources analyzers detectors read
+                    else
+                        let componentList = new ComponentList()
+                        sources
+                        |> Seq.iter (fun source -> componentList.Add(Guid.NewGuid().ToString(), source))
+                        analyzers
+                        |> Seq.iter (fun analyzer -> componentList.Add(Guid.NewGuid().ToString(), analyzer))
+                        detectors
+                        |> Seq.iter (fun detector -> componentList.Add(Guid.NewGuid().ToString(), detector))
+                        componentList
+            loop [] [] [] ()
 
         member this.getInstrumentConfiguration(?xmlReader: XmlReader) =
             let xmlReader = defaultArg xmlReader reader
@@ -1439,6 +1542,7 @@ module MzML =
             loop (new FileContent()) (new SourceFileList()) (new Contact()) ()
 
         member private this.getMzIOModel() =
+            reader <- XmlReader.Create(filePath)
             let rec outerLoop acc =
                 if reader.Name = "mzML" then
                     let readSubtree = reader.ReadSubtree()
@@ -1473,24 +1577,25 @@ module MzML =
                 loop false
             let readOp = readSubtree.Read
             let mutable spectrum = new MassSpectrum()
-            let rec loop id sourceRef cvParams userParams scans precs products read =
+            let rec loop id sourceRef dataProcRef cvParams userParams scans precs products read =
                 if readSubtree.NodeType=XmlNodeType.Element then
                     match readSubtree.Name with
                     | "spectrum"                    -> if (this.getAttribute ("id", readSubtree)) = spectrumID then
                                                             loop
                                                                 (this.getAttribute ("id", readSubtree))
                                                                 (this.tryGetAttribute ("sourceFileRef", readSubtree))
+                                                                (this.tryGetAttribute ("dataProcessingRef", readSubtree))
                                                                 cvParams userParams scans precs products
                                                                 (readOp() |> ignore)
                                                        else 
                                                             None
-                    | "referenceableParamGroupRef"  -> loop id sourceRef cvParams userParams scans precs products (readOp() |> ignore)
-                    | "cvParam"                     -> loop id sourceRef ((this.getCVParam readSubtree)::cvParams) userParams scans precs products (readOp() |> ignore)
-                    | "userParam"                   -> loop id sourceRef cvParams ((this.getUserParam readSubtree)::userParams) scans precs products   (readOp() |> ignore)
-                    | "scanList"                    -> loop id sourceRef cvParams userParams (this.getScanList readSubtree) precs products read
-                    | "precursorList"               -> loop id sourceRef cvParams userParams scans (this.getPrecursorList readSubtree) products read
-                    | "productList"                 -> loop id sourceRef cvParams userParams scans precs (this.getProductList readSubtree) read
-                    | "binaryDataArrayList"         -> spectrum <- new MassSpectrum(id, precs, scans, products, if sourceRef.IsSome then sourceRef.Value else null)
+                    | "referenceableParamGroupRef"  -> loop id sourceRef dataProcRef cvParams userParams scans precs products (readOp() |> ignore)
+                    | "cvParam"                     -> loop id sourceRef dataProcRef ((this.getCVParam readSubtree)::cvParams) userParams scans precs products (readOp() |> ignore)
+                    | "userParam"                   -> loop id sourceRef dataProcRef cvParams ((this.getUserParam readSubtree)::userParams) scans precs products   (readOp() |> ignore)
+                    | "scanList"                    -> loop id sourceRef dataProcRef cvParams userParams (this.getScanList readSubtree) precs products read
+                    | "precursorList"               -> loop id sourceRef dataProcRef cvParams userParams scans (this.getPrecursorList readSubtree) products read
+                    | "productList"                 -> loop id sourceRef dataProcRef cvParams userParams scans precs (this.getProductList readSubtree) read
+                    | "binaryDataArrayList"         -> spectrum <- new MassSpectrum(id, (if dataProcRef.IsSome then dataProcRef.Value else null), precs, scans, products, if sourceRef.IsSome then sourceRef.Value else null)
                                                        (this.getDataProcessingReference (spectrum, readSubtree))
                                                        cvParams
                                                        |> List.iter(fun cvParam -> spectrum.AddCvParam cvParam)
@@ -1499,10 +1604,10 @@ module MzML =
                                                        Some spectrum
                     |   _                           -> Some spectrum
                 else
-                    if readOp()=true then loop id sourceRef cvParams userParams scans precs products read
+                    if readOp()=true then loop id sourceRef dataProcRef cvParams userParams scans precs products read
                     else Some spectrum
 
-            loop null None [] [] (new ScanList()) (new PrecursorList()) (new ProductList()) ()
+            loop null None None [] [] (new ScanList()) (new PrecursorList()) (new ProductList()) ()
 
         member private this.getSpectrum(spectrumID: string) =
             let rec outerLoop acc =
@@ -1795,7 +1900,7 @@ module MzML =
                     outerLoop (reader.Read())
             outerLoop false
 
-        member private this.model = MzIOJson.HandleExternalModelFile(this, MzMLReader.GetModelFilePath(filePath))
+        member private this.model = this.getMzIOModel()
 
         static member private GetModelFilePath(filePath) =
 
@@ -1825,16 +1930,13 @@ module MzML =
 
                 let sampleName = Path.GetFileNameWithoutExtension(filePath)
                 let sample = new Sample("sample_1", sampleName);
-                model.Samples.Add(sample.ID, sample)
-
+                model.Samples.TryAdd(sample.ID, sample) |> ignore
                 let run = new Run("run_1")
                 run.Sample <- sample
-                model.Runs.Add(run.ID, run)
+                model.Runs.TryAdd(run.ID, run)  |> ignore
                 model
 
-            member this.Model =
-                //this.RaiseDisposed()
-                this.model
+            member this.Model = this.model
 
             member this.SaveModel() =
 
