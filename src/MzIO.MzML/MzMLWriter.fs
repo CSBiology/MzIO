@@ -3,13 +3,15 @@
 open System
 open System.Globalization
 open System.Xml
+open System.Linq
+open System.IO
+open System.IO.Compression
+open System.Collections.Generic
 open MzIO.Model
 open MzIO.Model.CvParam
-open System.Linq
 open MzIO.MetaData
 open MzIO.MetaData.ParamEditExtension
 open MzIO.MetaData.PSIMSExtension
-open System.Collections.Generic
 open MzIO.Binary
 open MzIO.IO
 open MzIO.Model.CvParam
@@ -33,7 +35,8 @@ type private MzMLWriteState =
 type MzMLWriter(path:string) =
 
     let mutable formatProvider = new CultureInfo("en-US")
-    let mutable isClosed = false
+    let mutable isClosed = 
+        false
 
     let mutable currentWriteState   = MzMLWriteState.INITIAL
     let mutable consumedWriteStates = new HashSet<MzMLWriteState>()
@@ -43,10 +46,11 @@ type MzMLWriter(path:string) =
         | ""    -> raise (ArgumentNullException("path"))
         |   _   ->
             try
-                let tmp = XmlWriter.Create(path, new XmlWriterSettings())
-                tmp.Settings.Indent <- true
-                tmp.WriteStartDocument()
-                tmp
+                let mutable writerSetting = new XmlWriterSettings()
+                writerSetting.Indent <- true
+                let xmlWriter = XmlWriter.Create(path, writerSetting)
+                xmlWriter.WriteStartDocument()
+                xmlWriter
             with
                 | :? Exception as ex ->
                     currentWriteState <- MzMLWriteState.ERROR
@@ -674,3 +678,521 @@ type MzMLWriter(path:string) =
     member this.InsertAsyncChrom(chromatogramID: string, chrom: Chromatogram, peak2D: Peak2DArray) =
 
         (this :> IMzIODataWriter).InsertAsyncChrom
+
+type private MzMLCompression(?initialBufferSize:int) =
+
+    let bufferSize = defaultArg initialBufferSize 1048576
+    
+    let mutable memoryStream' = new MemoryStream(bufferSize)
+
+    member this.memoryStream
+        with get() = memoryStream'
+        and private set(value) = memoryStream' <- value
+
+    //Write float32 instead of float64 for float32.
+    static member WriteValue(writer:BinaryWriter, binaryDataType:BinaryDataType, value:double) =
+        match binaryDataType with
+        | BinaryDataType.Int32      ->  writer.Write(int32 value)
+        | BinaryDataType.Int64      ->  writer.Write(int64 value)
+        | BinaryDataType.Float32    ->  writer.Write(single value)
+        | BinaryDataType.Float64    ->  writer.Write(double value)
+        | _     -> failwith (sprintf "%s%s" "BinaryDataType not supported: " (binaryDataType.ToString()))    
+
+    static member private NoCompression(memoryStream:Stream, dataType:BinaryDataType, floats:double[]) =
+        
+        let writer = new BinaryWriter(memoryStream, System.Text.Encoding.UTF8, true)
+        //let (len:int32) = floats.Length
+        //writer.Write(len)
+        for item in floats do
+            MzMLCompression.WriteValue(writer, dataType, item)
+
+    static member private DeflateStreamCompress (data: byte[]) =
+        use mStream = new MemoryStream(data)
+        (
+         use outStream = new MemoryStream()
+         use compress = new DeflateStream (outStream, CompressionMode.Compress, true)      
+         mStream.CopyTo(compress)
+         compress.Close() 
+         let byteArray = outStream.ToArray()
+         byteArray
+        )
+
+    static member private FloatToByteArray (floatArray: float[]) =
+        let byteArray = Array.init (floatArray.Length*8) (fun x -> byte(0))
+        Buffer.BlockCopy (floatArray, 0, byteArray, 0, byteArray.Length)
+        byteArray
+
+    static member private ZLib(memoryStream:Stream, floats:float[]) =
+        let bytes       = MzMLCompression.FloatToByteArray(floats |> Array.ofSeq)
+        let byteDeflate = MzMLCompression.DeflateStreamCompress bytes
+
+        let writer = new BinaryWriter(memoryStream, System.Text.Encoding.UTF8, true)
+        writer.Write(byteDeflate.Length)
+        writer.Write(byteDeflate)
+
+    member this.Encode(compressionType:BinaryDataCompressionType, dataType:BinaryDataType, floats:float[]) =
+       
+        this.memoryStream.Seek(int64 0, SeekOrigin.Begin) |> ignore
+
+        match compressionType with
+        | BinaryDataCompressionType.NoCompression   -> MzMLCompression.NoCompression(this.memoryStream, dataType, floats)
+        | BinaryDataCompressionType.ZLib            -> MzMLCompression.ZLib(this.memoryStream, floats)
+        //| BinaryDataCompressionType.NumPress        -> MzMLCompression.Numpress(this.memoryStream, peakArray)
+        //| BinaryDataCompressionType.NumPressZLib    -> MzMLCompression.NumpressDeflate(this.memoryStream, peakArray)
+        | _ -> failwith (sprintf "Compression type not supported: %s" (compressionType.ToString()))
+        
+        this.memoryStream.ToArray()
+
+type MzIOMLDataWriter(path:string) =
+
+    let writer =
+        let mutable writerSettings = new XmlWriterSettings()
+        writerSettings.Indent <- true
+        XmlWriter.Create(path, writerSettings)
+
+    member this.WriteCvParam(param:CvParam<#IConvertible>) =
+        writer.WriteStartElement("cvParam")
+        writer.WriteAttributeString("cvRef", "not saved yet")
+        writer.WriteAttributeString("accession", param.CvAccession)        
+        writer.WriteAttributeString("name", "not saved yet")
+        writer.WriteAttributeString("value", if (tryGetValue (param :> IParamBase<#IConvertible>)).IsSome then (tryGetValue (param :> IParamBase<#IConvertible>)).Value.ToString() else "")
+        if (tryGetCvUnitAccession (param :> IParamBase<#IConvertible>)).IsSome then
+            writer.WriteAttributeString("unitCvRef", "not saved yet")
+            writer.WriteAttributeString("unitAccession", (tryGetCvUnitAccession (param :> IParamBase<#IConvertible>)).Value.ToString())
+            writer.WriteAttributeString("unitName", "not saved yet")        
+        writer.WriteEndElement()
+
+    member this.WriteUserParam(param:UserParam<#IConvertible>) =
+        writer.WriteStartElement("cvParam")
+        writer.WriteAttributeString("name", param.Name)
+        writer.WriteAttributeString("type", "not saved yet")
+        writer.WriteAttributeString("value", if (tryGetValue (param :> IParamBase<#IConvertible>)).IsSome then (tryGetValue (param :> IParamBase<#IConvertible>)).Value.ToString() else "")
+        if (tryGetCvUnitAccession (param :> IParamBase<#IConvertible>)).IsSome then
+            writer.WriteAttributeString("unitCvRef", "not saved yet")
+            writer.WriteAttributeString("unitAccession", (tryGetCvUnitAccession (param :> IParamBase<#IConvertible>)).Value.ToString())
+            writer.WriteAttributeString("unitName", "not saved yet")        
+        writer.WriteEndElement()
+
+    member private this.assignParam<'T when 'T :> IConvertible>(item:Object) =
+        match item with
+        | :? CvParam<'T>     -> this.WriteCvParam    (item :?> CvParam<'T>)
+        | :? UserParam<'T>   -> this.WriteUserParam  (item :?> UserParam<'T>)
+        |   _ -> failwith "Not castable to Cv nor UserParam"
+
+    member this.WriteDetector(item:DetectorComponent) =
+        writer.WriteStartElement("detector")
+        writer.WriteAttributeString("order", "not saved yet")
+        item.GetProperties false
+        |> Seq.iter (fun param -> this.assignParam(param.Value))
+        writer.WriteEndElement()
+
+    member this.WriteAnalyzer(item:AnalyzerComponent) =
+        writer.WriteStartElement("analyzer")
+        writer.WriteAttributeString("order", "not saved yet")
+        item.GetProperties false
+        |> Seq.iter (fun param -> this.assignParam(param.Value))
+        writer.WriteEndElement()
+
+    member this.WriteSource(item:SourceComponent) =
+        writer.WriteStartElement("source")
+        writer.WriteAttributeString("order", "not saved yet")
+        item.GetProperties false
+        |> Seq.iter (fun param -> this.assignParam(param.Value))
+        writer.WriteEndElement()
+
+    member this.WriteProcessingMethod(item:DataProcessingStep) =
+        writer.WriteStartElement("processingMethod")
+        writer.WriteAttributeString("order", item.Name)
+        writer.WriteAttributeString("softwareRef", item.Software.ID)
+        item.GetProperties false
+        |> Seq.iter (fun param -> this.assignParam(param.Value))
+        writer.WriteEndElement()
+
+    member this.WriteSoftwareRef(item:Software) =
+        writer.WriteStartElement("softwareRef")
+        writer.WriteAttributeString("ref", item.ID)
+        writer.WriteEndElement()
+
+    member private this.assignComponent(item:Object) =
+        match item with
+        | :? SourceComponent    -> this.WriteSource     (item :?> SourceComponent)
+        | :? AnalyzerComponent  -> this.WriteAnalyzer   (item :?> AnalyzerComponent)
+        | :? DetectorComponent  -> this.WriteDetector   (item :?> DetectorComponent)
+        |   _ -> failwith "Not castable to SourceComponent nor AnalyzerComponent nor DetectorComponent"
+
+    member this.WriteComponentList(item:ComponentList) =
+        writer.WriteStartElement("componentList")
+        writer.WriteAttributeString("count", (item.GetProperties false |> Seq.length).ToString())
+        item.GetProperties false
+        |> Seq.iter (fun component' -> this.assignComponent(component'.Value))
+        writer.WriteEndElement()
+
+    member this.WriteSourceFile(item:SourceFile) =
+        writer.WriteStartElement("sourceFile")
+        writer.WriteAttributeString("id", item.ID)
+        writer.WriteAttributeString("location", item.Location)
+        writer.WriteAttributeString("name", item.Name)
+        item.GetProperties false
+        |> Seq.iter (fun param -> this.assignParam(param.Value))
+        writer.WriteEndElement()
+
+    member this.WriteSelectedIon(item:SelectedIon) =
+        writer.WriteStartElement("selectedIon")
+        item.GetProperties false
+        |> Seq.iter (fun param -> this.assignParam param.Value)
+        writer.WriteEndElement()
+
+    member this.WriteScanWindow(item:ScanWindow) =
+        writer.WriteStartElement("scanWindow")
+        item.GetProperties false
+        |> Seq.iter (fun param -> this.assignParam param.Value)
+        writer.WriteEndElement()
+
+    member this.WriteBinary(item:string) =
+        writer.WriteElementString("binary", item)
+
+    member this.WriteActivation(item:Activation) =
+        writer.WriteStartElement("activation")
+        item.GetProperties false
+        |> Seq.iter (fun param -> this.assignParam param.Value)
+        writer.WriteEndElement()
+
+    member this.WriteSelectedIonList(item:SelectedIonList) =
+        writer.WriteStartElement("selectedIonList")
+        writer.WriteAttributeString("count", (Seq.length (item.GetProperties false)).ToString())
+        item.GetProperties false
+        |> Seq.iter (fun selectedIon -> this.WriteSelectedIon(selectedIon.Value :?> SelectedIon))
+        writer.WriteEndElement()
+
+    member this.WriteIsolationWindow(item:IsolationWindow) =
+        writer.WriteStartElement("isolationWindow")
+        item.GetProperties false
+        |> Seq.iter (fun param -> this.assignParam param.Value)
+        writer.WriteEndElement()
+
+    member this.WriteScanWindowList(item:ScanWindowList) =
+        writer.WriteStartElement("scanWindowList")
+        writer.WriteAttributeString("count", (Seq.length (item.GetProperties false)).ToString())
+        item.GetProperties false
+        |> Seq.iter (fun scanWindow -> this.WriteScanWindow(scanWindow.Value :?> ScanWindow))
+        writer.WriteEndElement()    
+
+    static member private assignBinaryDataType(item:BinaryDataType) =
+        match item with
+        | BinaryDataType.Int32      -> "MS:1000519"
+        | BinaryDataType.Int64      -> "MS:1000522"
+        | BinaryDataType.Float32    -> "MS:1000521"
+        | BinaryDataType.Float64    -> "MS:1000523"
+        | _ -> failwith "BinaryDataType is unknown"
+
+    static member private assignCompressionType(item:BinaryDataCompressionType) =
+        match item with
+        | BinaryDataCompressionType.NoCompression   -> "MS:1000576"
+        | BinaryDataCompressionType.ZLib            -> "MS:1000574"
+        | BinaryDataCompressionType.NumPress        -> failwith "BinaryDataCompressionType is unknown"
+        | BinaryDataCompressionType.NumPressZLib    -> failwith "BinaryDataCompressionType is unknown"
+        | BinaryDataCompressionType.NumPressPic     -> failwith "BinaryDataCompressionType is unknown"
+        | BinaryDataCompressionType.NumPressLin     -> failwith "BinaryDataCompressionType is unknown"
+        | _ -> failwith "BinaryDataCompressionType is unknown"
+
+    member this.WriteQParams(item:Peak1DArray) =
+        writer.WriteStartElement("cvParam")
+        writer.WriteAttributeString("cvRef", "MS")
+        writer.WriteAttributeString("accession", (MzIOMLDataWriter.assignBinaryDataType item.MzDataType).ToString())
+        writer.WriteAttributeString("name", item.MzDataType.ToString())
+        writer.WriteAttributeString("value", "")
+        writer.WriteEndElement()
+        writer.WriteStartElement("cvParam")
+        writer.WriteAttributeString("accession", (MzIOMLDataWriter.assignCompressionType item.CompressionType).ToString())
+        writer.WriteAttributeString("cvRef", "MS")
+        writer.WriteAttributeString("name", item.CompressionType.ToString())
+        writer.WriteAttributeString("value", "")
+        writer.WriteEndElement()
+        writer.WriteStartElement("cvParam")
+        writer.WriteAttributeString("cvRef", "MS")
+        writer.WriteAttributeString("accession", "MS:1000514")      
+        writer.WriteAttributeString("name", "m/z array")
+        writer.WriteAttributeString("value", "")
+        writer.WriteAttributeString("unitCvRef", "MS")
+        writer.WriteAttributeString("unitAccession", "MS:1000040")
+        writer.WriteAttributeString("unitName", "m/z")
+        writer.WriteEndElement()
+
+    member this.WriteIntensityParams(item:Peak1DArray) =
+        writer.WriteStartElement("cvParam")
+        writer.WriteAttributeString("cvRef", "MS")
+        writer.WriteAttributeString("accession", (MzIOMLDataWriter.assignBinaryDataType item.MzDataType).ToString())
+        writer.WriteAttributeString("name", "not saved yet")
+        writer.WriteAttributeString("value", "")
+        writer.WriteEndElement()
+        writer.WriteStartElement("cvParam")
+        writer.WriteAttributeString("accession", (MzIOMLDataWriter.assignCompressionType item.CompressionType).ToString())
+        writer.WriteAttributeString("cvRef", "MS")
+        writer.WriteAttributeString("name", "not saved yet")
+        writer.WriteAttributeString("value", "")
+        writer.WriteEndElement()
+        writer.WriteStartElement("cvParam")
+        writer.WriteAttributeString("cvRef", "MS")
+        writer.WriteAttributeString("accession", "MS:1000515")      
+        writer.WriteAttributeString("name", "intensity array")
+        writer.WriteAttributeString("value", "")
+        writer.WriteAttributeString("unitCvRef", "MS")
+        writer.WriteAttributeString("unitAccession", "MS:1000131")
+        writer.WriteAttributeString("unitName", "number of counts")
+        writer.WriteEndElement()
+
+    member this.WriteBinaryDataArray(spectrum:MassSpectrum, peaks:Peak1DArray) =
+        let encoder = new MzMLCompression()
+        let qs = 
+            peaks.Peaks
+            |> Seq.map (fun peak -> peak.Mz)
+            |> Array.ofSeq
+        let encodedQs = Convert.ToBase64String(encoder.Encode(peaks.CompressionType, peaks.MzDataType, qs))
+        writer.WriteStartElement("binaryDataArray")
+        writer.WriteAttributeString("arrayLength", qs.Length.ToString())
+        writer.WriteAttributeString("dataProcessingRef", spectrum.DataProcessingReference)
+        writer.WriteAttributeString("encodedLength", encodedQs.Length.ToString())        
+        this.WriteQParams(peaks)
+        this.WriteBinary(encodedQs)
+        writer.WriteFullEndElement()
+
+        let intensities = 
+            peaks.Peaks
+            |> Seq.map (fun peak -> peak.Intensity)
+            |> Array.ofSeq
+        let encodedIntensities = Convert.ToBase64String(encoder.Encode(peaks.CompressionType, peaks.IntensityDataType, intensities))
+        writer.WriteStartElement("binaryDataArray")
+        writer.WriteAttributeString("arrayLength", intensities.Length.ToString())
+        writer.WriteAttributeString("dataProcessingRef", spectrum.DataProcessingReference)
+        writer.WriteAttributeString("encodedLength", encodedIntensities.Length.ToString())
+        this.WriteIntensityParams(peaks)
+        this.WriteBinary(encodedIntensities)
+        writer.WriteFullEndElement()  
+
+    member this.WriteProduct(item:Product) =
+        writer.WriteStartElement("product")
+        this.WriteIsolationWindow(item.IsolationWindow)
+        writer.WriteEndElement()  
+
+    member this.WritePrecursor(item:Precursor) =
+        writer.WriteStartElement("precursor")
+        //writer.WriteAttributeString("externalSpectrumID", item.SpectrumReference.SpectrumID)
+        writer.WriteAttributeString("sourceFileID", item.SpectrumReference.SourceFileID)
+        writer.WriteAttributeString("spectrumID", item.SpectrumReference.SpectrumID)
+        this.WriteIsolationWindow(item.IsolationWindow)
+        this.WriteSelectedIonList(item.SelectedIons)
+        this.WriteActivation(item.Activation)
+        writer.WriteEndElement()
+    
+    member this.WriteScan(item:Scan) =
+        writer.WriteStartElement("scan")
+        //writer.WriteAttributeString("externalSpectrumID", item.SpectrumReference.SpectrumID)
+        writer.WriteAttributeString("instrumentConfigurationRef", "not saved yet")
+        writer.WriteAttributeString("sourceFileID", item.SpectrumReference.SourceFileID)
+        writer.WriteAttributeString("spectrumID", item.SpectrumReference.SpectrumID)
+        item.GetProperties false
+        |> Seq.iter (fun param -> this.assignParam param.Value)
+        this.WriteScanWindowList(item.ScanWindows)
+        writer.WriteEndElement()
+
+    member this.WriteBinaryDataArrayList(spectrum:MassSpectrum, peaks:Peak1DArray) =
+        writer.WriteStartElement("binaryDataArrayList")
+        writer.WriteAttributeString("count", "2")
+        this.WriteBinaryDataArray(spectrum, peaks)
+        writer.WriteEndElement()
+
+    member this.WriteProductList(item:ProductList) =
+        writer.WriteStartElement("productList")
+        writer.WriteAttributeString("count", (Seq.length (item.GetProperties false)).ToString())
+        item.GetProperties false
+        |> Seq.iter (fun product -> this.WriteProduct(product.Value :?> Product))
+        writer.WriteEndElement()
+
+    member this.WritePrecursorList(item:PrecursorList) =
+        writer.WriteStartElement("precursorList")
+        writer.WriteAttributeString("count", (Seq.length (item.GetProperties false)).ToString())
+        item.GetProperties false
+        |> Seq.iter (fun precursor -> this.WritePrecursor(precursor.Value :?> Precursor))
+        writer.WriteEndElement()
+
+    member this.WriteScanList<'T when 'T :> IConvertible>(item:ScanList) =
+        writer.WriteStartElement("scanList")
+        writer.WriteAttributeString("count", (Seq.length (item.GetProperties false)).ToString())
+        item.GetProperties false
+        |> Seq.iter (fun param -> 
+            match param.Value with
+            | :? CvParam<'T>    -> this.assignParam param.Value
+            | :? UserParam<'T>  -> this.assignParam param.Value
+            | :? Scan           -> this.WriteScan(param.Value :?> Scan)
+            |   _   -> failwith "wrong item got isnerted in scanList"
+                    )
+        writer.WriteEndElement()
+
+    //Talk once more about chromatogram with dave and timo
+    //member this.WriteChromatogram(item:Chromatogram, peaks:Peak2DArray) =
+    //    writer.WriteStartElement("chromatogram")
+    //    writer.WriteAttributeString("count", peaks.)
+    //    spectrum.GetProperties false
+    //    |> Seq.iter (fun param -> this.assignParam(param.Value))
+    //    writer.WriteEndElement()
+
+    member this.WriteSpectrum(spectrum:MassSpectrum, peaks:Peak1DArray) =
+        writer.WriteStartElement("spectrum")
+        writer.WriteAttributeString("dataProcessingRef", spectrum.DataProcessingReference)
+        writer.WriteAttributeString("defaultArrayLength", (Seq.length peaks.Peaks).ToString())
+        writer.WriteAttributeString("id", spectrum.ID)
+        writer.WriteAttributeString("index", "not saved yet")
+        writer.WriteAttributeString("sourceFileRef", spectrum.SourceFileReference)
+        //writer.WriteAttributeString("spotID", "not saved yet")
+        spectrum.GetProperties false
+        |> Seq.iter (fun param -> this.assignParam(param.Value))
+        this.WriteScanList(spectrum.Scans)
+        this.WritePrecursorList(spectrum.Precursors)
+        this.WriteProductList(spectrum.Products)
+        this.WriteBinaryDataArrayList(spectrum, peaks)
+        writer.WriteEndElement()
+
+    member this.WriteChromatogramList(item:Run, chromatogramListCount:int) =
+        writer.WriteStartElement("chromatogramList") 
+        writer.WriteAttributeString("count", chromatogramListCount.ToString())
+        writer.WriteAttributeString("defaultDataProcessingRef", item.DefaultChromatogramProcessing.ID)
+        writer.WriteEndElement()
+
+    member this.WriteSpectrumList(item:Run, spectra:seq<MassSpectrum>, peaks:seq<Peak1DArray>) =
+        writer.WriteStartElement("spectrumList") 
+        writer.WriteAttributeString("count", (Seq.length spectra).ToString())
+        writer.WriteAttributeString("defaultDataProcessingRef", item.DefaultSpectrumProcessing.ID)
+        Seq.iter2 (fun spectrum peak -> this.WriteSpectrum(spectrum, peak)) spectra peaks
+        writer.WriteEndElement()
+
+    member this.WriteDataProcessing(item:DataProcessing) =
+        writer.WriteStartElement("dataProcessing") 
+        writer.WriteAttributeString("id", item.ID)
+        item.ProcessingSteps.GetProperties false
+        |> Seq.iter (fun dataStep -> this.WriteProcessingMethod (dataStep.Value :?> DataProcessingStep))
+        writer.WriteEndElement()
+
+    member this.WriteInstrumentConfiguration(item:Instrument) =
+        writer.WriteStartElement("instrumentConfiguration")
+        writer.WriteAttributeString("id", item.ID)
+        item.GetProperties false
+        |> Seq.iter (fun param -> this.assignParam param.Value)
+        this.WriteComponentList item.Components
+        this.WriteSoftwareRef item.Software
+        writer.WriteEndElement()
+
+    member this.WriteSoftware(item:Software) =
+        writer.WriteStartElement("software")
+        writer.WriteAttributeString("id", item.ID)
+        writer.WriteAttributeString("version", "not saved yet")
+        item.GetProperties false
+        |> Seq.iter (fun param -> this.assignParam param.Value)
+        writer.WriteEndElement()
+
+    member this.WriteSample(item:Sample) =
+        writer.WriteStartElement("sample")
+        writer.WriteAttributeString("id", item.ID)
+        writer.WriteAttributeString("name", item.Name)
+        item.GetProperties false
+        |> Seq.iter (fun param -> this.assignParam param.Value)
+        writer.WriteEndElement()
+
+    member this.WriteContact(item:Contact) =
+        writer.WriteStartElement("contact")
+        item.GetProperties false
+        |> Seq.iter (fun param -> this.assignParam param.Value)
+        writer.WriteEndElement()
+
+    member this.WriteSourceFileList(item:SourceFileList) =
+        writer.WriteStartElement("sourceFileList")
+        writer.WriteAttributeString("count", (Seq.length (item.GetProperties false)).ToString())
+        item.GetProperties false
+        |> Seq.iter (fun source -> this.WriteSourceFile (source.Value :?> SourceFile))
+        writer.WriteEndElement()
+
+    member this.WriteFileContent(item:FileContent) =
+        writer.WriteStartElement("fileContent")
+        item.GetProperties false
+        |> Seq.iter (fun param -> this.assignParam param.Value)
+        writer.WriteEndElement()
+
+    member this.WriteRun(item:Run, spectra:seq<MassSpectrum>, peaks:seq<Peak1DArray>, chromatogramListCount:int) =
+        writer.WriteStartElement("run")
+        writer.WriteAttributeString("defaultInstrumentConfigurationRef", item.DefaultInstrument.ID)
+        writer.WriteAttributeString("defaultSourceFileRef", "not saved yet")
+        writer.WriteAttributeString("id", item.ID)
+        writer.WriteAttributeString("sampleRef", item.Sample.ID)
+        item.GetProperties false
+        |> Seq.iter (fun param -> this.assignParam param.Value)
+        this.WriteSpectrumList(item, spectra, peaks)
+        this.WriteChromatogramList(item, chromatogramListCount)
+        writer.WriteEndElement()
+
+    member this.WriteDataProcessingList(item:DataProcessingList) =
+        writer.WriteStartElement("dataProcessingList")
+        writer.WriteAttributeString("count", (Seq.length (item.GetProperties false)).ToString())
+        item.GetProperties false
+        |> Seq.iter (fun dataProc -> this.WriteDataProcessing (dataProc.Value :?> DataProcessing))
+        writer.WriteEndElement()
+
+    member this.WriteInstrumentConfigurationList(item:InstrumentList) =
+        writer.WriteStartElement("instrumentConfigurationList")
+        writer.WriteAttributeString("count", (Seq.length (item.GetProperties false)).ToString())
+        item.GetProperties false
+        |> Seq.iter (fun instConf -> this.WriteInstrumentConfiguration (instConf.Value :?> Instrument))
+        writer.WriteEndElement()
+
+    member this.WriteSoftwareList(item:SoftwareList) =        
+        writer.WriteStartElement("softwareList")
+        writer.WriteAttributeString("count", (Seq.length (item.GetProperties false)).ToString())
+        item.GetProperties false
+        |> Seq.iter (fun software -> this.WriteSoftware(software.Value :?> Software))
+        writer.WriteEndElement()
+
+    member this.WriteSampleList(item:SampleList) =
+        writer.WriteStartElement("sampleList")
+        writer.WriteAttributeString("count", (Seq.length (item.GetProperties false)).ToString())
+        item.GetProperties false
+        |> Seq.iter (fun sample -> this.WriteSample (sample.Value :?> Sample))
+        writer.WriteEndElement()
+
+    member this.WriteFileDescription(item:FileDescription) =
+        writer.WriteStartElement("fileDescription")
+        this.WriteFileContent(item.FileContent)
+        this.WriteSourceFileList(item.SourceFiles)
+        this.WriteContact(item.Contact)
+        writer.WriteEndElement()
+
+    //member this.WriteCvList(item:string) =
+
+    member this.WriteRunList(item:RunList, spectra:seq<MassSpectrum>, peaks:seq<Peak1DArray>, chromatogramListCount:int) =
+        writer.WriteStartElement("runList")
+        writer.WriteAttributeString("count", (Seq.length (item.GetProperties false)).ToString())
+        item.GetProperties false
+        |> Seq.iter (fun run -> this.WriteRun(run.Value :?> Run, spectra, peaks, chromatogramListCount))
+        writer.WriteEndElement()    
+
+    member this.WriteMzMl(item:MzIOModel, spectra:seq<MassSpectrum>, peaks:seq<Peak1DArray>) =
+        writer.WriteStartElement("mzML", "http://psi.hupo.org/ms/mzml")
+        writer.WriteAttributeString("xmlns", "xsi", null, "http://www.w3.org/2001/XMLSchema-instance")
+        writer.WriteAttributeString("xsi", "schemaLocation", null, "http://psi.hupo.org/ms/mzml http://psidev.info/files/ms/mzML/xsd/mzML1.1.0.xsd")
+        writer.WriteAttributeString("id", item.Name)
+        writer.WriteAttributeString("version", "1.1.0")
+        this.WriteFileDescription(item.FileDescription)
+        this.WriteSampleList(item.Samples)
+        this.WriteSoftwareList(item.Softwares)
+        this.WriteInstrumentConfigurationList(item.Instruments)
+        this.WriteDataProcessingList(item.DataProcessings)
+        this.WriteRunList(item.Runs, spectra, peaks, Seq.length peaks)
+        writer.WriteEndElement()
+
+    member this.WriteIndexedMzML(item:MzIOModel, spectra:seq<MassSpectrum>, peaks:seq<Peak1DArray>) =
+        writer.WriteStartElement("indexedmzML", "http://psi.hupo.org/ms/mzml")
+        writer.WriteAttributeString("xmlns", "xsi", null, "http://www.w3.org/2001/XMLSchema-instance")
+        writer.WriteAttributeString("xsi", "schemaLocation", null, "http://psi.hupo.org/ms/mzml http://psidev.info/files/ms/mzML/xsd/mzML1.1.0.xsd")
+        this.WriteMzMl(item, spectra, peaks)
+        writer.WriteEndElement()
+        writer.Close()
+        writer.Dispose()
+
+
