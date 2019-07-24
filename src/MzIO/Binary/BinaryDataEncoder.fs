@@ -203,7 +203,7 @@ type BinaryDataEncoder(?initialBufferSize: int) =
         let mz          = BinaryDataEncoder.FloatToByteArray (peakArray.Peaks |> Seq.map (fun peak -> peak.Mz) |> Array.ofSeq)
         let intDeflate  = BinaryDataEncoder.DeflateStreamCompress intensities
         let mzDeflate   = BinaryDataEncoder.DeflateStreamCompress mz
-        let writer = new BinaryWriter(memoryStream, System.Text.Encoding.UTF8, true)
+        let writer      = new BinaryWriter(memoryStream, System.Text.Encoding.UTF8, true)
         writer.Write(intDeflate.Length)
         writer.Write(intDeflate)
         writer.Write(mzDeflate.Length)

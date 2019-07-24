@@ -259,30 +259,10 @@ module CvParam =
                 JObject.Parse(sprintf "%s%s" tmpID tmpValue)
             | :? UserParam<'T>  as item -> 
                 let tmpID = sprintf "{\"%s\":\"%s\",\"Name\":\"%s\"," "$id" "1" item.Name
-
-                let tryGetValue (test:ParamValue<'T> option) =
-                    let tmp =
-                        match test with
-                        | Some value ->
-                            match value with
-                            | CvValue v                 -> 
-                                v
-                            | WithCvUnitAccession (v,_) -> 
-                                v
-                        | None -> failwith "Wrong"
-                    match tmp :> Object with
-                    | :? Int16  -> (Convert.ToDecimal(tmp :> Object)).ToString()
-                    | :? Int32  -> (Convert.ToDecimal(tmp :> Object)).ToString()
-                    | :? Int64  -> (Convert.ToDecimal(tmp :> Object)).ToString()
-                    | :? UInt16 -> (Convert.ToDecimal(tmp :> Object)).ToString()
-                    | :? UInt32 -> (Convert.ToDecimal(tmp :> Object)).ToString()
-                    | :? UInt64 -> (Convert.ToDecimal(tmp :> Object)).ToString()
-                    | :?   _    -> tmp.ToString()
-
                 let tmpValue = 
                     ParamBaseConverter.createJsonValue(
                         if item.Value.IsSome then
-                            tryGetValue item.Value
+                            item.Value.Value.ToString() 
                             else "None")
                 JObject.Parse(sprintf "%s%s" tmpID tmpValue)
             | _     -> raise (new JsonSerializationException("Could not determine concrete param type."))
