@@ -21,10 +21,12 @@ type private MzMLWriteState =
     ERROR
     | INITIAL
     | CLOSED
-    | MZML
+    | MzIOModel
     | RUN
     | SPECTRUM_LIST
+    | SPECTRUM
     | CHROMATOGRAM_LIST
+    | CHROMATOGRAM
 
 // TODO cv lookup
 // TODO param name lookup
@@ -492,7 +494,7 @@ type MzMLWriter(path:string) =
     member this.BeginMzML(model:MzIOModel) =
 
         try
-            this.EnterWriteState(MzMLWriteState.INITIAL, MzMLWriteState.MZML)
+            this.EnterWriteState(MzMLWriteState.INITIAL, MzMLWriteState.MzIOModel)
             writer.WriteStartElement("mzML", "http://psi.hupo.org/ms/mzml")
             writer.WriteAttributeString("xmlns", "xsi", null, "http://www.w3.org/2001/XMLSchema-instance")
             writer.WriteAttributeString("xsi", "schemaLocation", null, "http://psi.hupo.org/ms/mzml http://psidev.info/files/ms/mzML/xsd/mzML1.1.0.xsd")
@@ -516,7 +518,7 @@ type MzMLWriter(path:string) =
     member this.EndMzML() =
 
         try
-            this.LeaveWriteState(MzMLWriteState.MZML, MzMLWriteState.INITIAL)
+            this.LeaveWriteState(MzMLWriteState.MzIOModel, MzMLWriteState.INITIAL)
             writer.WriteEndElement()
 
         with
@@ -528,7 +530,7 @@ type MzMLWriter(path:string) =
 
         try
             //missing null check
-            this.EnterWriteState(MzMLWriteState.MZML, MzMLWriteState.RUN)
+            this.EnterWriteState(MzMLWriteState.MzIOModel, MzMLWriteState.RUN)
 
             writer.WriteStartElement("run")
             this.WriteXmlAttribute("id", run.ID, true)
@@ -547,7 +549,7 @@ type MzMLWriter(path:string) =
     member this.EndRun() =
 
         try
-            this.LeaveWriteState(MzMLWriteState.RUN, MzMLWriteState.MZML)
+            this.LeaveWriteState(MzMLWriteState.RUN, MzMLWriteState.MzIOModel)
             writer.WriteEndElement()
 
         with
@@ -780,18 +782,62 @@ type MzIOMLDataWriter(path:string) =
         writerSettings.Indent <- true
         XmlWriter.Create(path, writerSettings)
 
-    let mutable disposed = false
+    let mutable isClosed = false
+
+    let mutable currentWriteState = MzMLWriteState.INITIAL
+
+    let mutable consumedWriteStates = new HashSet<MzMLWriteState>()
 
     let mutable model = new MzIOModel(Path.GetFileNameWithoutExtension(path))
 
-    member private this.RaiseDisposed() =
-        if disposed = true then 
-            raise (new ObjectDisposedException(this.GetType().Name))
+    member this.Close() =
+
+        if isClosed = false then
+
+            try
+                this.EnterWriteState(MzMLWriteState.INITIAL, MzMLWriteState.CLOSED)
+                writer.WriteEndDocument()
+                writer.Flush()
+                writer.Close()
+                writer.Dispose()
+
+                isClosed <- true
+
+            with
+                | :? Exception as ex ->
+                    currentWriteState <- MzMLWriteState.ERROR
+                    raise (new MzIOIOException("Error closing mzml output file.", ex))
         else ()
 
     member this.Commit() =
         writer.Close()
         writer.Dispose()
+
+    member private this.EnterWriteState(expectedWs:MzMLWriteState, newWs:MzMLWriteState) =
+        printfn "EnterWriteState 1"
+        printfn "EnterWriteState %s; expectedWs %s" (currentWriteState.ToString()) (expectedWs.ToString())
+        if consumedWriteStates.Contains(newWs) then
+            raise (MzIOIOException(String.Format("Can't reentering write state: '{0}'.", newWs)))
+        printfn "EnterWriteState 2"
+        this.EnsureWriteState(expectedWs)
+        printfn "EnterWriteState 3"
+        currentWriteState <- newWs
+        printfn "EnterWriteState 4"
+        consumedWriteStates.Add(newWs) |> ignore
+        printfn "EnterWriteState 5"
+
+    member private this.EnsureWriteState(expectedWs:MzMLWriteState) =
+        printfn "EnsureWriteState 1"
+        printfn "currentWriteState %s; expectedWs %s" (currentWriteState.ToString()) (expectedWs.ToString())
+        if currentWriteState = MzMLWriteState.ERROR then
+            raise (new MzIOIOException("Current write state is ERROR."))
+        printfn "EnsureWriteState 2"
+        if currentWriteState = MzMLWriteState.CLOSED then
+            raise (new MzIOIOException("Current write state is CLOSED."))
+        printfn "EnsureWriteState 3"
+        if currentWriteState <> expectedWs then
+            raise (MzIOIOException(String.Format("Invalid write state: expected '{0}' but current is '{1}'.", expectedWs, currentWriteState)))
+        printfn "EnsureWriteState 4"
 
     member this.WriteCvParam(param:CvParam<#IConvertible>) =
         writer.WriteStartElement("cvParam")
@@ -1073,6 +1119,7 @@ type MzIOMLDataWriter(path:string) =
 
     //Talk once more about chromatogram with dave and timo
     member this.WriteChromatogram(item:Chromatogram, peaks:Peak2DArray) =
+        this.EnsureWriteState(MzMLWriteState.CHROMATOGRAM)
         failwith "not supported yet"
         //writer.WriteStartElement("chromatogram")
         //writer.WriteAttributeString("count", peaks.)
@@ -1081,6 +1128,7 @@ type MzIOMLDataWriter(path:string) =
         //writer.WriteEndElement()
 
     member this.WriteSpectrum(spectrum:MassSpectrum, peaks:Peak1DArray) =
+        this.EnsureWriteState(MzMLWriteState.SPECTRUM)
         writer.WriteStartElement("spectrum")
         writer.WriteAttributeString("dataProcessingRef", spectrum.DataProcessingReference)
         writer.WriteAttributeString("defaultArrayLength", (Seq.length peaks.Peaks).ToString())
@@ -1097,15 +1145,20 @@ type MzIOMLDataWriter(path:string) =
         writer.WriteEndElement()
 
     member this.WriteChromatogramList(item:Run, chromatogramListCount:int) =
+        this.EnsureWriteState(MzMLWriteState.CHROMATOGRAM_LIST)
         writer.WriteStartElement("chromatogramList") 
         writer.WriteAttributeString("count", chromatogramListCount.ToString())
         writer.WriteAttributeString("defaultDataProcessingRef", item.DefaultChromatogramProcessing.ID)
+        this.EnterWriteState(MzMLWriteState.CHROMATOGRAM_LIST, MzMLWriteState.CHROMATOGRAM)
+        //this.WriteChromatogram()
         writer.WriteEndElement()
 
     member this.WriteSpectrumList(item:Run, spectra:seq<MassSpectrum>, peaks:seq<Peak1DArray>) =
+        this.EnsureWriteState(MzMLWriteState.SPECTRUM_LIST)
         writer.WriteStartElement("spectrumList") 
         writer.WriteAttributeString("count", (Seq.length spectra).ToString())
         writer.WriteAttributeString("defaultDataProcessingRef", item.DefaultSpectrumProcessing.ID)
+        this.EnterWriteState(MzMLWriteState.SPECTRUM_LIST, MzMLWriteState.SPECTRUM)
         Seq.iter2 (fun spectrum peak -> this.WriteSpectrum(spectrum, peak)) spectra peaks
         writer.WriteEndElement()
 
@@ -1161,6 +1214,7 @@ type MzIOMLDataWriter(path:string) =
         writer.WriteEndElement()
 
     member this.WriteRun(item:Run, spectra:seq<MassSpectrum>, peaks:seq<Peak1DArray>, chromatogramListCount:int) =
+        this.EnsureWriteState(MzMLWriteState.RUN)
         writer.WriteStartElement("run")
         writer.WriteAttributeString("defaultInstrumentConfigurationRef", item.DefaultInstrument.ID)
         writer.WriteAttributeString("defaultSourceFileRef", "not saved yet")
@@ -1168,7 +1222,9 @@ type MzIOMLDataWriter(path:string) =
         writer.WriteAttributeString("sampleRef", item.Sample.ID)
         item.GetProperties false
         |> Seq.iter (fun param -> this.assignParam param.Value)
+        this.EnterWriteState(MzMLWriteState.RUN, MzMLWriteState.SPECTRUM_LIST)
         this.WriteSpectrumList(item, spectra, peaks)
+        this.EnterWriteState(MzMLWriteState.SPECTRUM, MzMLWriteState.CHROMATOGRAM_LIST)
         this.WriteChromatogramList(item, chromatogramListCount)
         writer.WriteEndElement()
 
@@ -1210,13 +1266,15 @@ type MzIOMLDataWriter(path:string) =
     //member this.WriteCvList(item:string) =
 
     member this.WriteRunList(item:RunList, spectra:seq<MassSpectrum>, peaks:seq<Peak1DArray>, chromatogramListCount:int) =
+        this.EnsureWriteState(MzMLWriteState.RUN)
         writer.WriteStartElement("runList")
         writer.WriteAttributeString("count", (Seq.length (item.GetProperties false)).ToString())
         item.GetProperties false
         |> Seq.iter (fun run -> this.WriteRun(run.Value :?> Run, spectra, peaks, chromatogramListCount))
         writer.WriteEndElement()    
 
-    member this.WriteMzMl(item:MzIOModel, spectra:seq<MassSpectrum>, peaks:seq<Peak1DArray>) =
+    member this.WriteMzMl(item:MzIOModel, spectra:seq<MassSpectrum>, peaks:seq<Peak1DArray>) = 
+        this.EnsureWriteState(MzMLWriteState.MzIOModel)
         writer.WriteStartElement("mzML", "http://psi.hupo.org/ms/mzml")
         writer.WriteAttributeString("xmlns", "xsi", null, "http://www.w3.org/2001/XMLSchema-instance")
         writer.WriteAttributeString("xsi", "schemaLocation", null, "http://psi.hupo.org/ms/mzml http://psidev.info/files/ms/mzML/xsd/mzML1.1.0.xsd")
@@ -1227,19 +1285,42 @@ type MzIOMLDataWriter(path:string) =
         this.WriteSoftwareList(item.Softwares)
         this.WriteInstrumentConfigurationList(item.Instruments)
         this.WriteDataProcessingList(item.DataProcessings)
+        this.EnterWriteState(MzMLWriteState.MzIOModel, MzMLWriteState.RUN)
         this.WriteRunList(item.Runs, spectra, peaks, Seq.length peaks)
         writer.WriteEndElement()
 
     member this.WriteWholedMzML(item:MzIOModel, spectra:seq<MassSpectrum>, peaks:seq<Peak1DArray>) =
+        this.EnterWriteState(MzMLWriteState.INITIAL, MzMLWriteState.MzIOModel)
         writer.WriteStartElement("indexedmzML", "http://psi.hupo.org/ms/mzml")
         writer.WriteAttributeString("xmlns", "xsi", null, "http://www.w3.org/2001/XMLSchema-instance")
         writer.WriteAttributeString("xsi", "schemaLocation", null, "http://psi.hupo.org/ms/mzml http://psidev.info/files/ms/mzML/xsd/mzML1.1.0.xsd")
         this.WriteMzMl(item, spectra, peaks)
         writer.WriteEndElement()
-        writer.Close()
-        writer.Dispose()
+        currentWriteState <- MzMLWriteState.INITIAL
+        this.Close()
+
+    member this.WriteSingleSpectrumList() =
+        this.EnsureWriteState(MzMLWriteState.SPECTRUM_LIST)
+        writer.WriteStartElement("spectrumList") 
+        writer.WriteAttributeString("count", "1")
+        writer.WriteAttributeString("defaultDataProcessingRef", "not saved")
+        //this.WriteSpectrum(spectrum, peaks)
+        //writer.WriteEndElement()
+        this.EnterWriteState(MzMLWriteState.SPECTRUM_LIST, MzMLWriteState.SPECTRUM)
+
+    member this.WriteSingleRun(runID:string) =
+        this.EnsureWriteState(MzMLWriteState.RUN)
+        writer.WriteStartElement("run")
+        writer.WriteAttributeString("defaultInstrumentConfigurationRef", "not saved")
+        writer.WriteAttributeString("defaultSourceFileRef", "not saved yet")
+        writer.WriteAttributeString("id", runID)
+        writer.WriteAttributeString("sampleRef", "not saved")
+        this.EnterWriteState(MzMLWriteState.RUN, MzMLWriteState.SPECTRUM_LIST)
+        this.WriteSingleSpectrumList()
+        //writer.WriteEndElement()
 
     member private this.writeMzIOModel(item:MzIOModel) =
+        this.EnsureWriteState(MzMLWriteState.MzIOModel)
         writer.WriteStartElement("mzML", "http://psi.hupo.org/ms/mzml")
         writer.WriteAttributeString("xmlns", "xsi", null, "http://www.w3.org/2001/XMLSchema-instance")
         writer.WriteAttributeString("xsi", "schemaLocation", null, "http://psi.hupo.org/ms/mzml http://psidev.info/files/ms/mzML/xsd/mzML1.1.0.xsd")
@@ -1251,45 +1332,24 @@ type MzIOMLDataWriter(path:string) =
         this.WriteInstrumentConfigurationList(item.Instruments)
         this.WriteDataProcessingList(item.DataProcessings)
         //writer.WriteEndElement()
+        this.EnterWriteState(MzMLWriteState.MzIOModel, MzMLWriteState.RUN)
 
     member private this.writeIndexedMzIOModel(item:MzIOModel) =
+        this.EnterWriteState(MzMLWriteState.INITIAL, MzMLWriteState.MzIOModel)
         writer.WriteStartElement("indexedmzML", "http://psi.hupo.org/ms/mzml")
         writer.WriteAttributeString("xmlns", "xsi", null, "http://www.w3.org/2001/XMLSchema-instance")
         writer.WriteAttributeString("xsi", "schemaLocation", null, "http://psi.hupo.org/ms/mzml http://psidev.info/files/ms/mzML/xsd/mzML1.1.0.xsd")
         this.writeMzIOModel(item)
         //writer.WriteEndElement()
 
-    member this.WriteSingleSpectrumList() =
-        writer.WriteStartElement("spectrumList") 
-        writer.WriteAttributeString("count", "1")
-        writer.WriteAttributeString("defaultDataProcessingRef", "not saved")
-        //this.WriteSpectrum(spectrum, peaks)
-        //writer.WriteEndElement()
-
-    member this.WriteSingleRun(runID:string) =
-        writer.WriteStartElement("run")
-        writer.WriteAttributeString("defaultInstrumentConfigurationRef", "not saved")
-        writer.WriteAttributeString("defaultSourceFileRef", "not saved yet")
-        writer.WriteAttributeString("id", runID)
-        writer.WriteAttributeString("sampleRef", "not saved")
-        this.WriteSingleSpectrumList()
-        //writer.WriteEndElement()
-
-    member private this.writeIndexedMzIOModel(runID:string) =
-        writer.WriteStartElement("indexedmzML", "http://psi.hupo.org/ms/mzml")
-        writer.WriteAttributeString("xmlns", "xsi", null, "http://www.w3.org/2001/XMLSchema-instance")
-        writer.WriteAttributeString("xsi", "schemaLocation", null, "http://psi.hupo.org/ms/mzml http://psidev.info/files/ms/mzML/xsd/mzML1.1.0.xsd")
-        this.WriteSingleRun(runID)
-        //writer.WriteEndElement()
-
     interface IMzIODataWriter with
 
         member this.InsertMass(runID, spectrum: MassSpectrum, peaks: Peak1DArray) =
-            this.RaiseDisposed()
+            this.EnsureWriteState(MzMLWriteState.SPECTRUM)
             this.WriteSpectrum(spectrum, peaks)
 
         member this.InsertChrom(runID: string, chromatogram: Chromatogram, peaks: Peak2DArray) =
-            this.RaiseDisposed()
+            this.EnsureWriteState(MzMLWriteState.CHROMATOGRAM)
             this.WriteChromatogram(chromatogram, peaks)
 
         member this.InsertAsyncMass(runID: string, spectrum: MassSpectrum, peaks: Peak1DArray) =
@@ -1313,7 +1373,7 @@ type MzIOMLDataWriter(path:string) =
     interface IDisposable with
 
         member this.Dispose() =
-            disposed <- true
+            this.Close()
 
     member this.Dispose() =
 
@@ -1322,20 +1382,22 @@ type MzIOMLDataWriter(path:string) =
     interface IMzIOIO with
 
         member this.BeginTransaction() =
-            this.RaiseDisposed()
+            this.EnsureWriteState(MzMLWriteState.INITIAL)
             new MzMLTransactionScope() :> ITransactionScope
 
         member this.CreateDefaultModel() =
-            this.RaiseDisposed()
+            this.EnsureWriteState(MzMLWriteState.INITIAL)
             new MzIOModel(Path.GetFileNameWithoutExtension(path))
 
         member this.SaveModel() =
-            this.RaiseDisposed()
+            this.EnsureWriteState(MzMLWriteState.INITIAL)
             this.writeIndexedMzIOModel(this.Model)
             writer.WriteEndElement()
             writer.WriteEndElement()
 
-        member this.Model = model
+        member this.Model =
+            this.EnsureWriteState(MzMLWriteState.INITIAL)
+            model
 
     member this.BeginTransaction() =
         
@@ -1395,5 +1457,6 @@ type MzIOMLDataWriter(path:string) =
         //writer.WriteEndElement()
         //writer.WriteEndElement()
         //writer.WriteEndElement()
+        currentWriteState <- MzMLWriteState.INITIAL
         this.Commit()
-        this.Dispose()
+        
