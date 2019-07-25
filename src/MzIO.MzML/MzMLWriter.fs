@@ -7,6 +7,7 @@ open System.Linq
 open System.IO
 open System.IO.Compression
 open System.Collections.Generic
+open System.Threading.Tasks
 open MzIO.Model
 open MzIO.Model.CvParam
 open MzIO.MetaData
@@ -491,7 +492,7 @@ type MzMLWriter(path:string) =
     member this.BeginMzML(model:MzIOModel) =
 
         try
-            this.EnterWriteState(MzMLWriteState.INITIAL, MzMLWriteState.MZML) |> ignore
+            this.EnterWriteState(MzMLWriteState.INITIAL, MzMLWriteState.MZML)
             writer.WriteStartElement("mzML", "http://psi.hupo.org/ms/mzml")
             writer.WriteAttributeString("xmlns", "xsi", null, "http://www.w3.org/2001/XMLSchema-instance")
             writer.WriteAttributeString("xsi", "schemaLocation", null, "http://psi.hupo.org/ms/mzml http://psidev.info/files/ms/mzML/xsd/mzML1.1.0.xsd")
@@ -679,6 +680,8 @@ type MzMLWriter(path:string) =
 
         (this :> IMzIODataWriter).InsertAsyncChrom
 
+
+
 type private MzMLCompression(?initialBufferSize:int) =
 
     let bufferSize = defaultArg initialBufferSize 1048576
@@ -743,12 +746,52 @@ type private MzMLCompression(?initialBufferSize:int) =
         
         this.memoryStream.ToArray()
 
+type private MzMLTransactionScope() =
+
+    interface IDisposable with
+
+        member this.Dispose() =
+            ()
+
+    member this.Dispose() =
+
+        (this :> IDisposable).Dispose()
+
+    interface ITransactionScope with
+
+        member this.Commit() =
+            ()
+
+        member this.Rollback() =
+            ()
+
+    member this.Commit() =
+
+        (this :> ITransactionScope).Commit()
+
+    member this.Rollback() =
+
+        (this :> ITransactionScope).Rollback()
+
 type MzIOMLDataWriter(path:string) =
 
     let writer =
         let mutable writerSettings = new XmlWriterSettings()
         writerSettings.Indent <- true
         XmlWriter.Create(path, writerSettings)
+
+    let mutable disposed = false
+
+    let mutable model = new MzIOModel(Path.GetFileNameWithoutExtension(path))
+
+    member private this.RaiseDisposed() =
+        if disposed = true then 
+            raise (new ObjectDisposedException(this.GetType().Name))
+        else ()
+
+    member this.Commit() =
+        writer.Close()
+        writer.Dispose()
 
     member this.WriteCvParam(param:CvParam<#IConvertible>) =
         writer.WriteStartElement("cvParam")
@@ -1029,12 +1072,13 @@ type MzIOMLDataWriter(path:string) =
         writer.WriteEndElement()
 
     //Talk once more about chromatogram with dave and timo
-    //member this.WriteChromatogram(item:Chromatogram, peaks:Peak2DArray) =
-    //    writer.WriteStartElement("chromatogram")
-    //    writer.WriteAttributeString("count", peaks.)
-    //    spectrum.GetProperties false
-    //    |> Seq.iter (fun param -> this.assignParam(param.Value))
-    //    writer.WriteEndElement()
+    member this.WriteChromatogram(item:Chromatogram, peaks:Peak2DArray) =
+        failwith "not supported yet"
+        //writer.WriteStartElement("chromatogram")
+        //writer.WriteAttributeString("count", peaks.)
+        //spectrum.GetProperties false
+        //|> Seq.iter (fun param -> this.assignParam(param.Value))
+        //writer.WriteEndElement()
 
     member this.WriteSpectrum(spectrum:MassSpectrum, peaks:Peak1DArray) =
         writer.WriteStartElement("spectrum")
@@ -1186,7 +1230,7 @@ type MzIOMLDataWriter(path:string) =
         this.WriteRunList(item.Runs, spectra, peaks, Seq.length peaks)
         writer.WriteEndElement()
 
-    member this.WriteIndexedMzML(item:MzIOModel, spectra:seq<MassSpectrum>, peaks:seq<Peak1DArray>) =
+    member this.WriteWholedMzML(item:MzIOModel, spectra:seq<MassSpectrum>, peaks:seq<Peak1DArray>) =
         writer.WriteStartElement("indexedmzML", "http://psi.hupo.org/ms/mzml")
         writer.WriteAttributeString("xmlns", "xsi", null, "http://www.w3.org/2001/XMLSchema-instance")
         writer.WriteAttributeString("xsi", "schemaLocation", null, "http://psi.hupo.org/ms/mzml http://psidev.info/files/ms/mzML/xsd/mzML1.1.0.xsd")
@@ -1195,4 +1239,161 @@ type MzIOMLDataWriter(path:string) =
         writer.Close()
         writer.Dispose()
 
+    member private this.writeMzIOModel(item:MzIOModel) =
+        writer.WriteStartElement("mzML", "http://psi.hupo.org/ms/mzml")
+        writer.WriteAttributeString("xmlns", "xsi", null, "http://www.w3.org/2001/XMLSchema-instance")
+        writer.WriteAttributeString("xsi", "schemaLocation", null, "http://psi.hupo.org/ms/mzml http://psidev.info/files/ms/mzML/xsd/mzML1.1.0.xsd")
+        writer.WriteAttributeString("id", item.Name)
+        writer.WriteAttributeString("version", "1.1.0")
+        this.WriteFileDescription(item.FileDescription)
+        this.WriteSampleList(item.Samples)
+        this.WriteSoftwareList(item.Softwares)
+        this.WriteInstrumentConfigurationList(item.Instruments)
+        this.WriteDataProcessingList(item.DataProcessings)
+        //writer.WriteEndElement()
 
+    member private this.writeIndexedMzIOModel(item:MzIOModel) =
+        writer.WriteStartElement("indexedmzML", "http://psi.hupo.org/ms/mzml")
+        writer.WriteAttributeString("xmlns", "xsi", null, "http://www.w3.org/2001/XMLSchema-instance")
+        writer.WriteAttributeString("xsi", "schemaLocation", null, "http://psi.hupo.org/ms/mzml http://psidev.info/files/ms/mzML/xsd/mzML1.1.0.xsd")
+        this.writeMzIOModel(item)
+        //writer.WriteEndElement()
+
+    member this.WriteSingleSpectrumList() =
+        writer.WriteStartElement("spectrumList") 
+        writer.WriteAttributeString("count", "1")
+        writer.WriteAttributeString("defaultDataProcessingRef", "not saved")
+        //this.WriteSpectrum(spectrum, peaks)
+        //writer.WriteEndElement()
+
+    member this.WriteSingleRun(runID:string) =
+        writer.WriteStartElement("run")
+        writer.WriteAttributeString("defaultInstrumentConfigurationRef", "not saved")
+        writer.WriteAttributeString("defaultSourceFileRef", "not saved yet")
+        writer.WriteAttributeString("id", runID)
+        writer.WriteAttributeString("sampleRef", "not saved")
+        this.WriteSingleSpectrumList()
+        //writer.WriteEndElement()
+
+    member private this.writeIndexedMzIOModel(runID:string) =
+        writer.WriteStartElement("indexedmzML", "http://psi.hupo.org/ms/mzml")
+        writer.WriteAttributeString("xmlns", "xsi", null, "http://www.w3.org/2001/XMLSchema-instance")
+        writer.WriteAttributeString("xsi", "schemaLocation", null, "http://psi.hupo.org/ms/mzml http://psidev.info/files/ms/mzML/xsd/mzML1.1.0.xsd")
+        this.WriteSingleRun(runID)
+        //writer.WriteEndElement()
+
+    interface IMzIODataWriter with
+
+        member this.InsertMass(runID, spectrum: MassSpectrum, peaks: Peak1DArray) =
+            this.RaiseDisposed()
+            this.WriteSpectrum(spectrum, peaks)
+
+        member this.InsertChrom(runID: string, chromatogram: Chromatogram, peaks: Peak2DArray) =
+            this.RaiseDisposed()
+            this.WriteChromatogram(chromatogram, peaks)
+
+        member this.InsertAsyncMass(runID: string, spectrum: MassSpectrum, peaks: Peak1DArray) =
+            async {return (this.InsertMass(runID, spectrum, peaks))}
+
+        member this.InsertAsyncChrom(runID: string, chromatogram: Chromatogram, peaks: Peak2DArray) =
+            async {return (this.InsertChrom(runID, chromatogram, peaks))}
+
+    member this.InsertMass(runID: string, spectrum: MassSpectrum, peaks: Peak1DArray) =
+        (this :> IMzIODataWriter).InsertMass(runID, spectrum, peaks)
+
+    member this.InsertChrom(runID: string, chromatogram: Chromatogram, peaks: Peak2DArray) =
+        (this :> IMzIODataWriter).InsertChrom(runID, chromatogram, peaks)
+
+    member this.InsertAsyncMass(runID: string, spectrum: MassSpectrum, peaks: Peak1DArray) =
+        (this :> IMzIODataWriter).InsertAsyncMass(runID, spectrum, peaks)
+
+    member this.InsertAsyncChrom(runID: string, chromatogram: Chromatogram, peaks: Peak2DArray) =
+        (this :> IMzIODataWriter).InsertAsyncChrom(runID, chromatogram, peaks)
+        
+    interface IDisposable with
+
+        member this.Dispose() =
+            disposed <- true
+
+    member this.Dispose() =
+
+        (this :> IDisposable).Dispose()
+
+    interface IMzIOIO with
+
+        member this.BeginTransaction() =
+            this.RaiseDisposed()
+            new MzMLTransactionScope() :> ITransactionScope
+
+        member this.CreateDefaultModel() =
+            this.RaiseDisposed()
+            new MzIOModel(Path.GetFileNameWithoutExtension(path))
+
+        member this.SaveModel() =
+            this.RaiseDisposed()
+            this.writeIndexedMzIOModel(this.Model)
+            writer.WriteEndElement()
+            writer.WriteEndElement()
+
+        member this.Model = model
+
+    member this.BeginTransaction() =
+        
+        (this :> IMzIOIO).BeginTransaction()
+
+    member this.CreateDefaultModel() =
+        (this :> IMzIOIO).CreateDefaultModel()        
+
+    member this.SaveModel() =
+        (this :> IMzIOIO).SaveModel()
+
+    member this.Model = 
+        (this :> IMzIOIO).Model
+
+    member this.UpdateModel(model':MzIOModel) = 
+        model <- model'
+
+    /// copies MassSpectrum into DB schema
+    member this.insertMSSpectrum (runID:string) (reader:IMzIODataReader) (compress: BinaryDataCompressionType) (spectrum: MassSpectrum)= 
+        let peakArray = reader.ReadSpectrumPeaks(spectrum.ID)
+        match compress with 
+        | BinaryDataCompressionType.NoCompression  -> 
+            let clonedP = new Peak1DArray(BinaryDataCompressionType.NoCompression, peakArray.IntensityDataType,peakArray.MzDataType)
+            clonedP.Peaks <- peakArray.Peaks
+            this.InsertMass(runID, spectrum, clonedP)
+        | BinaryDataCompressionType.ZLib -> 
+            let clonedP = new Peak1DArray(BinaryDataCompressionType.ZLib, peakArray.IntensityDataType,peakArray.MzDataType)
+            clonedP.Peaks <- peakArray.Peaks
+            this.InsertMass(runID, spectrum, clonedP)
+        | BinaryDataCompressionType.NumPress ->
+            let clonedP = new Peak1DArray(BinaryDataCompressionType.NumPress, peakArray.IntensityDataType,peakArray.MzDataType)
+            clonedP.Peaks <- peakArray.Peaks
+            this.InsertMass(runID, spectrum, clonedP)
+        | BinaryDataCompressionType.NumPressZLib ->
+            let clonedP = new Peak1DArray(BinaryDataCompressionType.NumPressZLib, peakArray.IntensityDataType,peakArray.MzDataType)
+            clonedP.Peaks <- peakArray.Peaks
+            this.InsertMass(runID, spectrum, clonedP)
+        | _ ->
+            failwith "Not a valid compression Method"
+
+    /// modifies spectrum according to the used spectrumPeaksModifierF and inserts the result into the DB schema 
+    member this.insertModifiedSpectrumBy (spectrumPeaksModifierF: IMzIODataReader -> MassSpectrum -> BinaryDataCompressionType -> Peak1DArray) (runID:string) (reader:IMzIODataReader) (compress: BinaryDataCompressionType) (spectrum: MassSpectrum) = 
+        let modifiedP = spectrumPeaksModifierF reader spectrum compress
+        this.InsertMass(runID, spectrum, modifiedP)
+
+    /// Starts bulkinsert of mass spectra into a MzLiteSQL database
+    member this.insertMSSpectraBy insertSpectrumF (runID:string) (reader:IMzIODataReader) (compress: BinaryDataCompressionType) (spectra: seq<MassSpectrum>) =
+        this.writeIndexedMzIOModel(this.Model)
+        this.WriteSingleRun(runID)
+        let bulkInsert spectra = 
+            spectra
+            |> Seq.iter (insertSpectrumF runID reader compress)
+        bulkInsert spectra
+        writer.WriteEndElement()
+        writer.WriteEndElement()
+        writer.WriteEndElement()
+        //writer.WriteEndElement()
+        //writer.WriteEndElement()
+        //writer.WriteEndElement()
+        this.Commit()
+        this.Dispose()
