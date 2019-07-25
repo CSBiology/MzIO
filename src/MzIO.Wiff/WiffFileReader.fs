@@ -543,6 +543,24 @@ type WiffFileReader(dataProvider:AnalystWiffDataProvider, disposed:Boolean, wiff
 
         sprintf "%s%s" wiffFilePath ".MzIOmodel"
 
-    member this.GetTIC(msExperiment:MSExperiment) =
+    static member private getSampleIndex(spectrumID:string) =
 
-        msExperiment.GetTotalIonChromatogram
+        let match' = regexID.Match(spectrumID)
+
+        if match'.Success then
+            let groups = match'.Groups
+            (int (groups.[1].Value))
+        else
+            raise (new FormatException(sprintf "%s%s" "Not a valid wiff spectrum id format: " spectrumID))
+
+
+    member this.GetTIC(spectrumID:string) =
+        let sampleIndex = WiffFileReader.getSampleIndex(spectrumID)
+        let msExperiment = batch.GetSample(sampleIndex).MassSpectrometerSample
+        msExperiment.GetTotalIonChromatogram().NumDataPoints
+
+    member this.GetDilutionFactor(spectrumID:string) =
+        let sampleIndex = WiffFileReader.getSampleIndex(spectrumID)
+        batch.GetSample(sampleIndex).MassSpectrometerSample.HasTrapData
+
+

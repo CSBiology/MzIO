@@ -974,7 +974,9 @@ type MzSQL(path) =
             insertModel this.Model
             tr.Commit()
 
-        member this.Model = model
+        member this.Model =
+            this.RaiseDisposed()
+            model
 
     member this.BeginTransaction() =
         
@@ -1042,16 +1044,23 @@ let xmlTestPath = "D:\Users\Patrick\Desktop\BioInformatik\MzLiteTestFiles\MzMLTe
 let mzMLReader = new MzMLReader(mzMLTiny)
 let mzMLWriter = new MzIOMLDataWriter(xmlTestPath) 
 
-//let run = (Seq.head (mzMLReader.Model.Runs.GetProperties false)).Value :?> Run
+let run = (Seq.head (mzMLReader.Model.Runs.GetProperties false)).Value :?> Run
 
-//let mzMLSpectra = mzMLReader.ReadMassSpectra(run.ID)        |> List.ofSeq
-//let mzMLpeaks   = mzMLReader.ReadAllSpectrumPeaks(run.ID)   |> List.ofSeq
+let mzMLSpectra = mzMLReader.ReadMassSpectra(run.ID)        |> List.ofSeq
+let mzMLpeaks   = mzMLReader.ReadAllSpectrumPeaks(run.ID)   |> List.ofSeq
 
-//mzMLWriter.WriteIndexedMzML(mzMLReader.Model, mzMLSpectra, mzMLpeaks)
-
-mzMLWriter.Model
-mzMLWriter.UpdateModel(wiffReader.Model)
-//mzMLWriter.SaveModel()
+//mzMLWriter.WriteWholedMzML(mzMLReader.Model, mzMLSpectra, mzMLpeaks)
 mzMLWriter.insertMSSpectraBy(mzMLWriter.insertMSSpectrum) ("sample_0") wiffReader BinaryDataCompressionType.NoCompression (spectra |> Seq.take 100)
 
-1+1
+//mzMLWriter.Model
+//mzMLWriter.UpdateModel(wiffReader.Model)
+//mzMLWriter.SaveModel()
+//mzMLWriter.insertMSSpectraBy(mzMLWriter.insertMSSpectrum) ("sample_0") wiffReader BinaryDataCompressionType.NoCompression (spectra |> Seq.take 100)
+
+
+//let test =
+//    spectra
+//    |> Seq.take 10
+//    |> Seq.map (fun spectrum -> wiffReader.GetDilutionFactor(spectrum.ID))
+
+//1+1
