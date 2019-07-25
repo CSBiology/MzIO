@@ -545,7 +545,6 @@ type MzSQL(path) =
         match potMdoel with
         | Some model    -> model
         | None          -> 
-            printfn "1"
             let tmp = new MzIOModel(Path.GetFileNameWithoutExtension(sqlitePath))
             insertModel tmp
             tr.Commit()
@@ -1031,17 +1030,17 @@ type MzSQL(path) =
         this.Dispose()
 
 
-let mzIOSQL = new MzIOSQL(wiffTestPaeddetor + ".mzIOSQL")
-let mzSQL   = new MzSQL(wiffTestPaeddetor + ".mzSQL")
+//let mzIOSQL = new MzIOSQL(wiffTestPaeddetor + ".mzIOSQL")
+//let mzSQL   = new MzSQL(wiffTestPaeddetor + ".mzSQL")
 
-insertMSSpectraBy insertMSSpectrum (wiffTestPaeddetor + ".mzIOSQL") ("sample_0") wiffReader "NoCompression" (spectra |> Seq.take 5000)
-mzSQL.insertMSSpectraBy(mzSQL.insertMSSpectrum) ("sample_0") wiffReader BinaryDataCompressionType.NoCompression (spectra |> Seq.take 5000)
+//insertMSSpectraBy insertMSSpectrum (wiffTestPaeddetor + ".mzIOSQL") ("sample_0") wiffReader "NoCompression" (spectra |> Seq.take 10000)
+//mzSQL.insertMSSpectraBy(mzSQL.insertMSSpectrum) ("sample_0") wiffReader BinaryDataCompressionType.NoCompression (spectra |> Seq.take 10000)
 
-//let mzMLTiny = "D:/Users/Patrick/Desktop/BioInformatik/MzLiteTestFiles/MzMLTestFiles/tiny.pwiz.1.1.txt"
-//let xmlTestPath = "D:\Users\Patrick\Desktop\BioInformatik\MzLiteTestFiles\MzMLTestFiles\Test.xml"
+let mzMLTiny = "D:/Users/Patrick/Desktop/BioInformatik/MzLiteTestFiles/MzMLTestFiles/tiny.pwiz.1.1.txt"
+let xmlTestPath = "D:\Users\Patrick\Desktop\BioInformatik\MzLiteTestFiles\MzMLTestFiles\Test.xml"
 
-//let mzMLReader = new MzMLReader(mzMLTiny)
-//let mzMLWriter = new MzIOMLDataWriter(xmlTestPath) 
+let mzMLReader = new MzMLReader(mzMLTiny)
+let mzMLWriter = new MzIOMLDataWriter(xmlTestPath) 
 
 //let run = (Seq.head (mzMLReader.Model.Runs.GetProperties false)).Value :?> Run
 
@@ -1050,4 +1049,9 @@ mzSQL.insertMSSpectraBy(mzSQL.insertMSSpectrum) ("sample_0") wiffReader BinaryDa
 
 //mzMLWriter.WriteIndexedMzML(mzMLReader.Model, mzMLSpectra, mzMLpeaks)
 
-//1+1
+mzMLWriter.Model
+mzMLWriter.UpdateModel(wiffReader.Model)
+//mzMLWriter.SaveModel()
+mzMLWriter.insertMSSpectraBy(mzMLWriter.insertMSSpectrum) ("sample_0") wiffReader BinaryDataCompressionType.NoCompression (spectra |> Seq.take 100)
+
+1+1
