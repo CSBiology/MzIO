@@ -1049,8 +1049,8 @@ let run = (Seq.head (mzMLReader.Model.Runs.GetProperties false)).Value :?> Run
 let mzMLSpectra = mzMLReader.ReadMassSpectra(run.ID)        |> List.ofSeq
 let mzMLpeaks   = mzMLReader.ReadAllSpectrumPeaks(run.ID)   |> List.ofSeq
 
-//mzMLWriter.WriteWholedMzML(mzMLReader.Model, mzMLSpectra, mzMLpeaks)
-mzMLWriter.insertMSSpectraBy(mzMLWriter.insertMSSpectrum) ("sample_0") wiffReader BinaryDataCompressionType.NoCompression (spectra |> Seq.take 100)
+mzMLWriter.WriteWholedMzML(mzMLReader.Model, mzMLSpectra, mzMLpeaks)
+mzMLWriter.insertMSSpectraBy(mzMLWriter.insertMSSpectrum) ("sample_0") mzMLReader BinaryDataCompressionType.NoCompression (mzMLSpectra)
 
 //mzMLWriter.Model
 //mzMLWriter.UpdateModel(wiffReader.Model)
@@ -1060,7 +1060,14 @@ mzMLWriter.insertMSSpectraBy(mzMLWriter.insertMSSpectrum) ("sample_0") wiffReade
 
 //let test =
 //    spectra
-//    |> Seq.take 10
-//    |> Seq.map (fun spectrum -> wiffReader.GetDilutionFactor(spectrum.ID))
+//    |> Seq.take 2
+//    |> Seq.collect (fun spectrum -> wiffReader.GetIsolationWindow(spectrum.ID))
+//    |> Seq.concat
+//    |> List.ofSeq
+
+//test
+
+//for i in test do
+//    printfn "%A" i
 
 //1+1

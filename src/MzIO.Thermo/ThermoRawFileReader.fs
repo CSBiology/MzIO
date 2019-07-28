@@ -29,9 +29,6 @@ open MzIO.MetaData.UO.UO
 [<Sealed>]
 type ThermoPeaksArray(peakData:float [,], peakArraySize:int) =
 
-    member private this.peakData        = peakData
-    member private this.peakArraySize   = peakArraySize
-
     interface IMzIOArray<Peak1D> with
 
         member this.Length =
@@ -466,3 +463,10 @@ type ThermoRawFileReader(rawFilePath:string) =(* : IMzLiteDataReader*)
 
         (this :> IMzIOIO).Model
 
+    member this.getIsolationWindow = 
+        
+        rawFile.ScanEvents
+
+    member this.getIsolationWindow2 = 
+        
+        rawFile.GetFilters()

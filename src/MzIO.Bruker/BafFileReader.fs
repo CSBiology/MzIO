@@ -625,3 +625,4 @@ type BafFileReader(bafFilePath:string) =
     member this.ReadChromatogramPeaksAsync(runID:string)    =
 
         (this :> IMzIODataReader).ReadChromatogramPeaksAsync(runID)
+

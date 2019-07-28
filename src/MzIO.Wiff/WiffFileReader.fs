@@ -559,8 +559,24 @@ type WiffFileReader(dataProvider:AnalystWiffDataProvider, disposed:Boolean, wiff
         let msExperiment = batch.GetSample(sampleIndex).MassSpectrometerSample
         msExperiment.GetTotalIonChromatogram().NumDataPoints
 
-    member this.GetDilutionFactor(spectrumID:string) =
+    member this.GetTime(spectrumID:string) =
         let sampleIndex = WiffFileReader.getSampleIndex(spectrumID)
-        batch.GetSample(sampleIndex).MassSpectrometerSample.HasTrapData
+        use sample = batch.GetSample(sampleIndex).MassSpectrometerSample
+        seq
+            {
+                for experimentIndex= 0 to sample.ExperimentCount-1 do
+                    let mutable msExp = sample.GetMSExperiment(experimentIndex)
+                    for scanIndex = 0 to msExp.Details.NumberOfScans-1 do
+                        yield msExp.GetRTFromExperimentScanIndex(scanIndex)
+            }
 
+    member this.GetIsolationWindow(spectrumID:string) =
+        let sampleIndex = WiffFileReader.getSampleIndex(spectrumID)
+        use sample = batch.GetSample(sampleIndex).MassSpectrometerSample
+        seq
+            {
+                for experimentIndex= 0 to sample.ExperimentCount-1 do
+                    let mutable msExp = sample.GetMSExperiment(experimentIndex)
+                    yield msExp.Details.MassRangeInfo
+            }
 

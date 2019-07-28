@@ -36,7 +36,7 @@ module Baf2SqlWrapper =
     extern void baf2sql_array_close_storage(UInt64 handle)
     
     [<DllImport(@"baf2sql_c_32", CallingConvention = CallingConvention.Cdecl)>]
-    extern void baf2sql_array_get_num_elements(UInt64 , UInt64 id, (*ref*) UInt64& num_elements)
+    extern void baf2sql_array_get_num_elements(UInt64 , UInt64 id, UInt64& num_elements)
     
     [<DllImport(@"baf2sql_c_32", CallingConvention = CallingConvention.Cdecl)>]
     extern int baf2sql_array_read_double(UInt64 handle, UInt64 id, double[] buf)

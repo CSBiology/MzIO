@@ -612,15 +612,18 @@ module MzML =
                 loop false
             let readOp = readSubtree.Read
             let scanList = new ScanList()
-            let rec loop scans read =
+            let rec loop cvParams userParams scans read =
                 if readSubtree.NodeType=XmlNodeType.Element then
                     match readSubtree.Name with
-                    | "scan"    ->  loop (scanList.Add(Guid.NewGuid().ToString(), this.getScan readSubtree)) (readOp() |> ignore)
-                    |   _       ->  loop scans (readOp() |> ignore)
+                    | "cvParam"         ->  loop (scanList.AddCvParam(this.getCVParam readSubtree)) userParams scans (readOp() |> ignore)
+                    | "userParam"       ->  loop cvParams (scanList.AddUserParam(this.getUserParam readSubtree)) scans (readOp() |> ignore)
+                    | "scan"    ->  loop cvParams userParams (scanList.Add(Guid.NewGuid().ToString(), this.getScan readSubtree)) (readOp() |> ignore)
+                    |   _       ->  loop cvParams userParams scans (readOp() |> ignore)
                 else
-                    if readOp()=true then loop scans read
-                    else scanList
-            loop () ()
+                    if readOp()=true then loop cvParams userParams scans read
+                    else 
+                        scanList
+            loop () () () ()
 
         member this.getActivation(?xmlReader: XmlReader) =
             let xmlReader = defaultArg xmlReader reader
