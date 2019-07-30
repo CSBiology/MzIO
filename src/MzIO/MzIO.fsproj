@@ -1,6 +1,7 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>net45;net47;netstandard2.0</TargetFrameworks>
+    <TargetFrameworks>net45</TargetFrameworks>
     <RootNamespace>MzIO</RootNamespace>
     <AssemblyName>MzIO</AssemblyName>
     <Name>MzIO</Name>
@@ -12,10 +13,48 @@
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <!-- Optional: Include PDB in the built .nupkg -->
     <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
+    <Configurations>Debug;Release</Configurations>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Library.fs" />
-    <None Include="Scripts\Script.fsx" />
+    <EmbeddedResource Remove="IO\MzMLReader\**" />
+    <EmbeddedResource Remove="IO\MzMLWriter\**" />
+    <EmbeddedResource Remove="Scripts\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Model\ParamContainer.fs" />
+    <Compile Include="Model\ModelItem.fs" />
+    <Compile Include="Model\NamedItem.fs" />
+    <Compile Include="Model\SpectrumReference.fs" />
+    <Compile Include="Model\PeakList.fs" />
+    <Compile Include="Model\UserDescription.fs" />
+    <Compile Include="Model\Software.fs" />
+    <Compile Include="Model\Sample.fs" />
+    <Compile Include="Model\SourceFile.fs" />
+    <Compile Include="Model\RunReference.fs" />
+    <Compile Include="Model\Instrument.fs" />
+    <Compile Include="Model\DataProcessing.fs" />
+    <Compile Include="Model\Run.fs" />
+    <Compile Include="Model\FileDescription.fs" />
+    <Compile Include="Model\MzIOProject.fs" />
+    <Compile Include="Model\MzIOModel.fs" />
+    <Compile Include="Commons\Arrays\MzIO.fs" />
+    <Compile Include="Binary\MSNumpress.fs" />
+    <Compile Include="Binary\NumpressHelper.fs" />
+    <Compile Include="Binary\PeakArray.fs" />
+    <Compile Include="Binary\BinaryDataDecoder.fs" />
+    <Compile Include="Binary\BinaryDataEncoder.fs" />
+    <Compile Include="MetaData\ParamEdit.fs" />
+    <Compile Include="MetaData\UOExtension.fs" />
+    <Compile Include="MetaData\PSIMSExtension.fs" />
+    <Compile Include="IO\MzIOIOExcpetion.fs" />
+    <Compile Include="IO\ITransactionScope.fs" />
+    <Compile Include="IO\IMzIOIO.fs" />
+    <Compile Include="IO\IMzIODataReader.fs" />
+    <Compile Include="IO\IMzIODataWriter.fs" />
+    <Compile Include="JSON\ParamBaseConverter.fs" />
+    <Compile Include="JSON\MzIOJson.fs" />
+    <Compile Include="JSON\ConvertibleConverter.fs" />
+    <Compile Include="AssemblyInfo.fs" />
     <None Include="paket.references" />
     <None Include="paket.template" />
   </ItemGroup>

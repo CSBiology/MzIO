@@ -1,1 +1,4 @@
 FSharp.Core
+Newtonsoft.Json
+EntityFramework
+System.Xml.Linq

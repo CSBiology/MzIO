@@ -1,0 +1,37 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>net451</TargetFrameworks>
+    <RootNamespace>MzIO</RootNamespace>
+    <AssemblyName>MzIO.Thermo</AssemblyName>
+    <Name>MzIO.Thermo</Name>
+    <OutputType>Library</OutputType>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <!-- Optional: Declare that the Repository URL can be published to NuSpec -->
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <!-- Optional: Embed source files that are not tracked by the source control manager to the PDB -->
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <!-- Optional: Include PDB in the built .nupkg -->
+    <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
+    <Configurations>Debug;Release</Configurations>
+  </PropertyGroup>
+  <ItemGroup>
+    <EmbeddedResource Remove="Scripts\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ReaderTest.fsx" />
+    <Compile Include="ThermoRawFileReader.fs" />
+    <None Include="paket.references" />
+    <None Include="paket.template" />
+  </ItemGroup>
+  <!--<ItemGroup>
+    <PackageReference Include="ThermoFisher.CommonCore.BackgroundSubtraction" Version="4.0.107" />
+    <PackageReference Include="ThermoFisher.CommonCore.Data" Version="4.0.107" />
+    <PackageReference Include="ThermoFisher.CommonCore.MassPrecisionEstimator" Version="4.0.107" />
+    <PackageReference Include="ThermoFisher.CommonCore.RawFileReader" Version="4.0.107" />
+  </ItemGroup>-->
+  <ItemGroup>
+    <ProjectReference Include="..\MzIO\MzIO.fsproj" />
+  </ItemGroup>
+  <Import Project="..\..\.paket\Paket.Restore.targets" />
+</Project>

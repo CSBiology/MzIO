@@ -172,6 +172,10 @@ packages/
 # Test results produced by build
 TestResults.xml
 
+# Testfiles
+/src/MzIO.Wiff/Test.fsx
+/src/MzIO.Thermo/ReaderTest.fsx
+
 # Nuget outputs
 nuget/*.nupkg
 release.cmd
@@ -185,3 +189,8 @@ docsrc/content/release-notes.md
 docsrc/tools/FSharp.Formatting.svclog
 docs
 temp
+/.paket/load
+/lib/ThermoFisher/ThermoFisher.CommonCore.BackgroundSubtraction.4.0.107.nupkg
+/lib/ThermoFisher/ThermoFisher.CommonCore.Data.4.0.107.nupkg
+/lib/ThermoFisher/ThermoFisher.CommonCore.MassPrecisionEstimator.4.0.107.nupkg
+/lib/ThermoFisher/ThermoFisher.CommonCore.RawFileReader.4.0.107.nupkg

@@ -1,17 +1,17 @@
-type file
+type project
 id MzIO
 title
     MzIO
 owners
-    Patrick Blume, Jonathan Ott
+    Timo Muehlhaus
 authors 
     Patrick Blume, Jonathan Ott
 projectUrl
-    https://github.com/Computational Systems Biology/MzIO
+    https://github.com/CSBiology/MzIO
 iconUrl
-    https://raw.githubusercontent.com/Computational Systems Biology/MzIO/master/docs/files/img/logo.png
+    https://github.com/CSBiology/MzIO/blob/master/docsrc/files/img/logo.png
 licenseUrl
-    https://github.com/Computational Systems Biology/MzIO/blob/master/LICENSE.txt
+    https://github.com/CSBiology/MzIO/blob/master/LICENSE.txt
 requireLicenseAcceptance
     false
 language
@@ -19,11 +19,12 @@ language
 copyright
     Copyright 2017
 tags
-    F# MassSpectrometry FSharp MzLite MzMl Wiff BigData
+    F# MassSpectrometry FSharp MzIO MzMl BigData
 summary
-    Generic data model to unify various reader and writer for different formats used in protein mass spectrometry
+    F# port of MzIO
 description
-    Generic data model to unify various reader and writer for different formats used in protein mass spectrometry
-
+    F# port of MzIO
+include-referenced-projects 
+    true
 files
 	../../bin/MzIO ==> lib

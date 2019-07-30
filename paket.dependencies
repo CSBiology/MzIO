@@ -1,9 +1,20 @@
+
 framework: auto-detect
+
+generate_load_scripts: true
 
 source https://nuget.org/api/v2
 
-nuget FSharp.Core
+nuget FSharp.Core = 4.5.2
 nuget Argu
+
+nuget EntityFramework
+nuget Newtonsoft.Json
+nuget System.Data.SQLite
+nuget System.Data.SQLite.Core
+nuget System.Data.SQLite.EF6
+nuget System.Data.SQLite.Linq
+nuget System.Xml.Linq
 
 nuget Expecto
 nuget Expecto.BenchmarkDotNet
@@ -11,6 +22,13 @@ nuget Expecto.FsCheck
 nuget Expecto.VisualStudio.TestAdapter version_in_path: true
 
 clitool dotnet-fake
+
+group Thermo
+source lib/ThermoFisher
+nuget ThermoFisher.CommonCore.BackgroundSubtraction
+nuget ThermoFisher.CommonCore.Data
+nuget ThermoFisher.CommonCore.MassPrecisionEstimator
+nuget ThermoFisher.CommonCore.RawFileReader
 
 group Formatting
 source https://nuget.org/api/v2

@@ -1,38 +1,11 @@
-(*** hide ***)
-// This block of code is omitted in the generated HTML documentation. Use 
-// it to define helpers that you do not want to show in the documentation.
-#I "../../bin"
-
 (**
-MzIO
-======================
 
-Documentation
+MzIO is a library that consists of a generic model which is based on the minimal amount of metadata, which different protein mass spectometry data formats share with each other. 
+The model is built up of different classes, each with a different function. The MzIOModel holds the global metadata of the experiment, e.g. the with of the isolation window and 
+is saved as a Json based shadow file. The runID of the MzIOModel links it with the MassSpectrum. 
+The MassSpectrum is used to store the metadata of the different scans and is linked by its ID with the Peak1DArray. 
+The Peak1DArray contains in addition to the inensity and m/z values the compression mode and the data format of the values, e.g. float 32 or float 64.
 
-<div class="row">
-  <div class="span1"></div>
-  <div class="span6">
-    <div class="well well-small" id="nuget">
-      The MzIO library can be <a href="https://nuget.org/packages/MzIO">installed from NuGet</a>:
-      <pre>PM> Install-Package MzIO</pre>
-    </div>
-  </div>
-  <div class="span1"></div>
-</div>
-
-Example
--------
-
-This example demonstrates using a function defined in this sample library.
-
-*)
-#r "MzIO.dll"
-open MzIO
-
-printfn "hello = %i" <| Library.hello 0
-
-(**
-Some more info
 
 Samples & documentation
 -----------------------

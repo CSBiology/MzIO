@@ -111,17 +111,17 @@ let project = "MzIO"
 
 // Short summary of the project
 // (used as description in AssemblyInfo and as a short summary for NuGet package)
-let summary = "Generic data model to unify various reader and writer for different formats used in protein mass spectrometry"
+let summary = "Generic data model to unify various readers and writers for different formats used in protein mass spectrometry"
 
 // Longer description of the project
 // (used as a description for NuGet package; line breaks are automatically cleaned up)
-let description = "Generic data model to unify various reader and writer for different formats used in protein mass spectrometry"
+let description = "Generic data model to unify various readers and writers for different formats used in protein mass spectrometry"
 
 // List of author names (for NuGet package)
 let author = "Patrick Blume, Jonathan Ott"
 
 // Tags for your project (for NuGet package)
-let tags = "F# MassSpectrometry FSharp MzLite MzMl Wiff BigData"
+let tags = "F# MassSpectrometry FSharp MzIO MzMl Wiff BigData"
 
 // File system information
 let solutionFile  = "MzIO.sln"
@@ -134,14 +134,14 @@ let testAssemblies = "tests/**/bin" </> configuration </> "**" </> "*Tests.exe"
 
 // Git configuration (used for publishing documentation in gh-pages branch)
 // The profile where the project is posted
-let gitOwner = "Computational Systems Biology"
+let gitOwner = "CSBiology"
 let gitHome = sprintf "%s/%s" "https://github.com" gitOwner
 
 // The name of the project on GitHub
 let gitName = "MzIO"
 
 // The url for the raw files hosted
-let gitRaw = Environment.environVarOrDefault "gitRaw" "https://raw.githubusercontent.com/Computational Systems Biology"
+let gitRaw = Environment.environVarOrDefault "gitRaw" "https://raw.githubusercontent.com/CSBiology"
 
 let website = "/MzIO"
 
@@ -228,7 +228,7 @@ Target.create "Build" (fun _ ->
             Configuration = buildConfiguration })*)
     let setParams (defaults:MSBuildParams) =
         { defaults with
-            Verbosity = Some(Quiet)
+            Verbosity = Some(MSBuildVerbosity.Quiet)
             Targets = ["Build"]
             Properties =
                 [
@@ -374,8 +374,8 @@ Target.create "Docs" (fun _ ->
     Shell.rename "docsrc/content/release-notes.md" "docsrc/content/RELEASE_NOTES.md"
 
     File.delete "docsrc/content/license.md"
-    Shell.copyFile "docsrc/content/" "LICENSE.txt"
-    Shell.rename "docsrc/content/license.md" "docsrc/content/LICENSE.txt"
+    Shell.copyFile "docsrc/content/" "LICENSE"
+    Shell.rename "docsrc/content/license.md" "docsrc/content/LICENSE"
 
 
     DirectoryInfo.getSubDirectories (DirectoryInfo.ofPath templates)
@@ -536,5 +536,7 @@ Target.create "All" ignore
 
 "All"
   ==> "ReleaseLocal"
+
+
 
 Target.runOrDefaultWithArguments "All"
