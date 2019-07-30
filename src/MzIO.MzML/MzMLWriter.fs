@@ -830,25 +830,43 @@ type MzIOMLDataWriter(path:string) =
 
     member this.WriteCvParam(param:CvParam<#IConvertible>) =
         writer.WriteStartElement("cvParam")
-        writer.WriteAttributeString("cvRef", "not saved yet")
+        writer.WriteAttributeString("cvRef", "MS")
         writer.WriteAttributeString("accession", param.CvAccession)        
         writer.WriteAttributeString("name", "not saved yet")
         writer.WriteAttributeString("value", if (tryGetValue (param :> IParamBase<#IConvertible>)).IsSome then (tryGetValue (param :> IParamBase<#IConvertible>)).Value.ToString() else "")
         if (tryGetCvUnitAccession (param :> IParamBase<#IConvertible>)).IsSome then
-            writer.WriteAttributeString("unitCvRef", "not saved yet")
+            writer.WriteAttributeString("unitCvRef", "UO")
             writer.WriteAttributeString("unitAccession", (tryGetCvUnitAccession (param :> IParamBase<#IConvertible>)).Value.ToString())
             writer.WriteAttributeString("unitName", "not saved yet")        
         writer.WriteEndElement()
 
     member this.WriteUserParam(param:UserParam<#IConvertible>) =
-        writer.WriteStartElement("cvParam")
+        writer.WriteStartElement("userParam")
         writer.WriteAttributeString("name", param.Name)
-        writer.WriteAttributeString("type", "not saved yet")
-        writer.WriteAttributeString("value", if (tryGetValue (param :> IParamBase<#IConvertible>)).IsSome then (tryGetValue (param :> IParamBase<#IConvertible>)).Value.ToString() else "")
+        //writer.WriteAttributeString("type", "not saved yet")
+        writer.WriteAttributeString("value", if (tryGetValue (param :> IParamBase<#IConvertible>)).IsSome then 
+            (tryGetValue (param :> IParamBase<#IConvertible>)).Value.ToString() else "")
         if (tryGetCvUnitAccession (param :> IParamBase<#IConvertible>)).IsSome then
-            writer.WriteAttributeString("unitCvRef", "not saved yet")
+            writer.WriteAttributeString("unitCvRef", "UO")
             writer.WriteAttributeString("unitAccession", (tryGetCvUnitAccession (param :> IParamBase<#IConvertible>)).Value.ToString())
             writer.WriteAttributeString("unitName", "not saved yet")        
+        writer.WriteEndElement()
+
+    member this.WriteCvList() =
+        writer.WriteStartElement("cvList")
+        writer.WriteAttributeString("count", "2")
+        writer.WriteStartElement("cv")
+        writer.WriteAttributeString("id", "MS")
+        writer.WriteAttributeString("fullName", "Proteomics Standards Initiative Mass Spectrometry Ontology")
+        writer.WriteAttributeString("version", "2.26.0" )
+        writer.WriteAttributeString("URI", "http://psidev.cvs.sourceforge.net/*checkout*/psidev/psi/psi-ms/mzML/controlledVocabulary/psi-ms.obo")
+        writer.WriteEndElement()
+        writer.WriteStartElement("cv")
+        writer.WriteAttributeString("id", "UO")
+        writer.WriteAttributeString("fullName", "Unit Ontology")
+        writer.WriteAttributeString("version", "14:07:2009")
+        writer.WriteAttributeString("URI", "http://obo.cvs.sourceforge.net/*checkout*/obo/obo/ontology/phenotype/unit.obo")
+        writer.WriteEndElement()
         writer.WriteEndElement()
 
     member private this.assignParam<'T when 'T :> IConvertible>(item:Object) =
@@ -859,21 +877,21 @@ type MzIOMLDataWriter(path:string) =
 
     member this.WriteDetector(item:DetectorComponent) =
         writer.WriteStartElement("detector")
-        writer.WriteAttributeString("order", "not saved yet")
+        writer.WriteAttributeString("order", "3")
         item.GetProperties false
         |> Seq.iter (fun param -> this.assignParam(param.Value))
         writer.WriteEndElement()
 
     member this.WriteAnalyzer(item:AnalyzerComponent) =
         writer.WriteStartElement("analyzer")
-        writer.WriteAttributeString("order", "not saved yet")
+        writer.WriteAttributeString("order", "2")
         item.GetProperties false
         |> Seq.iter (fun param -> this.assignParam(param.Value))
         writer.WriteEndElement()
 
     member this.WriteSource(item:SourceComponent) =
         writer.WriteStartElement("source")
-        writer.WriteAttributeString("order", "not saved yet")
+        writer.WriteAttributeString("order", "1")
         item.GetProperties false
         |> Seq.iter (fun param -> this.assignParam(param.Value))
         writer.WriteEndElement()
@@ -991,7 +1009,7 @@ type MzIOMLDataWriter(path:string) =
         writer.WriteAttributeString("accession", "MS:1000514")      
         writer.WriteAttributeString("name", "m/z array")
         writer.WriteAttributeString("value", "")
-        writer.WriteAttributeString("unitCvRef", "MS")
+        writer.WriteAttributeString("unitCvRef", "UO")
         writer.WriteAttributeString("unitAccession", "MS:1000040")
         writer.WriteAttributeString("unitName", "m/z")
         writer.WriteEndElement()
@@ -1014,7 +1032,7 @@ type MzIOMLDataWriter(path:string) =
         writer.WriteAttributeString("accession", "MS:1000515")      
         writer.WriteAttributeString("name", "intensity array")
         writer.WriteAttributeString("value", "")
-        writer.WriteAttributeString("unitCvRef", "MS")
+        writer.WriteAttributeString("unitCvRef", "UO")
         writer.WriteAttributeString("unitAccession", "MS:1000131")
         writer.WriteAttributeString("unitName", "number of counts")
         writer.WriteEndElement()
@@ -1028,7 +1046,8 @@ type MzIOMLDataWriter(path:string) =
         let encodedQs = Convert.ToBase64String(encoder.Encode(peaks.CompressionType, peaks.MzDataType, qs))
         writer.WriteStartElement("binaryDataArray")
         writer.WriteAttributeString("arrayLength", qs.Length.ToString())
-        writer.WriteAttributeString("dataProcessingRef", spectrum.DataProcessingReference)
+        if not (String.IsNullOrWhiteSpace spectrum.DataProcessingReference) then 
+            writer.WriteAttributeString("dataProcessingRef", spectrum.DataProcessingReference)
         writer.WriteAttributeString("encodedLength", encodedQs.Length.ToString())        
         this.WriteQParams(peaks)
         this.WriteBinary(encodedQs)
@@ -1041,7 +1060,8 @@ type MzIOMLDataWriter(path:string) =
         let encodedIntensities = Convert.ToBase64String(encoder.Encode(peaks.CompressionType, peaks.IntensityDataType, intensities))
         writer.WriteStartElement("binaryDataArray")
         writer.WriteAttributeString("arrayLength", intensities.Length.ToString())
-        writer.WriteAttributeString("dataProcessingRef", spectrum.DataProcessingReference)
+        if not (String.IsNullOrWhiteSpace spectrum.DataProcessingReference) then 
+            writer.WriteAttributeString("dataProcessingRef", spectrum.DataProcessingReference)
         writer.WriteAttributeString("encodedLength", encodedIntensities.Length.ToString())
         this.WriteIntensityParams(peaks)
         this.WriteBinary(encodedIntensities)
@@ -1055,8 +1075,10 @@ type MzIOMLDataWriter(path:string) =
     member this.WritePrecursor(item:Precursor) =
         writer.WriteStartElement("precursor")
         //writer.WriteAttributeString("externalSpectrumID", item.SpectrumReference.SpectrumID)
-        writer.WriteAttributeString("sourceFileID", item.SpectrumReference.SourceFileID)
-        writer.WriteAttributeString("spectrumID", item.SpectrumReference.SpectrumID)
+        if not (String.IsNullOrWhiteSpace item.SpectrumReference.SourceFileID) then 
+            writer.WriteAttributeString("sourceFileRef", item.SpectrumReference.SourceFileID)
+        if not (String.IsNullOrWhiteSpace item.SpectrumReference.SpectrumID) then 
+            writer.WriteAttributeString("spectrumRef", item.SpectrumReference.SpectrumID)
         this.WriteIsolationWindow(item.IsolationWindow)
         this.WriteSelectedIonList(item.SelectedIons)
         this.WriteActivation(item.Activation)
@@ -1065,12 +1087,15 @@ type MzIOMLDataWriter(path:string) =
     member this.WriteScan(item:Scan) =
         writer.WriteStartElement("scan")
         //writer.WriteAttributeString("externalSpectrumID", item.SpectrumReference.SpectrumID)
-        writer.WriteAttributeString("instrumentConfigurationRef", "not saved yet")
-        writer.WriteAttributeString("sourceFileID", item.SpectrumReference.SourceFileID)
-        writer.WriteAttributeString("spectrumID", item.SpectrumReference.SpectrumID)
+        //writer.WriteAttributeString("instrumentConfigurationRef", "not saved yet")
+        if not (String.IsNullOrWhiteSpace item.SpectrumReference.SourceFileID) then 
+            writer.WriteAttributeString("sourceFileID", item.SpectrumReference.SourceFileID)
+        if not (String.IsNullOrWhiteSpace item.SpectrumReference.SpectrumID) then 
+            writer.WriteAttributeString("spectrumID", item.SpectrumReference.SpectrumID)
         item.GetProperties false
         |> Seq.iter (fun param -> this.assignParam param.Value)
-        this.WriteScanWindowList(item.ScanWindows)
+        if Seq.length (item.ScanWindows.GetProperties false) >0 then
+            this.WriteScanWindowList(item.ScanWindows)
         writer.WriteEndElement()
 
     member this.WriteBinaryDataArrayList(spectrum:MassSpectrum, peaks:Peak1DArray) =
@@ -1119,14 +1144,16 @@ type MzIOMLDataWriter(path:string) =
         //|> Seq.iter (fun param -> this.assignParam(param.Value))
         //writer.WriteEndElement()
 
-    member this.WriteSpectrum(spectrum:MassSpectrum, peaks:Peak1DArray) =
+    member this.WriteSpectrum(spectrum:MassSpectrum, index:int, peaks:Peak1DArray) =
         this.EnsureWriteState(MzMLWriteState.SPECTRUM)
         writer.WriteStartElement("spectrum")
-        writer.WriteAttributeString("dataProcessingRef", spectrum.DataProcessingReference)
+        if not (String.IsNullOrWhiteSpace spectrum.DataProcessingReference) then 
+            writer.WriteAttributeString("dataProcessingRef", spectrum.DataProcessingReference)
         writer.WriteAttributeString("defaultArrayLength", (Seq.length peaks.Peaks).ToString())
         writer.WriteAttributeString("id", spectrum.ID)
-        writer.WriteAttributeString("index", "not saved yet")
-        writer.WriteAttributeString("sourceFileRef", spectrum.SourceFileReference)
+        writer.WriteAttributeString("index", sprintf "%i" index)
+        if not (String.IsNullOrWhiteSpace spectrum.SourceFileReference) then 
+            writer.WriteAttributeString("sourceFileRef", spectrum.SourceFileReference)            
         //writer.WriteAttributeString("spotID", "not saved yet")
         spectrum.GetProperties false
         |> Seq.iter (fun param -> this.assignParam(param.Value))
@@ -1139,6 +1166,7 @@ type MzIOMLDataWriter(path:string) =
         if Seq.length (peaks.GetProperties false) <> 0 then
             this.WriteBinaryDataArrayList(spectrum, peaks)
         writer.WriteEndElement()
+        index
 
     member this.WriteChromatogramList(item:Run, chromatogramListCount:int) =
         this.EnsureWriteState(MzMLWriteState.CHROMATOGRAM_LIST)
@@ -1155,7 +1183,7 @@ type MzIOMLDataWriter(path:string) =
         writer.WriteAttributeString("count", (Seq.length spectra).ToString())
         writer.WriteAttributeString("defaultDataProcessingRef", item.DefaultSpectrumProcessing.ID)
         this.EnterWriteState(MzMLWriteState.SPECTRUM_LIST, MzMLWriteState.SPECTRUM)
-        Seq.iter2 (fun spectrum peak -> this.WriteSpectrum(spectrum, peak)) spectra peaks
+        Seq.fold2 (fun start spectrum peak -> this.WriteSpectrum(spectrum, start + 1, peak)) 0 spectra peaks |> ignore
         writer.WriteEndElement()
 
     member this.WriteDataProcessing(item:DataProcessing) =
@@ -1209,11 +1237,11 @@ type MzIOMLDataWriter(path:string) =
         |> Seq.iter (fun param -> this.assignParam param.Value)
         writer.WriteEndElement()
 
-    member this.WriteRun(item:Run, spectra:seq<MassSpectrum>, peaks:seq<Peak1DArray>, chromatogramListCount:int) =
+    member this.WriteRun(item:Run, model:MzIOModel, spectra:seq<MassSpectrum>, peaks:seq<Peak1DArray>, chromatogramListCount:int) =
         this.EnsureWriteState(MzMLWriteState.RUN)
         writer.WriteStartElement("run")
         writer.WriteAttributeString("defaultInstrumentConfigurationRef", item.DefaultInstrument.ID)
-        writer.WriteAttributeString("defaultSourceFileRef", "not saved yet")
+        writer.WriteAttributeString("defaultSourceFileRef", ((Seq.head(model.FileDescription.SourceFiles.GetProperties false)).Value :?> SourceFile).ID)
         writer.WriteAttributeString("id", item.ID)
         writer.WriteAttributeString("sampleRef", item.Sample.ID)
         item.GetProperties false
@@ -1241,7 +1269,49 @@ type MzIOMLDataWriter(path:string) =
         |> Seq.iter (fun instConf -> this.WriteInstrumentConfiguration (instConf.Value :?> Instrument))
         writer.WriteEndElement()
 
-    member this.WriteSoftwareList(item:SoftwareList) =        
+    member this.WriteTarget(item:MzIOModel) =
+        writer.WriteStartElement("target")
+        item.GetProperties false
+        |> Seq.iter (fun param -> this.assignParam param.Value)
+        writer.WriteEndElement()
+
+    member this.WriteSourceFileRef(item:string) =
+        writer.WriteStartElement("sourceFileRef")
+        writer.WriteAttributeString("ref", item)
+        writer.WriteEndElement()
+
+    member this.WriteTargetList(item:SourceFileList) =
+        writer.WriteStartElement("targetList")
+        writer.WriteAttributeString("count", (Seq.length (item.GetProperties false)).ToString())
+        item.GetProperties false
+        |> Seq.iter (fun sourceFile -> this.WriteSourceFileRef((sourceFile.Value :?> SourceFile).ID))
+        writer.WriteEndElement()
+
+    member this.WriteSourceFileRefList(item:SourceFileList) =
+        writer.WriteStartElement("sourceFileRefList")
+        writer.WriteAttributeString("count", (Seq.length (item.GetProperties false)).ToString())
+        item.GetProperties false
+        |> Seq.iter (fun sourceFile -> this.WriteSourceFileRef((sourceFile.Value :?> SourceFile).ID))
+        writer.WriteEndElement()
+
+    member this.WriteScanSettings(item:MzIOModel) =
+        writer.WriteStartElement("scanSettings")
+        writer.WriteAttributeString("id", "PlaceHolderID_settings")
+        item.GetProperties false
+        |> Seq.iter (fun param -> this.assignParam(param))
+        if Seq.length (item.FileDescription.SourceFiles.GetProperties false) > 0 then
+            this.WriteSourceFileRefList(item.FileDescription.SourceFiles)
+        //this.WriteTargetList(item)
+        writer.WriteEndElement()
+        
+    member this.WriteScanSettingsList(item:MzIOModel) =
+        writer.WriteStartElement("scanSettingsList")
+        writer.WriteAttributeString("count", (Seq.length (item.FileDescription.SourceFiles.GetProperties false)).ToString())
+        this.WriteScanSettings(item)
+        writer.WriteEndElement()
+
+    member this.WriteSoftwareList(item:SoftwareList) =
+        this.EnsureWriteState(MzMLWriteState.MzIOModel)
         writer.WriteStartElement("softwareList")
         writer.WriteAttributeString("count", (Seq.length (item.GetProperties false)).ToString())
         item.GetProperties false
@@ -1249,6 +1319,7 @@ type MzIOMLDataWriter(path:string) =
         writer.WriteEndElement()
 
     member this.WriteSampleList(item:SampleList) =
+        this.EnsureWriteState(MzMLWriteState.MzIOModel)
         writer.WriteStartElement("sampleList")
         writer.WriteAttributeString("count", (Seq.length (item.GetProperties false)).ToString())
         item.GetProperties false
@@ -1256,100 +1327,111 @@ type MzIOMLDataWriter(path:string) =
         writer.WriteEndElement()
 
     member this.WriteFileDescription(item:FileDescription) =
+        this.EnsureWriteState(MzMLWriteState.MzIOModel)
         writer.WriteStartElement("fileDescription")
         this.WriteFileContent(item.FileContent)
-        this.WriteSourceFileList(item.SourceFiles)
-        this.WriteContact(item.Contact)
+        if Seq.length (item.SourceFiles.GetProperties false) > 0 then
+            this.WriteSourceFileList(item.SourceFiles)
+        if Seq.length (item.Contact.GetProperties false) >0 then
+            this.WriteContact(item.Contact)
         writer.WriteEndElement()
 
-    //member this.WriteCvList(item:string) =
-
-    member this.WriteRunList(item:RunList, spectra:seq<MassSpectrum>, peaks:seq<Peak1DArray>, chromatogramListCount:int) =
+    member this.WriteRunList(item:RunList, model:MzIOModel, spectra:seq<MassSpectrum>, peaks:seq<Peak1DArray>, chromatogramListCount:int) =
         this.EnsureWriteState(MzMLWriteState.RUN)
         item.GetProperties false
-        |> Seq.iter (fun run -> this.WriteRun(run.Value :?> Run, spectra, peaks, chromatogramListCount))
+        |> Seq.iter (fun run -> this.WriteRun(run.Value :?> Run, model, spectra, peaks, chromatogramListCount))
         //writer.WriteEndElement()    
 
     member this.WriteMzMl(item:MzIOModel, spectra:seq<MassSpectrum>, peaks:seq<Peak1DArray>) = 
-        this.EnsureWriteState(MzMLWriteState.MzIOModel)
+        this.EnsureWriteState(MzMLWriteState.INITIAL)
+        this.EnterWriteState(MzMLWriteState.INITIAL, MzMLWriteState.MzIOModel)
         writer.WriteStartElement("mzML", "http://psi.hupo.org/ms/mzml")
         writer.WriteAttributeString("xmlns", "xsi", null, "http://www.w3.org/2001/XMLSchema-instance")
         writer.WriteAttributeString("xsi", "schemaLocation", null, "http://psi.hupo.org/ms/mzml http://psidev.info/files/ms/mzML/xsd/mzML1.1.0.xsd")
         writer.WriteAttributeString("id", item.Name)
         writer.WriteAttributeString("version", "1.1.0")
+        this.WriteCvList()
         this.WriteFileDescription(item.FileDescription)
         if Seq.length (item.Samples.GetProperties false) <> 0 then
             this.WriteSampleList(item.Samples)
-        //ask about scan settingList
         this.WriteSoftwareList(item.Softwares)
+        if Seq.length (item.FileDescription.SourceFiles.GetProperties false) > 0 then
+            this.WriteScanSettingsList(item)
         this.WriteInstrumentConfigurationList(item.Instruments)
         this.WriteDataProcessingList(item.DataProcessings)
         this.EnterWriteState(MzMLWriteState.MzIOModel, MzMLWriteState.RUN)
-        this.WriteRunList(item.Runs, spectra, peaks, 0)
-        writer.WriteEndElement()
-
-    member this.WriteWholedMzML(item:MzIOModel, spectra:seq<MassSpectrum>, peaks:seq<Peak1DArray>) =
-        this.EnsureWriteState(MzMLWriteState.INITIAL)
-        this.EnterWriteState(MzMLWriteState.INITIAL, MzMLWriteState.MzIOModel)
-        writer.WriteStartElement("indexedmzML", "http://psi.hupo.org/ms/mzml")
-        writer.WriteAttributeString("xmlns", "xsi", null, "http://www.w3.org/2001/XMLSchema-instance")
-        writer.WriteAttributeString("xsi", "schemaLocation", null, "http://psi.hupo.org/ms/mzml http://psidev.info/files/ms/mzML/xsd/mzML1.1.0.xsd")
-        this.WriteMzMl(item, spectra, peaks)
+        this.WriteRunList(item.Runs, item, spectra, peaks, 0)
         writer.WriteEndElement()
         currentWriteState <- MzMLWriteState.INITIAL
         this.Close()
 
-    member this.WriteSingleSpectrumList() =
+    //member this.WriteWholedMzML(item:MzIOModel, spectra:seq<MassSpectrum>, peaks:seq<Peak1DArray>) =
+    //    this.EnsureWriteState(MzMLWriteState.INITIAL)
+    //    this.EnterWriteState(MzMLWriteState.INITIAL, MzMLWriteState.MzIOModel)
+    //    writer.WriteStartElement("indexedmzML", "http://psi.hupo.org/ms/mzml")
+    //    writer.WriteAttributeString("xmlns", "xsi", null, "http://www.w3.org/2001/XMLSchema-instance")
+    //    writer.WriteAttributeString("xsi", "schemaLocation", null, "http://psi.hupo.org/ms/mzml http://psidev.info/files/ms/mzML/xsd/mzML1.1.0.xsd")
+    //    this.WriteMzMl(item, spectra, peaks)
+    //    writer.WriteEndElement()
+    //    currentWriteState <- MzMLWriteState.INITIAL
+    //    this.Close()
+
+    member this.WriteSingleSpectrumList(count:string, spectrumProcessingRef:string) =
         this.EnsureWriteState(MzMLWriteState.SPECTRUM_LIST)
         writer.WriteStartElement("spectrumList") 
-        writer.WriteAttributeString("count", "1")
-        writer.WriteAttributeString("defaultDataProcessingRef", "not saved")
+        writer.WriteAttributeString("count", count)
+        writer.WriteAttributeString("defaultDataProcessingRef", spectrumProcessingRef)
         //this.WriteSpectrum(spectrum, peaks)
         //writer.WriteEndElement()
         this.EnterWriteState(MzMLWriteState.SPECTRUM_LIST, MzMLWriteState.SPECTRUM)
 
-    member this.WriteSingleRun(runID:string) =
+    member this.WriteSingleRun(runID:string, instrumentRef:string, defaultSourceFileRef:string, sampleRef:string, count:string, spectrumProcessingRef:string) =
         this.EnsureWriteState(MzMLWriteState.RUN)
         writer.WriteStartElement("run")
-        writer.WriteAttributeString("defaultInstrumentConfigurationRef", "not saved")
-        writer.WriteAttributeString("defaultSourceFileRef", "not saved yet")
+        writer.WriteAttributeString("defaultInstrumentConfigurationRef", instrumentRef)
+        writer.WriteAttributeString("defaultSourceFileRef", defaultSourceFileRef)
         writer.WriteAttributeString("id", runID)
-        writer.WriteAttributeString("sampleRef", "not saved")
+        writer.WriteAttributeString("sampleRef", sampleRef)
         this.EnterWriteState(MzMLWriteState.RUN, MzMLWriteState.SPECTRUM_LIST)
-        this.WriteSingleSpectrumList()
+        this.WriteSingleSpectrumList(count, spectrumProcessingRef)
         //writer.WriteEndElement()  
 
     member private this.writeMzIOModel(item:MzIOModel) =
-        this.EnsureWriteState(MzMLWriteState.MzIOModel)
-        writer.WriteStartElement("mzML", "http://psi.hupo.org/ms/mzml")
+        this.EnsureWriteState(MzMLWriteState.INITIAL)
+        this.EnterWriteState(MzMLWriteState.INITIAL, MzMLWriteState.MzIOModel)
+        writer.WriteStartElement("mzML")
+        writer.WriteAttributeString("mzML", "xmlns", null, "http://psi.hupo.org/ms/mzml")
         writer.WriteAttributeString("xmlns", "xsi", null, "http://www.w3.org/2001/XMLSchema-instance")
         writer.WriteAttributeString("xsi", "schemaLocation", null, "http://psi.hupo.org/ms/mzml http://psidev.info/files/ms/mzML/xsd/mzML1.1.0.xsd")
         writer.WriteAttributeString("id", item.Name)
         writer.WriteAttributeString("version", "1.1.0")
+        this.WriteCvList()
         this.WriteFileDescription(item.FileDescription)
         if Seq.length (item.Samples.GetProperties false) <> 0 then
             this.WriteSampleList(item.Samples)
-        //ask about scan settingList
         this.WriteSoftwareList(item.Softwares)
+        if Seq.length (item.FileDescription.SourceFiles.GetProperties false) > 0 then
+            this.WriteScanSettingsList(item)
         this.WriteInstrumentConfigurationList(item.Instruments)
         this.WriteDataProcessingList(item.DataProcessings)
         //writer.WriteEndElement()
         this.EnterWriteState(MzMLWriteState.MzIOModel, MzMLWriteState.RUN)
 
-    member private this.writeIndexedMzIOModel(item:MzIOModel) =
-        this.EnsureWriteState(MzMLWriteState.INITIAL)
-        this.EnterWriteState(MzMLWriteState.INITIAL, MzMLWriteState.MzIOModel)
-        writer.WriteStartElement("indexedmzML", "http://psi.hupo.org/ms/mzml")
-        writer.WriteAttributeString("xmlns", "xsi", null, "http://www.w3.org/2001/XMLSchema-instance")
-        writer.WriteAttributeString("xsi", "schemaLocation", null, "http://psi.hupo.org/ms/mzml http://psidev.info/files/ms/mzML/xsd/mzML1.1.0.xsd")
-        this.writeMzIOModel(item)
+    //member private this.writeIndexedMzIOModel(item:MzIOModel) =
+    //    this.EnsureWriteState(MzMLWriteState.INITIAL)
+    //    this.EnterWriteState(MzMLWriteState.INITIAL, MzMLWriteState.MzIOModel)
+    //    writer.WriteStartElement("indexedmzML")
+    //    writer.WriteAttributeString("indexedmzML", "xmlns", null, "http://psi.hupo.org/ms/mzml")
+    //    writer.WriteAttributeString("xmlns", "xsi", null, "http://www.w3.org/2001/XMLSchema-instance")
+    //    writer.WriteAttributeString("xsi", "schemaLocation", null, "http://psi.hupo.org/ms/mzml http://psidev.info/files/ms/mzML/xsd/mzML1.1.0.xsd")
+    //    this.writeMzIOModel(item)
         //writer.WriteEndElement()
 
     interface IMzIODataWriter with
 
         member this.InsertMass(runID, spectrum: MassSpectrum, peaks: Peak1DArray) =
             this.EnsureWriteState(MzMLWriteState.SPECTRUM)
-            this.WriteSpectrum(spectrum, peaks)
+            this.WriteSpectrum(spectrum, 0, peaks) |> ignore
 
         member this.InsertChrom(runID: string, chromatogram: Chromatogram, peaks: Peak2DArray) =
             this.EnsureWriteState(MzMLWriteState.CHROMATOGRAM)
@@ -1394,12 +1476,13 @@ type MzIOMLDataWriter(path:string) =
 
         member this.SaveModel() =
             this.EnsureWriteState(MzMLWriteState.INITIAL)
-            this.writeIndexedMzIOModel(this.Model)
+            this.writeMzIOModel(this.Model)
+            writer.WriteEndElement()
             writer.WriteEndElement()
             writer.WriteEndElement()
 
         member this.Model =
-            this.EnsureWriteState(MzMLWriteState.INITIAL)
+            //this.EnsureWriteState(MzMLWriteState.INITIAL)
             model
 
     member this.BeginTransaction() =
@@ -1447,19 +1530,20 @@ type MzIOMLDataWriter(path:string) =
         this.InsertMass(runID, spectrum, modifiedP)
 
     /// Starts bulkinsert of mass spectra into a MzLiteSQL database
-    member this.insertMSSpectraBy insertSpectrumF (runID:string) (reader:IMzIODataReader) (compress: BinaryDataCompressionType) (spectra: seq<MassSpectrum>) = 
-        this.writeIndexedMzIOModel(this.Model)
-        this.WriteSingleRun(runID)
+    member this.insertMSSpectraBy insertSpectrumF (model:MzIOModel)(runID:string) (reader:IMzIODataReader) (compress: BinaryDataCompressionType) (spectra: seq<MassSpectrum>) = 
+        this.writeMzIOModel(model)
+        let sourceFileID = ((Seq.head(model.FileDescription.SourceFiles.GetProperties false)).Value :?> SourceFile).ID
+        let instrumentRef = ((Seq.head(model.Runs.GetProperties false)).Value :?> Run).DefaultInstrument.ID
+        let sampleRef = ((Seq.head(model.Runs.GetProperties false)).Value :?> Run).Sample.ID
+        let spectrumProcessingRef = ((Seq.head(model.Runs.GetProperties false)).Value :?> Run).DefaultSpectrumProcessing.ID
+        let count = spectra.Count().ToString()
+        this.WriteSingleRun(runID, instrumentRef, sourceFileID, sampleRef, count, spectrumProcessingRef)
         let bulkInsert spectra = 
             spectra
             |> Seq.iter (insertSpectrumF runID reader compress)
         bulkInsert spectra
         writer.WriteEndElement()
         writer.WriteEndElement()
-        writer.WriteEndElement()
-        //writer.WriteEndElement()
-        //writer.WriteEndElement()
-        //writer.WriteEndElement()
         currentWriteState <- MzMLWriteState.INITIAL
         this.Commit()
         

@@ -235,7 +235,7 @@ type WiffFileReader(dataProvider:AnalystWiffDataProvider, disposed:Boolean, wiff
     static member private GetSpectrum(batch:Batch, sample:MassSpectrometerSample, msExp:MSExperiment, sampleIndex:int, experimentIndex:int, scanIndex:int) =
 
         let mutable wiffSpectrum    = msExp.GetMassSpectrumInfo(scanIndex)
-        let mutable MzIOSpectrum  = new MassSpectrum(WiffFileReader.ToSpectrumID(sampleIndex, experimentIndex, scanIndex))
+        let mutable MzIOSpectrum    = new MassSpectrum(WiffFileReader.ToSpectrumID(sampleIndex, experimentIndex, scanIndex))
 
         // spectrum
 
@@ -559,16 +559,42 @@ type WiffFileReader(dataProvider:AnalystWiffDataProvider, disposed:Boolean, wiff
         let msExperiment = batch.GetSample(sampleIndex).MassSpectrometerSample
         msExperiment.GetTotalIonChromatogram().NumDataPoints
 
-    member this.GetTime(spectrumID:string) =
+    member this.GetTotalTIC(runID:string) =
+        this.ReadMassSpectra(runID)
+        |> Seq.fold (fun start spectrum -> start + this.GetTIC(spectrum.ID)) 0
+
+    member this.GetDwellTime(spectrumID:string) =
         let sampleIndex = WiffFileReader.getSampleIndex(spectrumID)
         use sample = batch.GetSample(sampleIndex).MassSpectrometerSample
         seq
             {
                 for experimentIndex= 0 to sample.ExperimentCount-1 do
                     let mutable msExp = sample.GetMSExperiment(experimentIndex)
-                    for scanIndex = 0 to msExp.Details.NumberOfScans-1 do
-                        yield msExp.GetRTFromExperimentScanIndex(scanIndex)
+                    let dewllTimes =
+                        msExp.Details.MassRangeInfo
+                        |> Seq.map (fun info -> info.DwellTime)
+                    yield dewllTimes
             }
+
+    member this.GetDilutionFactor(spectrumID:string) =
+        let sampleIndex = WiffFileReader.getSampleIndex(spectrumID)
+        use sample = batch.GetSample(sampleIndex).MassSpectrometerSample
+        seq
+            {
+                let mutable msExp = sample.Sample.Details
+                yield msExp.DilutionFactor
+            }
+
+    member this.GetMassRange(spectrumID:string) =
+        let sampleIndex = WiffFileReader.getSampleIndex(spectrumID)
+        use sample = batch.GetSample(sampleIndex).MassSpectrometerSample
+        seq
+            {
+                for experimentIndex= 0 to sample.ExperimentCount-1 do
+                    let mutable msExp = sample.GetMSExperiment(experimentIndex)
+                    yield (msExp.Details.StartMass, msExp.Details.EndMass)
+            }
+        |> Seq.distinct
 
     member this.GetIsolationWindow(spectrumID:string) =
         let sampleIndex = WiffFileReader.getSampleIndex(spectrumID)
@@ -579,4 +605,36 @@ type WiffFileReader(dataProvider:AnalystWiffDataProvider, disposed:Boolean, wiff
                     let mutable msExp = sample.GetMSExperiment(experimentIndex)
                     yield msExp.Details.MassRangeInfo
             }
+        |> Seq.distinctBy(fun item -> item.[0].Name)
+
+    member this.GetCollisionEnergy(spectrumID:string) =
+        let sampleIndex = WiffFileReader.getSampleIndex(spectrumID)
+        use sample = batch.GetSample(sampleIndex).MassSpectrometerSample
+        seq
+            {
+                for experimentIndex= 0 to sample.ExperimentCount-1 do
+                    let mutable msExp = sample.GetMSExperiment(experimentIndex)
+                    for scanIndex = 0 to msExp.Details.NumberOfScans do
+                        yield msExp.GetMassSpectrumInfo(scanIndex).CollisionEnergy
+            }
+
+    static member private getScanTime(massRange:MassRange) =
+        match massRange with
+        | :? FullScanMassRange  -> (massRange :?> FullScanMassRange).ScanTime
+        | _     ->  failwith "No supported type for casting"
+
+    member this.GetScanTime(spectrumID:string) =
+        let sampleIndex = WiffFileReader.getSampleIndex(spectrumID)
+        use sample = batch.GetSample(sampleIndex).MassSpectrometerSample
+        seq
+            {
+                for experimentIndex= 0 to sample.ExperimentCount-1 do
+                    let mutable msExp = sample.GetMSExperiment(experimentIndex)
+                    let scanTimes =
+                        msExp.Details.MassRangeInfo
+                        |> Array.fold (fun start scanTime -> start + WiffFileReader.getScanTime scanTime) 0.
+                    yield scanTimes
+            }
+        |> Seq.sum
+
 
