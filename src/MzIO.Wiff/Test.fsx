@@ -209,149 +209,6 @@ let insertMSSpectraBy insertSpectrumF outFilepath runID (reader:IMzIODataReader)
     trans.Dispose() 
     db.Dispose()
 
-
-let rand = new System.Random()
-
-let swap (a: _[]) x y =
-    let tmp = a.[x]
-    a.[x] <- a.[y]
-    a.[y] <- tmp
-
-// shuffle an array (in-place)
-let shuffle a =
-    Array.iteri (fun i _ -> swap a i (rand.Next(i, Array.length a))) a
-
-#time
-let wiffTestUni     = @"C:\Users\Student\source\repos\wiffTestFiles\WiffFiles\20171129 FW LWagg001.wiff"
-let mzMLOfWiffUni   = @"C:\Users\Student\source\repos\wiffTestFiles\WiffFiles\20171129 FW LWagg001.mzML"
-
-let bafTestFile     = @"C:\Users\Student\source\repos\wiffTestFiles\Bruker\170922_4597.d\analysis.baf"
-let bafMzMLFile     = @"C:\Users\Student\source\repos\wiffTestFiles\Bruker\170922_4597.mzML"
-
-let thermoUniPath   = @"C:\Users\Student\source\repos\wiffTestFiles\Thermo\data02.RAW"
-let termoMzML       = @"C:\Users\Student\source\repos\wiffTestFiles\Thermo\data02.mzML"
-
-
-let wiffReader          = new WiffFileReader(wiffTestPaeddetor, licenseHome)
-//let wiffMzML            = new MzMLReader(mzMLOfWiffUni)
-
-//let bafReader           = new BafFileReader(bafTestFile)
-//let bafMzMLReader       = new MzMLReader(bafMzMLFile)
-
-//let thermoReader        = new ThermoRawFileReader(thermoUniPath)
-//let thermoMzMLReader    = new MzMLReader(termoMzML)
-
-let spectra =
-    wiffReader.Model.Runs.GetProperties false
-    |> Seq.collect (fun run -> wiffReader.ReadMassSpectra (run.Value :?> Run).ID)
-
-//spectra
-//|> Seq.length
-
-//let mzIOSQLReader = new MzIOSQL(wiffTestUni + ".mzIO")
-
-//spectra
-//|> Seq.length
-
-//let seqPeaks =
-//    spectra
-//    |> Seq.map (fun spectrum -> wiffReader.ReadSpectrumPeaks(spectrum.ID))
-
-//seqPeaks
-//|> Seq.length
-
-//let randomSpectra spectra=
-//    let tmp = Array.copy spectra
-//    shuffle tmp
-//    tmp
-
-//let readRandomSpectra =
-//    randomSpectra
-//    |> Seq.map (fun item -> bafReader.ReadMassSpectrum(item.ID))
-
-//readRandomSpectra
-//|> Seq.length
-
-//let randomPeaks =
-//    randomSpectra
-//    |> Seq.map (fun spectrum -> wiffReader.ReadSpectrumPeaks(spectrum.ID))
-
-//randomPeaks
-//|> Seq.length
-
-
-//let spectraMzML =
-//    wiffReader.Model.Runs.GetProperties false
-//    |> Seq.collect (fun item -> wiffReader.ReadMassSpectra (MzIOJson.FromJson<Run>(item.Value.ToString())).ID)
-//    |> Array.ofSeq
-
-//spectraMzML
-//|> Seq.length
-
-//let seqPeaksMzML =
-//    wiffReader.Model.Runs.GetProperties false
-//    |> Seq.collect (fun item -> wiffReader.ReadAllSpectrumPeaks (MzIOJson.FromJson<Run>(item.Value.ToString())).ID)
-
-//seqPeaksMzML
-//|> Seq.length
-
-//let randomSpectraMzML =
-//    let tmp = Array.copy spectraMzML
-//    shuffle tmp
-//    tmp
-
-//let randomPeaksMzML =
-//    randomSpectraMzML
-//    |> Seq.map (fun item -> wiffReader.ReadSpectrumPeaks(item.ID))
-
-//randomPeaksMzML
-//|> Seq.length
-
-//let rtIndexEntry = wiffReader.BuildRtIndex("sample=0")
-
-//let rtProfile = wiffReader.RtProfile (rtIndexEntry, (new MzIO.Processing.RangeQuery(1., 300., 600.)), (new MzIO.Processing.RangeQuery(1., 300., 600.)))
-
-//insertMSSpectraBy insertMSSpectrum (bafTestFile + "NoCompression.mzIO") "run_1" bafReader "NoCompression" spectra
-
-//insertMSSpectraBy insertMSSpectrum (bafTestFile + "ZLib.mzIO") "run_1" bafReader "ZLib" spectra
-
-//insertMSSpectraBy insertMSSpectrum (bafTestFile + "NumPress.mzIO") "run_1" bafReader "NumPress" spectra
-
-//insertMSSpectraBy insertMSSpectrum (bafTestFile + "NumPressZLib.mzIO") "run_1" bafReader "NumPressZLib" spectra
-
-//let mzSQLReader = new MzIOSQL(bafTestFile + "NoCompression.mzIO")
-
-//wiffReader.Model.Runs.GetProperties false 
-//|> Seq.head
-//|> fun item -> item.Value :?> Run
-
-//let sqlSpectra =
-//    mzSQLReader.BeginTransaction() |> ignore
-//    mzSQLReader.ReadMassSpectra ("run_1")
-
-//sqlSpectra
-//|> Seq.length
-
-//let randomBafIDs = 
-//    randomSpectra (sqlSpectra |> Array.ofSeq)
-//    |> Array.map (fun spectrum -> spectrum.ID)
-
-
-//let randomBafSpectra =
-//    randomBafIDs
-//    |> Seq.map (fun id -> mzSQLReader.ReadMassSpectrum(id))
-
-//randomBafSpectra
-//|> Seq.length
-
-//let bafPeaks =
-//    sqlSpectra
-//    |> Seq.map (fun spectrum -> mzSQLReader.ReadSpectrumPeaks spectrum.ID)
-
-//let randomBafPeaks =
-//    randomBafSpectra
-//    |> Seq.map (fun spectrum -> mzSQLReader.ReadSpectrumPeaks spectrum.ID)
-
 let prepareSqlSelectMassSpectra (cn:SQLiteConnection) (tr:SQLiteTransaction) =
     let queryString = "SELECT Description FROM Spectrum WHERE RunID = @runID"
     let cmd = new SQLiteCommand(queryString, cn, tr)
@@ -1038,19 +895,19 @@ type MzSQL(path) =
 //insertMSSpectraBy insertMSSpectrum (wiffTestPaeddetor + ".mzIOSQL") ("sample_0") wiffReader "NoCompression" (spectra |> Seq.take 10000)
 //mzSQL.insertMSSpectraBy(mzSQL.insertMSSpectrum) ("sample_0") wiffReader BinaryDataCompressionType.NoCompression (spectra |> Seq.take 10000)
 
-let mzMLTiny = "D:/Users/Patrick/Desktop/BioInformatik/MzLiteTestFiles/MzMLTestFiles/tiny.pwiz.1.1.txt"
-let xmlTestPath = "D:\Users\Patrick\Desktop\BioInformatik\MzLiteTestFiles\MzMLTestFiles\Test.xml"
+//let mzMLTiny = "D:/Users/Patrick/Desktop/BioInformatik/MzLiteTestFiles/MzMLTestFiles/tiny.pwiz.1.1.txt"
+//let xmlTestPath = "D:\Users\Patrick\Desktop\BioInformatik\MzLiteTestFiles\MzMLTestFiles\Test.xml"
 
-let mzMLReader = new MzMLReader(mzMLTiny)
-let mzMLWriter = new MzIOMLDataWriter(xmlTestPath) 
+//let mzMLReader = new MzMLReader(mzMLTiny)
+//let mzMLWriter = new MzIOMLDataWriter(xmlTestPath) 
 
-let run = (Seq.head (mzMLReader.Model.Runs.GetProperties false)).Value :?> Run
+//let run = (Seq.head (mzMLReader.Model.Runs.GetProperties false)).Value :?> Run
 
-let mzMLSpectra = mzMLReader.ReadMassSpectra(run.ID)        |> List.ofSeq
-let mzMLpeaks   = mzMLReader.ReadAllSpectrumPeaks(run.ID)   |> List.ofSeq
+//let mzMLSpectra = mzMLReader.ReadMassSpectra(run.ID)        |> List.ofSeq
+//let mzMLpeaks   = mzMLReader.ReadAllSpectrumPeaks(run.ID)   |> List.ofSeq
 
-mzMLWriter.WriteWholedMzML(mzMLReader.Model, mzMLSpectra, mzMLpeaks)
-mzMLWriter.insertMSSpectraBy(mzMLWriter.insertMSSpectrum) ("sample_0") mzMLReader BinaryDataCompressionType.NoCompression (mzMLSpectra)
+//mzMLWriter.WriteWholedMzML(mzMLReader.Model, mzMLSpectra, mzMLpeaks)
+//mzMLWriter.insertMSSpectraBy(mzMLWriter.insertMSSpectrum) ("sample_0") mzMLReader BinaryDataCompressionType.NoCompression (mzMLSpectra)
 
 //mzMLWriter.Model
 //mzMLWriter.UpdateModel(wiffReader.Model)
@@ -1071,3 +928,86 @@ mzMLWriter.insertMSSpectraBy(mzMLWriter.insertMSSpectrum) ("sample_0") mzMLReade
 //    printfn "%A" i
 
 //1+1
+
+let rand = new System.Random()
+
+let swap (a: _[]) x y =
+    let tmp = a.[x]
+    a.[x] <- a.[y]
+    a.[y] <- tmp
+
+// shuffle an array (in-place)
+let shuffle a =
+    Array.iteri (fun i _ -> swap a i (rand.Next(i, Array.length a))) a
+
+#time
+let wiffTestUni     = @"C:\Users\Student\source\repos\wiffTestFiles\WiffFiles\20171129 FW LWagg001.wiff"
+let mzMLOfWiffUni   = @"C:\Users\Student\source\repos\wiffTestFiles\WiffFiles\20171129 FW LWagg001.mzML"
+
+let bafTestFile     = @"C:\Users\Student\source\repos\wiffTestFiles\Bruker\170922_4597.d\analysis.baf"
+let bafMzMLFile     = @"C:\Users\Student\source\repos\wiffTestFiles\Bruker\170922_4597.mzML"
+
+let thermoUniPath   = @"C:\Users\Student\source\repos\wiffTestFiles\Thermo\data02.RAW"
+let termoMzML       = @"C:\Users\Student\source\repos\wiffTestFiles\Thermo\data02.mzML"
+
+
+let wiffReader          = new WiffFileReader(wiffTestPaeddetor, licenseHome)
+//let wiffMzML            = new MzMLReader(mzMLOfWiffUni)
+
+//let bafReader           = new BafFileReader(bafTestFile)
+//let bafMzMLReader       = new MzMLReader(bafMzMLFile)
+
+//let thermoReader        = new ThermoRawFileReader(thermoUniPath)
+//let thermoMzMLReader    = new MzMLReader(termoMzML)
+
+let spectra =
+    wiffReader.Model.Runs.GetProperties false
+    |> Seq.collect (fun run -> wiffReader.ReadMassSpectra (run.Value :?> Run).ID)
+
+//spectra
+//|> Seq.length
+
+//let rtIndexEntry = wiffReader.BuildRtIndex("sample=0")
+
+//let rtProfile = wiffReader.RtProfile (rtIndexEntry, (new MzIO.Processing.RangeQuery(1., 300., 600.)), (new MzIO.Processing.RangeQuery(1., 300., 600.)))
+
+//insertMSSpectraBy insertMSSpectrum (bafTestFile + "NoCompression.mzIO") "run_1" bafReader "NoCompression" spectra
+
+//insertMSSpectraBy insertMSSpectrum (bafTestFile + "ZLib.mzIO") "run_1" bafReader "ZLib" spectra
+
+//insertMSSpectraBy insertMSSpectrum (bafTestFile + "NumPress.mzIO") "run_1" bafReader "NumPress" spectra
+
+//insertMSSpectraBy insertMSSpectrum (bafTestFile + "NumPressZLib.mzIO") "run_1" bafReader "NumPressZLib" spectra
+
+//let mzSQLReader = new MzIOSQL(bafTestFile + "NoCompression.mzIO")
+
+//wiffReader.Model.Runs.GetProperties false 
+//|> Seq.head
+//|> fun item -> item.Value :?> Run
+
+//let sqlSpectra =
+//    mzSQLReader.BeginTransaction() |> ignore
+//    mzSQLReader.ReadMassSpectra ("run_1")
+
+//sqlSpectra
+//|> Seq.length
+
+//let randomBafIDs = 
+//    randomSpectra (sqlSpectra |> Array.ofSeq)
+//    |> Array.map (fun spectrum -> spectrum.ID)
+
+
+//let randomBafSpectra =
+//    randomBafIDs
+//    |> Seq.map (fun id -> mzSQLReader.ReadMassSpectrum(id))
+
+//randomBafSpectra
+//|> Seq.length
+
+//let bafPeaks =
+//    sqlSpectra
+//    |> Seq.map (fun spectrum -> mzSQLReader.ReadSpectrumPeaks spectrum.ID)
+
+//let randomBafPeaks =
+//    randomBafSpectra
+//    |> Seq.map (fun spectrum -> mzSQLReader.ReadSpectrumPeaks spectrum.ID)
