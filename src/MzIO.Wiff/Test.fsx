@@ -405,6 +405,7 @@ type MzSQL(path) =
             let tmp = new MzIOModel(Path.GetFileNameWithoutExtension(sqlitePath))
             insertModel tmp
             tr.Commit()
+            tr <- cn.BeginTransaction()
             tmp
 
     member this.Commit() = 
@@ -494,6 +495,7 @@ type MzSQL(path) =
         selectModel
 
     static member private prepareUpdateRunIDOfMzIOModel(cn:SQLiteConnection, tr:byref<SQLiteTransaction>) =
+        
         //let jsonModel = MzIOJson.ToJson(model)
         let queryString = "UPDATE Model SET Content = @model WHERE Lock = 0"
         let cmd = new SQLiteCommand(queryString, cn, tr)
@@ -887,77 +889,10 @@ type MzSQL(path) =
         bulkInsert spectra
         this.Commit()
         this.Dispose()
+        this.Close()
 
 
 #time
-let wiffTestUni     = @"C:\Users\Student\source\repos\wiffTestFiles\WiffFiles\20171129 FW LWagg001.wiff"
-
-let mzMLOfWiffUni   = @"C:\Users\Student\source\repos\wiffTestFiles\WiffFiles\20171129 FW LWagg001.mzML"
-
-let bafTestFile     = @"C:\Users\Student\source\repos\wiffTestFiles\Bruker\170922_4597.d\analysis.baf"
-let bafMzMLFile     = @"C:\Users\Student\source\repos\wiffTestFiles\Bruker\170922_4597.mzML"
-
-let thermoUniPath   = @"C:\Users\Student\source\repos\wiffTestFiles\Thermo\data02.RAW"
-let termoMzML       = @"C:\Users\Student\source\repos\wiffTestFiles\Thermo\data02.mzML"
-
-
-let wiffReader          = new WiffFileReader(wiffTestUni, licensePath)
-//let wiffMzML            = new MzMLReader(mzMLOfWiffUni)
-
-//let bafReader           = new BafFileReader(bafTestFile)
-//let bafMzMLReader       = new MzMLReader(bafMzMLFile)
-
-//let thermoReader        = new ThermoRawFileReader(thermoUniPath)
-//let thermoMzMLReader    = new MzMLReader(termoMzML)
-
-//let spectra =
-//    wiffReader.Model.Runs.GetProperties false
-//    |> Seq.collect (fun run -> wiffReader.ReadMassSpectra (run.Value :?> Run).ID)
-
-//let massRange = 
-//    for i in wiffReader.GetMassRange("sample=0 experiment=0 scan=0") do
-//        printfn "%A" i
-        
-//wiffReader.Model.Runs.GetProperties false
-//|> Seq.map (fun run -> wiffReader.GetTotalTIC (run.Value :?> Run).ID)
-
-//let scanTime = wiffReader.GetScanTime("sample=0 experiment=0 scan=40")
-
-
-let mzMLTiny = "D:/Users/Patrick/Desktop/BioInformatik/MzLiteTestFiles/MzMLTestFiles/tiny.pwiz.1.1.txt"
-let xmlTestPath = "D:\Users\Patrick\Desktop\BioInformatik\MzLiteTestFiles\MzMLTestFiles\Test.xml"
-
-let mzMLReader = new MzMLReader(mzMLTiny)
-let mzMLWriter = new MzIOMLDataWriter(xmlTestPath) 
-
-let run = (Seq.head (mzMLReader.Model.Runs.GetProperties false)).Value :?> Run
-
-//let mzMLSpectra = mzMLReader.ReadMassSpectra(run.ID)        |> List.ofSeq
-//let mzMLpeaks   = mzMLReader.ReadAllSpectrumPeaks(run.ID)   |> List.ofSeq
-
-mzMLWriter.WriteWholedMzML(mzMLReader.Model, mzMLSpectra, mzMLpeaks)
-mzMLWriter.insertMSSpectraBy(mzMLWriter.insertMSSpectrum) ("sample_0") mzMLReader BinaryDataCompressionType.NoCompression (mzMLSpectra)
-
-//mzMLWriter.Model
-//mzMLWriter.UpdateModel(wiffReader.Model)
-//mzMLWriter.SaveModel()
-//mzMLWriter.insertMSSpectraBy(mzMLWriter.insertMSSpectrum) ("sample_0") wiffReader BinaryDataCompressionType.NoCompression (spectra |> Seq.take 100)
-
-
-//let test =
-//    spectra
-//    |> Seq.take 2
-//    |> Seq.collect (fun spectrum -> wiffReader.GetIsolationWindow(spectrum.ID))
-//    |> Seq.concat
-//    |> List.ofSeq
-
-//test
-
-//for i in test do
-//    printfn "%A" i
-
-//1+1
-
 let rand = new System.Random()
 
 let swap (a: _[]) x y =
@@ -969,36 +904,60 @@ let swap (a: _[]) x y =
 let shuffle a =
     Array.iteri (fun i _ -> swap a i (rand.Next(i, Array.length a))) a
 
-#time
+
 let wiffTestUni     = @"C:\Users\Student\source\repos\wiffTestFiles\WiffFiles\20171129 FW LWagg001.wiff"
+let wiffTestHome    = @"D:\Users\Patrick\Desktop\BioInformatik\MzLiteTestFiles\WiffTestFiles\20180301_MS_JT88mutID122.wiff"
 let mzMLOfWiffUni   = @"C:\Users\Student\source\repos\wiffTestFiles\WiffFiles\20171129 FW LWagg001.mzML"
 
-let bafTestFile     = @"C:\Users\Student\source\repos\wiffTestFiles\Bruker\170922_4597.d\analysis.baf"
+let bafTestUni      = @"C:\Users\Student\source\repos\wiffTestFiles\Bruker\170922_4597.d\analysis.baf"
+let bafTestHome     = @"D:\Users\Patrick\Desktop\BioInformatik\MzLiteTestFiles\BafTestFiles\analysis.baf"
 let bafMzMLFile     = @"C:\Users\Student\source\repos\wiffTestFiles\Bruker\170922_4597.mzML"
 
 let thermoUniPath   = @"C:\Users\Student\source\repos\wiffTestFiles\Thermo\data02.RAW"
 let termoMzML       = @"C:\Users\Student\source\repos\wiffTestFiles\Thermo\data02.mzML"
 
 
-let wiffReader          = new WiffFileReader(wiffTestPaeddetor, licenseHome)
+//let wiffReader          = new WiffFileReader(wiffTestHome, licenseHome)
 //let wiffMzML            = new MzMLReader(mzMLOfWiffUni)
 
-//let bafReader           = new BafFileReader(bafTestFile)
+let bafReader           = new BafFileReader(bafTestHome)
 //let bafMzMLReader       = new MzMLReader(bafMzMLFile)
 
 //let thermoReader        = new ThermoRawFileReader(thermoUniPath)
 //let thermoMzMLReader    = new MzMLReader(termoMzML)
 
-let spectra =
-    wiffReader.Model.Runs.GetProperties false
-    |> Seq.collect (fun run -> wiffReader.ReadMassSpectra (run.Value :?> Run).ID)
-
-//spectra
-//|> Seq.length
+let getSpectras (reader:#IMzIODataReader) =
+    reader.Model.Runs.GetProperties false
+    |> Seq.collect (fun run -> reader.ReadMassSpectra (run.Value :?> Run).ID)
+    |> Seq.take 10
 
 //let rtIndexEntry = wiffReader.BuildRtIndex("sample=0")
 
 //let rtProfile = wiffReader.RtProfile (rtIndexEntry, (new MzIO.Processing.RangeQuery(1., 300., 600.)), (new MzIO.Processing.RangeQuery(1., 300., 600.)))
+
+let mzIOSQL = new MzSQL(bafTestHome + "NoCompression.mzIO")
+
+let spectra = getSpectras bafReader
+
+//mzIOSQL.insertMSSpectraBy (mzIOSQL.insertMSSpectrum) "run_1" bafReader BinaryDataCompressionType.NoCompression spectra
+
+spectra
+|> Seq.length
+
+let peaks = bafReader.ReadSpectrumPeaks("1")
+
+peaks.Peaks
+|> Seq.length
+
+peaks.Peaks
+|> Seq.filter (fun item -> item.Intensity<>0.)
+|> Seq.length
+
+let peaks1 = mzIOSQL.ReadSpectrumPeaks("1")
+peaks1.Peaks
+
+//peaks1.Peaks
+//|> Seq.length
 
 //insertMSSpectraBy insertMSSpectrum (bafTestFile + "NoCompression.mzIO") "run_1" bafReader "NoCompression" spectra
 

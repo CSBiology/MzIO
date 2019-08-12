@@ -105,11 +105,9 @@ type ObservableModelItemCollection<'T when 'T :> ModelItem> [<JsonConstructor>] 
     member this.GetKeyForItem(item:'T) =
         item.ID
 
-type ObservableCollection<'T when 'T :> DynamicObj> [<JsonConstructor>] internal (dict:Dictionary<string, obj>) =
+type ObservableCollection<'T when 'T :> DynamicObj> [<JsonConstructor>] () =
 
-    inherit DynamicObj(dict)
-
-    new() = new ObservableCollection<'T>(new Dictionary<string, obj>())
+    inherit DynamicObj()
 
     member this.Count() =
         this.GetProperties false

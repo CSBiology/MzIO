@@ -385,6 +385,7 @@ module Linq2BafSql =
                                 
                         | false -> yield! acc
                     }
+                |> List.ofSeq
             fun (fk:Nullable<UInt64>) ->
             cmd.Parameters.["@fk"].Value <- fk
             use reader = cmd.ExecuteReader()
@@ -418,6 +419,7 @@ module Linq2BafSql =
                             yield! readerloop reader acc
                         | false -> yield! acc
                     }
+                |> List.ofSeq
             fun (fk:UInt64) ->
             cmd.Parameters.["@fk"].Value <- fk
             use reader = cmd.ExecuteReader()

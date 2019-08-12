@@ -16,7 +16,8 @@ type BinaryDataEncoder(?initialBufferSize: int) =
 
     interface IDisposable with
         member this.Dispose() =
-            printfn "Disposed"
+            //printfn "Disposed"
+            ()
 
     //member this.InitialBufferSize = 1048576
 

@@ -48,11 +48,10 @@ type DetectorComponent [<JsonConstructor>] () =
 /// </summary>
 [<Sealed>]
 [<JsonObject(ItemTypeNameHandling = TypeNameHandling.All)>]
-type ComponentList [<JsonConstructor>] internal (dict:Dictionary<string, obj>) =
+type ComponentList [<JsonConstructor>] () =
 
-    inherit MzIO.Model.ObservableCollection<Component>(dict)
+    inherit MzIO.Model.ObservableCollection<Component>()
 
-    new() = new ComponentList(new Dictionary<string, obj>())
 
 /// <summary>
 /// Expansible description of the hardware configuration of a mass spectrometer.

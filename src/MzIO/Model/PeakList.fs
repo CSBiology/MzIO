@@ -59,12 +59,10 @@ type SelectedIon() =
     inherit DynamicObj()
 
 [<Sealed>]
-type SelectedIonList [<JsonConstructor>] internal (dict:Dictionary<string, obj>) =
+type SelectedIonList [<JsonConstructor>] () =
 
-    inherit MzIO.Model.ObservableCollection<SelectedIon>(dict)
+    inherit MzIO.Model.ObservableCollection<SelectedIon>()
 
-    new() = new SelectedIonList(new Dictionary<string, obj>())
-    //is this the correct way for "internal SelectedIonList() { }"?
     //member internal this.SelectedIonList = SelectedIonList ()
 
 
@@ -100,11 +98,10 @@ type Precursor (spectrumReference:SpectrumReference, isolationWindow:IsolationWi
         and set(value) = spectrumReference' <- value
 
 [<Sealed>]
-type PrecursorList [<JsonConstructor>] internal (dict:Dictionary<string, obj>) =
+type PrecursorList [<JsonConstructor>] () =
 
-    inherit MzIO.Model.ObservableCollection<Precursor>(dict)
+    inherit MzIO.Model.ObservableCollection<Precursor>()
 
-    new() = new PrecursorList(new Dictionary<string, obj>())
     //member internal this.PrecursorList = PrecursorList ()
 
 [<Sealed>]
@@ -113,12 +110,10 @@ type ScanWindow() =
     inherit DynamicObj()
 
 [<Sealed>]
-type ScanWindowList [<JsonConstructor>] internal (dict:Dictionary<string, obj>) =
+type ScanWindowList [<JsonConstructor>] () =
 
-    inherit MzIO.Model.ObservableCollection<ScanWindow>(dict)
+    inherit MzIO.Model.ObservableCollection<ScanWindow>()
 
-    new() = new ScanWindowList(new Dictionary<string, obj>())
-    //is this the correct way for "internal ScanWindowList() { }"?
     //member internal this.ScanWindowList = ScanWindowList ()
 
 [<Sealed>]
@@ -148,14 +143,13 @@ type Scan [<JsonConstructor>] (spectrumReference: SpectrumReference, scanWindows
         and private set(value) = spectrumReference' <- value
 
 [<Sealed>]
-type ScanList [<JsonConstructor>] internal (dict:Dictionary<string, obj>) =
+type ScanList [<JsonConstructor>] () =
 
-    inherit MzIO.Model.ObservableCollection<Scan>(dict)
+    inherit MzIO.Model.ObservableCollection<Scan>()
 
     //[<JsonProperty>]
     //let property = dict
 
-    new() = new ScanList(new Dictionary<string, obj>())
     //member internal this.PrecursorList = ScanList ()
 
 [<Sealed>]
@@ -170,11 +164,10 @@ type Product(isolationWindow) =
     override this.IsolationWindow = isolationWindow
 
 [<Sealed>]
-type ProductList [<JsonConstructor>] internal (dict:Dictionary<string, obj>) =
+type ProductList [<JsonConstructor>] () =
 
-    inherit MzIO.Model.ObservableCollection<Product>(dict)
+    inherit MzIO.Model.ObservableCollection<Product>()
 
-    new() = new ProductList(new Dictionary<string, obj>())
     //member internal this.ProductList = ProductList ()
 
 [<Sealed>]

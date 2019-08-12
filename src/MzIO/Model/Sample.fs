@@ -17,11 +17,9 @@ type SampleTreatment() =
     inherit DynamicObj()
 
 [<Sealed>]
-type SampleTreatmentList [<JsonConstructor>] internal (dict:Dictionary<string, obj>) =
+type SampleTreatmentList [<JsonConstructor>] () =
 
-    inherit ObservableCollection<SampleTreatment>(dict)
-
-    new() = new SampleTreatmentList(new Dictionary<string, obj>())
+    inherit ObservableCollection<SampleTreatment>()
 
 /// <summary>
 /// Expansible description of a sample preparation.
@@ -33,11 +31,9 @@ type SamplePreparation() =
     inherit DynamicObj()
 
 [<Sealed>]
-type SamplePreparationList [<JsonConstructor>] internal (dict:Dictionary<string, obj>) =
+type SamplePreparationList [<JsonConstructor>] () =
 
-    inherit ObservableCollection<SamplePreparation>(dict)
-
-    new() = new SamplePreparationList(new Dictionary<string, obj>())
+    inherit ObservableCollection<SamplePreparation>()
 
 /// <summary>
 /// Expansible description of a sample.

@@ -253,7 +253,6 @@ type MzIOJson =
             let tmp = item.Value :?> JObject
             let scan = JsonConvert.DeserializeObject<Scan>(tmp.ToString())
             MzIOJson.deSerializeParams(scan)
-            printfn "%s" item.Key
             scans.SetValue(item.Key, scan)
                     )
         scans

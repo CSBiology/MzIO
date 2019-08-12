@@ -313,7 +313,7 @@ type BafFileReader(bafFilePath:string) =
         try
             
             let id = UInt64.Parse(spectrumID)
-            this.ReadSpectrumPeaks(getBafSqlSpectrum, id, getCentroids)
+            this.ReadSpectrumPeaks(id, getCentroids)
 
         with
             | :? MzIOIOException as ex ->
@@ -368,7 +368,7 @@ type BafFileReader(bafFilePath:string) =
             try
                 let id = UInt64.Parse(spectrumID)
 
-                this.ReadSpectrumPeaks(getBafSqlSpectrum, id, false)
+                this.ReadSpectrumPeaks(id, false)
 
             with
                 | :? MzIOIOException as ex ->
@@ -431,7 +431,7 @@ type BafFileReader(bafFilePath:string) =
                     raise (new MzIOIOException(ex.Message, ex))
 
     member private this.ReadMassSpectrum(getBafSqlSpectrum:Nullable<UInt64>->BafSqlSpectrum, getBafSqlAcquisitionKey:Nullable<UInt64>->BafSqlAcquisitionKey,
-                                         getBafSqlSteps:Nullable<UInt64>->seq<BafSqlStep>, getBafPerSpecVariables:UInt64->seq<BafSqlPerSpectrumVariable>,
+                                         getBafSqlSteps:Nullable<UInt64>->list<BafSqlStep>, getBafPerSpecVariables:UInt64->list<BafSqlPerSpectrumVariable>,
                                          spectrumId:UInt64) =
 
         let bafSpec =
@@ -535,15 +535,15 @@ type BafFileReader(bafFilePath:string) =
                 |> Seq.iter (fun ion ->
                                 if ion.Mass.HasValue then
                                     let selectedIon = new SelectedIon()
-                                    precursor.SelectedIons.Add(Guid.NewGuid().ToString(), selectedIon)
-                                    selectedIon.SetSelectedIonMz(ion.Mass.Value) |> ignore
-                                    selectedIon.SetValue("Number", ion.Number.Value)
-                                    selectedIon.SetUserParam("IsolationType", ion.IsolationType.Value)  |> ignore
-                                    selectedIon.SetUserParam("ReactionType", ion.ReactionType.Value)    |> ignore
-                                    selectedIon.SetUserParam("MsLevel", ion.MsLevel.Value)              |> ignore
+                                    selectedIon.SetSelectedIonMz(ion.Mass.Value)                                |> ignore
+                                    selectedIon.SetValue("Number", int32 ion.Number.Value)                      |> ignore
+                                    selectedIon.SetUserParam("IsolationType", int32 ion.IsolationType.Value)    |> ignore
+                                    selectedIon.SetUserParam("ReactionType", int32 ion.ReactionType.Value)      |> ignore
+                                    selectedIon.SetUserParam("MsLevel", int32 ion.MsLevel.Value)                |> ignore
+                                    precursor.SelectedIons.Add(Guid.NewGuid().ToString(), selectedIon)          |> ignore
 
                                     if charge.IsSome then
-                                        selectedIon.SetChargeState(charge.Value) |> ignore
+                                        selectedIon.SetChargeState(charge.Value)    |> ignore
                                     else
                                         ()
                             ) |> ignore
@@ -558,19 +558,15 @@ type BafFileReader(bafFilePath:string) =
         else ()
         ms
 
-    member this.ReadSpectrumPeaks(getBafSqlSpectrum:Nullable<UInt64>->BafSqlSpectrum, spectrumId:UInt64, getCentroids:bool) =
+    member this.ReadSpectrumPeaks(spectrumId:UInt64, getCentroids:bool) =
 
         if not (cn.State = ConnectionState.Open) then cn.Open()
-
-        let getBafSqlSpectrum (spectrumId:Nullable<UInt64>) =
-
-            getBafSqlSpectrum spectrumId
 
         let bafSpec =
             //fst (Seq.head ((linq2BafSql.GetBafSqlSpectrum(this.linq2BafSql.Core, Nullable(spectrumId)))))
             getBafSqlSpectrum(Nullable(spectrumId))
 
-        let pa = new Peak1DArray(BinaryDataCompressionType.NoCompression, BinaryDataType.Float32, BinaryDataType.Float32)
+        let pa = new Peak1DArray(BinaryDataCompressionType.NoCompression, BinaryDataType.Float64, BinaryDataType.Float64)
 
         let mutable masses      = Array.zeroCreate<float> 0
         let mutable intensities = Array.zeroCreate<UInt32> 0
@@ -581,8 +577,8 @@ type BafFileReader(bafFilePath:string) =
 
         else
             if getCentroids = false && bafSpec.ProfileMzId.HasValue && bafSpec.ProfileIntensityId.HasValue then
-                masses      <- Baf2SqlWrapper.GetBafDoubleArray(baf2SqlHandle, bafSpec.ProfileMzId.Value);
-                intensities <- Baf2SqlWrapper.GetBafUInt32Array(baf2SqlHandle, bafSpec.ProfileIntensityId.Value);
+                masses      <- Baf2SqlWrapper.GetBafDoubleArray(baf2SqlHandle, bafSpec.ProfileMzId.Value)
+                intensities <- Baf2SqlWrapper.GetBafUInt32Array(baf2SqlHandle, bafSpec.ProfileIntensityId.Value)
 
             else
                 masses      <- Array.zeroCreate<float> 0
