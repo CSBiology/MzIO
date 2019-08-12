@@ -889,25 +889,54 @@ type MzSQL(path) =
         this.Dispose()
 
 
-//let mzIOSQL = new MzIOSQL(wiffTestPaeddetor + ".mzIOSQL")
-//let mzSQL   = new MzSQL(wiffTestPaeddetor + ".mzSQL")
+#time
+let wiffTestUni     = @"C:\Users\Student\source\repos\wiffTestFiles\WiffFiles\20171129 FW LWagg001.wiff"
 
-//insertMSSpectraBy insertMSSpectrum (wiffTestPaeddetor + ".mzIOSQL") ("sample_0") wiffReader "NoCompression" (spectra |> Seq.take 10000)
-//mzSQL.insertMSSpectraBy(mzSQL.insertMSSpectrum) ("sample_0") wiffReader BinaryDataCompressionType.NoCompression (spectra |> Seq.take 10000)
+let mzMLOfWiffUni   = @"C:\Users\Student\source\repos\wiffTestFiles\WiffFiles\20171129 FW LWagg001.mzML"
 
-//let mzMLTiny = "D:/Users/Patrick/Desktop/BioInformatik/MzLiteTestFiles/MzMLTestFiles/tiny.pwiz.1.1.txt"
-//let xmlTestPath = "D:\Users\Patrick\Desktop\BioInformatik\MzLiteTestFiles\MzMLTestFiles\Test.xml"
+let bafTestFile     = @"C:\Users\Student\source\repos\wiffTestFiles\Bruker\170922_4597.d\analysis.baf"
+let bafMzMLFile     = @"C:\Users\Student\source\repos\wiffTestFiles\Bruker\170922_4597.mzML"
 
-//let mzMLReader = new MzMLReader(mzMLTiny)
-//let mzMLWriter = new MzIOMLDataWriter(xmlTestPath) 
+let thermoUniPath   = @"C:\Users\Student\source\repos\wiffTestFiles\Thermo\data02.RAW"
+let termoMzML       = @"C:\Users\Student\source\repos\wiffTestFiles\Thermo\data02.mzML"
 
-//let run = (Seq.head (mzMLReader.Model.Runs.GetProperties false)).Value :?> Run
+
+let wiffReader          = new WiffFileReader(wiffTestUni, licensePath)
+//let wiffMzML            = new MzMLReader(mzMLOfWiffUni)
+
+//let bafReader           = new BafFileReader(bafTestFile)
+//let bafMzMLReader       = new MzMLReader(bafMzMLFile)
+
+//let thermoReader        = new ThermoRawFileReader(thermoUniPath)
+//let thermoMzMLReader    = new MzMLReader(termoMzML)
+
+//let spectra =
+//    wiffReader.Model.Runs.GetProperties false
+//    |> Seq.collect (fun run -> wiffReader.ReadMassSpectra (run.Value :?> Run).ID)
+
+//let massRange = 
+//    for i in wiffReader.GetMassRange("sample=0 experiment=0 scan=0") do
+//        printfn "%A" i
+        
+//wiffReader.Model.Runs.GetProperties false
+//|> Seq.map (fun run -> wiffReader.GetTotalTIC (run.Value :?> Run).ID)
+
+//let scanTime = wiffReader.GetScanTime("sample=0 experiment=0 scan=40")
+
+
+let mzMLTiny = "D:/Users/Patrick/Desktop/BioInformatik/MzLiteTestFiles/MzMLTestFiles/tiny.pwiz.1.1.txt"
+let xmlTestPath = "D:\Users\Patrick\Desktop\BioInformatik\MzLiteTestFiles\MzMLTestFiles\Test.xml"
+
+let mzMLReader = new MzMLReader(mzMLTiny)
+let mzMLWriter = new MzIOMLDataWriter(xmlTestPath) 
+
+let run = (Seq.head (mzMLReader.Model.Runs.GetProperties false)).Value :?> Run
 
 //let mzMLSpectra = mzMLReader.ReadMassSpectra(run.ID)        |> List.ofSeq
 //let mzMLpeaks   = mzMLReader.ReadAllSpectrumPeaks(run.ID)   |> List.ofSeq
 
-//mzMLWriter.WriteWholedMzML(mzMLReader.Model, mzMLSpectra, mzMLpeaks)
-//mzMLWriter.insertMSSpectraBy(mzMLWriter.insertMSSpectrum) ("sample_0") mzMLReader BinaryDataCompressionType.NoCompression (mzMLSpectra)
+mzMLWriter.WriteWholedMzML(mzMLReader.Model, mzMLSpectra, mzMLpeaks)
+mzMLWriter.insertMSSpectraBy(mzMLWriter.insertMSSpectrum) ("sample_0") mzMLReader BinaryDataCompressionType.NoCompression (mzMLSpectra)
 
 //mzMLWriter.Model
 //mzMLWriter.UpdateModel(wiffReader.Model)

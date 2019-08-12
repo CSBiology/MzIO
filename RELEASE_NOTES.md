@@ -1,3 +1,7 @@
+#### 0.0.7 - Tuesday, July 9, 2019
+* Add MzMLWriter
+* Improve speed of MzMLReader
+
 #### 0.0.6 - Tuesday, July 9, 2019
 * Add Thermo-Reader
 
