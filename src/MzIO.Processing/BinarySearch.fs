@@ -1,5 +1,6 @@
 ﻿namespace MzIO.Processing
 
+
 open System
 open System.Collections.Generic
 open System.Linq
@@ -9,6 +10,8 @@ open MzIO.Commons.Arrays.MzIOArray
 open MzIO.MetaData.PSIMSExtension
 open MzIO.IO
 
+
+/// Class that makes sure that low and high value are working correctly.
 [<Sealed>]
 type IndexRange(low: int, high: int) =
     let mutable low' =
@@ -28,12 +31,7 @@ type IndexRange(low: int, high: int) =
         and private set(value)  = high' <- value
     member this.Length = (this.High - this.Low) + 1
 
-    /// <summary>
     /// Maps index to source array index.
-    /// </summary>
-    /// <param name="i"></param>
-    /// <returns>Low + i</returns>
-
     member this.GetSourceIndex(i: int) =
         if i < 0 then 
             raise (new ArgumentOutOfRangeException( "i >= 0 expected"))
@@ -48,8 +46,10 @@ type IndexRange(low: int, high: int) =
     static member EnumRange<'TItem>(items: 'TItem[], range: IndexRange) =
         IndexRange.EnumRange((items.ToMzIOArray()), range)
 
+/// Contains several methods to search under different circumstances for data in IMzIOArray within a given range.
 type BinarySearch =
 
+    /// Generates a IndexRange based on the given query.
     static member Search<'TItem, 'TQuery>(items:IMzIOArray<'TItem>, query:'TQuery, searchCompare: ('TItem*'TQuery) -> int, result:byref<IndexRange option>) =
 
         let mutable lo = 0
@@ -97,9 +97,9 @@ type BinarySearch =
                     hi <- mid - 1
                     result <- None
                     tmpResult <- false
-                //result <- null
         tmpResult
 
+    /// Generates a IndexRange based on the given query.
     static member Search<'TItem, 'TQuery>(items:IMzIOArray<'TItem>, query:'TQuery, searchCompare: ('TItem*'TQuery) -> int) =
         let mutable result = Some (new IndexRange())
         if BinarySearch.Search(items, query, searchCompare, & result) then
@@ -107,8 +107,10 @@ type BinarySearch =
         else
             Enumerable.Empty<'TItem>()
 
+    /// Changes an existing IndexRange based on the given query  and tells if it worked or not.
     static member Search<'TItem, 'TQuery>(items:'TItem[], query:'TQuery, searchCompare: ('TItem*'TQuery) -> int, result:byref<IndexRange option>) =
         BinarySearch.Search(items.ToMzIOArray(), query, searchCompare, & result)
 
+    /// Generates a IndexRange based on the given query.
     static member Search<'TItem, 'TQuery>(items:'TItem[], query:'TQuery, searchCompare: ('TItem*'TQuery) -> int) =
         BinarySearch.Search(items.ToMzIOArray(), query, searchCompare)

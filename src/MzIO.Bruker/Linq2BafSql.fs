@@ -9,8 +9,11 @@ open System.Data.SQLite
 open System.Linq
 open System.Collections.Generic
 
+
+///Contains functions to acces the sqlite db that is created in order to access information of the baf file.
 module Linq2BafSql =
 
+    /// Class to represent the spectrum table of the baf shadow file.
     [<Sealed>]
     [<Table(Name = "Spectra")>]
     type BafSqlSpectrum(
@@ -20,24 +23,24 @@ module Linq2BafSql =
                         lineIdxWithId:Nullable<UInt64>, linePeakAreaId:Nullable<UInt64>, lineSnrId:Nullable<UInt64>
                        ) =
         
-        let mutable id              = id                (*Unchecked.defaultof<Nullable<UInt64>>*)
-        let mutable rt              = rt                (*Unchecked.defaultof<Nullable<float>>*)
-        let mutable seg             = seg               (*Unchecked.defaultof<Nullable<UInt64>>*)
-        let mutable aqk             = aqk               (*Unchecked.defaultof<Nullable<UInt64>>*)
-        let mutable parent          = parent            (*Unchecked.defaultof<Nullable<UInt64>>*)
-        let mutable mzAqRL          = mzAqRL            (*Unchecked.defaultof<Nullable<UInt64>>*)
-        let mutable mzAqRUpper      = mzAqRUpper        (*Unchecked.defaultof<Nullable<UInt64>>*)
-        let mutable sumInt          = sumInt            (*Unchecked.defaultof<Nullable<float>>*)
-        let mutable maxInt          = maxInt            (*Unchecked.defaultof<Nullable<float>>*)
-        let mutable tranForId       = tranForId         (*Unchecked.defaultof<Nullable<UInt64>>*)
-        let mutable profMzId        = profMzId          (*Unchecked.defaultof<Nullable<UInt64>>*)
-        let mutable profIntId       = profIntId         (*Unchecked.defaultof<Nullable<UInt64>>*)
-        let mutable lineIndexId     = lineIndexId       (*Unchecked.defaultof<Nullable<UInt64>>*)
-        let mutable lineMzId        = lineMzId          (*Unchecked.defaultof<Nullable<UInt64>>*)
-        let mutable lineIntId       = lineIntId         (*Unchecked.defaultof<Nullable<UInt64>>*)
-        let mutable lineIdxWithId   = lineIdxWithId     (*Unchecked.defaultof<Nullable<UInt64>>*)
-        let mutable linePeakAreaId  = linePeakAreaId    (*Unchecked.defaultof<Nullable<UInt64>>*)
-        let mutable lineSnrId       = lineSnrId         (*Unchecked.defaultof<Nullable<UInt64>>*)
+        let mutable id              = id            
+        let mutable rt              = rt            
+        let mutable seg             = seg           
+        let mutable aqk             = aqk           
+        let mutable parent          = parent        
+        let mutable mzAqRL          = mzAqRL        
+        let mutable mzAqRUpper      = mzAqRUpper    
+        let mutable sumInt          = sumInt        
+        let mutable maxInt          = maxInt        
+        let mutable tranForId       = tranForId     
+        let mutable profMzId        = profMzId      
+        let mutable profIntId       = profIntId     
+        let mutable lineIndexId     = lineIndexId   
+        let mutable lineMzId        = lineMzId      
+        let mutable lineIntId       = lineIntId     
+        let mutable lineIdxWithId   = lineIdxWithId 
+        let mutable linePeakAreaId  = linePeakAreaId
+        let mutable lineSnrId       = lineSnrId     
 
         new() = new BafSqlSpectrum(
                                    System.Nullable(), System.Nullable(), System.Nullable(), System.Nullable(), System.Nullable(), System.Nullable(), System.Nullable(), 
@@ -119,15 +122,16 @@ module Linq2BafSql =
             with get() = lineSnrId 
             and  set(value) = lineSnrId <- value
 
+    /// Class to represent the acquisition key table of the baf shadow file.
     [<Sealed>]
     [<Table(Name = "AcquisitionKeys")>]
     type BafSqlAcquisitionKey(id:Nullable<UInt64>, poalrity:Nullable<int64>, scanMode:Nullable<int64>, aqMode:Nullable<int64>, msLevel:Nullable<int64>) =
 
-        let mutable id          = id        (*Unchecked.defaultof<Nullable<UInt64>>*)
-        let mutable poalrity    = poalrity  (*Unchecked.defaultof<Nullable<int64>>*)
-        let mutable scanMode    = scanMode  (*Unchecked.defaultof<Nullable<int64>>*)
-        let mutable aqMode      = aqMode    (*Unchecked.defaultof<Nullable<int64>>*)
-        let mutable msLevel     = msLevel   (*Unchecked.defaultof<Nullable<int64>>*)
+        let mutable id          = id       
+        let mutable poalrity    = poalrity 
+        let mutable scanMode    = scanMode 
+        let mutable aqMode      = aqMode   
+        let mutable msLevel     = msLevel  
 
         new() = new BafSqlAcquisitionKey(System.Nullable(), System.Nullable(),System.Nullable(), System.Nullable(), System.Nullable())
 
@@ -152,13 +156,14 @@ module Linq2BafSql =
             with get() = msLevel 
             and  set(value) = msLevel <- value
 
+    /// Class to represent the per spectrum variable table of the baf shadow file.
     [<Sealed>]
     [<Table(Name = "PerSpectrumVariables")>]
     type BafSqlPerSpectrumVariable(spec:Nullable<UInt64>, var:Nullable<UInt64>, value':Nullable<Decimal>) =
 
-        let mutable spec    = spec      (*Unchecked.defaultof<Nullable<UInt64>>*)
-        let mutable var     = var       (*Unchecked.defaultof<Nullable<UInt64>>*)
-        let mutable value'  = value'    (*Unchecked.defaultof<Nullable<Decimal>>*)
+        let mutable spec    = spec  
+        let mutable var     = var   
+        let mutable value'  = value'
 
         [<Column(IsPrimaryKey = true)>]
         member this.Spectrum
@@ -173,6 +178,7 @@ module Linq2BafSql =
             with get() = value' 
             and  set(value) = value' <- value
 
+    /// Class to represent the supported variable table of the baf shadow file.
     [<Sealed>]
     [<Table(Name = "SupportedVariables")>]
     type BafSqlSupportedVariable() =
@@ -219,17 +225,17 @@ module Linq2BafSql =
             with get() = disDim
             and  set(value) = disDim <- value
 
-
+    /// Class to represent the sql step table of the baf shadow file.
     [<Sealed>]
     [<Table(Name = "Steps")>]
     type BafSqlStep(tarSpec:Nullable<UInt64>, num:Nullable<int64>, isoType:Nullable<int64>, reaType:Nullable<int64>, msLvl:Nullable<int64>, mass:Nullable<float>) =
         
-        let mutable tarSpec = tarSpec   (*Unchecked.defaultof<Nullable<UInt64>>*)
-        let mutable num     = num       (*Unchecked.defaultof<Nullable<int64>>*)
-        let mutable isoType = isoType   (*Unchecked.defaultof<Nullable<int64>>*)
-        let mutable reaType = reaType   (*Unchecked.defaultof<Nullable<int64>>*)
-        let mutable msLvl   = msLvl     (*Unchecked.defaultof<Nullable<int64>>*)
-        let mutable mass    = mass      (*Unchecked.defaultof<Nullable<float>>*)
+        let mutable tarSpec = tarSpec 
+        let mutable num     = num     
+        let mutable isoType = isoType 
+        let mutable reaType = reaType 
+        let mutable msLvl   = msLvl   
+        let mutable mass    = mass    
 
         [<Column>]
         member this.TargetSpectrum
@@ -256,6 +262,7 @@ module Linq2BafSql =
             with get() = mass
             and  set(value) = mass <- value
 
+    /// Manages connection to shadow file.
     [<Sealed>]
     type Linq2BafSql(sqlFilePath:string) =
 
@@ -267,13 +274,8 @@ module Linq2BafSql =
             core.DeferredLoadingEnabled <- false
             core.ObjectTrackingEnabled <- false
 
-        // opening a connection at this point leads to a 7 fold speed increase when looking up mass spectra.
         let cnOpen = core.Connection.Open()
 
-        // increases speed of massspectra look up but is not compatible with a
-        // function in baf2sql_c.dll (probably when creating the sqlite cache) because they are blocking the db access of each another
-        // TODO: Examine which baf2sql_c method is causing this.    
-        //System.Data.Common.DbTransaction tn = core.Connection.BeginTransaction();
         let checkInDexStepsID =
             try
                 core.ExecuteQuery<int>("CREATE INDEX StepsID ON Steps (TargetSpectrum)")
@@ -308,10 +310,15 @@ module Linq2BafSql =
 
         member this.Steps = core.GetTable<BafSqlStep>()
 
-        //member this.GetBafSqlSpectrum(context:#DataContext, id:Nullable<UInt64>) =
-            ////CompiledQuery.Compile(fun db id -> db.GetTable<BafSqlSpectrum>().Where<BafSqlSpectrum>(fun x -> x.Id = id).SingleOrDefault<BafSqlSpectrum>()).Invoke(context, id)
-            //CompiledQuery.Compile(fun db id -> db.GetTable<BafSqlSpectrum>().AsEnumerable<BafSqlSpectrum>().Select(fun x -> x, x.Id=id)).Invoke(context, id)
+        /// Checks whether connection to shadow file is open or not and re opens it if not.
+        static member RaiseConnectionState(cn:SQLiteConnection) =
+            if (cn.State=ConnectionState.Open) then 
+                ()
+            else
+                cn.Open()
 
+
+        /// Method to read nullabe uint32 or System.Nullable() wehen table is empty.
         static member private GetNullableUInt (reader:SQLiteDataReader) n =
 
             if reader.IsDBNull(n) then 
@@ -319,7 +326,14 @@ module Linq2BafSql =
             else
                 Nullable(Convert.ToUInt64(reader.GetInt64(n)))
 
-        ///Prepare function to select all ProteinList-entities by FKMzQuantMLDocument as records.
+        /// Method to read decimal or System.Nullable() wehen table is empty.
+        static member private getDecimal(reader:SQLiteDataReader, n) =
+            if reader.IsDBNull(n) then 
+                System.Nullable() 
+            else 
+                Nullable(reader.GetDecimal(n))
+
+        /// Prepare function to select element of Spectra table in shadow file.
         member this.PrepareGetBafSqlSpectrum (cn:SQLiteConnection) =
             Linq2BafSql.RaiseConnectionState(cn)
             let querystring = 
@@ -344,10 +358,9 @@ module Linq2BafSql =
             use reader = cmd.ExecuteReader()
             readerloop reader (new BafSqlSpectrum())
 
+        /// Prepare function to select element of AcquisitionKeys table in shadow file.
         member this.PrepareGetBafSqlAcquisitionKey (cn:SQLiteConnection) =
             Linq2BafSql.RaiseConnectionState(cn)
-            //CompiledQuery.Compile(fun _ -> context.GetTable<BafSqlAcquisitionKey>().Where(fun x -> x.Id = id).SingleOrDefault())
-
             let querystring = 
                 "SELECT * FROM AcquisitionKeys WHERE Id = @fk"
             let cmd = new SQLiteCommand(querystring, cn)
@@ -364,12 +377,10 @@ module Linq2BafSql =
             fun (fk:Nullable<UInt64>) ->
             cmd.Parameters.["@fk"].Value <- fk
             use reader = cmd.ExecuteReader()
-            //reader.Dispose()
             readerloop reader (new BafSqlAcquisitionKey())
 
+        /// Prepare function to select element of Steps table in shadow file.
         member this.PrepareGetBafSqlSteps (cn:SQLiteConnection) =
-
-            //CompiledQuery.Compile(fun _ -> context.GetTable<BafSqlStep>().Where(fun x -> x.TargetSpectrum = id))
             Linq2BafSql.RaiseConnectionState(cn)
             let querystring = 
                 "SELECT * FROM Steps WHERE TargetSpectrum = @fk"
@@ -389,26 +400,14 @@ module Linq2BafSql =
             fun (fk:Nullable<UInt64>) ->
             cmd.Parameters.["@fk"].Value <- fk
             use reader = cmd.ExecuteReader()
-            //reader.Dispose()
             readerloop reader Seq.empty
 
-        //member this.GetPerSpectrumVariables(context, id) =
-        //    CompiledQuery.Compile(fun db id -> db.GetTable<BafSqlPerSpectrumVariable>().Where(fun x -> x.Spectrum = id).SingleOrDefault())
-
-        static member private getDecimal(reader:SQLiteDataReader, n) =
-
-            if reader.IsDBNull(n) then 
-                System.Nullable() 
-            else 
-                Nullable(reader.GetDecimal(n))
-
+        /// Prepare function to select element of PerSpectrumVariables table in shadow file.
         member this.PrepareGetPerSpectrumVariables(cn:SQLiteConnection) =
-
-            //CompiledQuery.Compile(fun _ -> context.GetTable<BafSqlPerSpectrumVariable>().Where(fun x -> x.Spectrum.HasValue && x.Spectrum.Value = id))
             Linq2BafSql.RaiseConnectionState(cn)
             let querystring = 
                 "SELECT * FROM PerSpectrumVariables WHERE Spectrum = @fk"
-            let cmd = new SQLiteCommand(querystring, cn(*, tr*))
+            let cmd = new SQLiteCommand(querystring, cn)
             cmd.Parameters.Add("@fk", Data.DbType.String) |> ignore
             let rec readerloop (reader:SQLiteDataReader) (acc:seq<BafSqlPerSpectrumVariable>) =
                 seq
@@ -423,11 +422,4 @@ module Linq2BafSql =
             fun (fk:UInt64) ->
             cmd.Parameters.["@fk"].Value <- fk
             use reader = cmd.ExecuteReader()
-            //reader.Dispose()
             readerloop reader []
-
-        static member RaiseConnectionState(cn:SQLiteConnection) =
-            if (cn.State=ConnectionState.Open) then 
-                ()
-            else
-                cn.Open()

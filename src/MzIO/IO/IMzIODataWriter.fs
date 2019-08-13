@@ -17,6 +17,6 @@ type IMzIODataWriter =
 
     abstract member InsertChrom         : string * Chromatogram * Peak2DArray -> unit
 
-    abstract member InsertAsyncMass     : string * MzIO.Model.MassSpectrum * Peak1DArray -> Task<unit>
+    abstract member InsertAsyncMass     : string * MzIO.Model.MassSpectrum * Peak1DArray -> Async<unit>
 
-    abstract member InsertAsyncChrom    : string * Chromatogram * Peak2DArray -> Task<unit>
+    abstract member InsertAsyncChrom    : string * Chromatogram * Peak2DArray -> Async<unit>

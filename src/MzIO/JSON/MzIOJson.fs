@@ -169,9 +169,9 @@ type MzIOJson =
 
         let mzIOModel = JsonConvert.DeserializeObject<MzIOModel>(model)
 
-        let fileDescription = 
-            MzIOJson.deSerializeFileDescription mzIOModel.FileDescription
-        mzIOModel.FileDescription <- fileDescription
+        //let fileDescription = 
+        //    MzIOJson.deSerializeFileDescription mzIOModel.FileDescription
+        //mzIOModel.FileDescription <- fileDescription
 
         let samples = 
             MzIOJson.deSerializeSamples mzIOModel.Samples

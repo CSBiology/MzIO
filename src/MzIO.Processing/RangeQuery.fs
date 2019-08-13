@@ -1,5 +1,8 @@
-﻿namespace MzIO.Processing
+﻿
+namespace MzIO.Processing
 
+
+/// Class used to save values for creating chromatogramms.
 type RangeQuery(lockMz:float, offsetLow:float, offsetHeigh:float) =
 
     let lockValue   = lockMz

@@ -19,9 +19,9 @@ module AccessMassSpectrum =
         reader.Model.Runs.GetProperties false
         |> Seq.collect (fun (run:KeyValuePair<string, obj>) -> reader.ReadMassSpectra run.Key)
 
-    ///// accesses the Header of the WiffFile referenced by the path
-    //let getMassSpectrAsyncBy (reader:IMzLiteDataReader) runID = 
-    //    reader.ReadMassSpectra(runID)
+    /// accesses the Header of the WiffFile referenced by the path
+    let getMassSpectrAsyncBy (reader:IMzIODataReader) runID = 
+        reader.ReadMassSpectra(runID)
         
     /// Returns the ID of the MassSpectrum
     let getID (massSpectrum: MassSpectrum) =

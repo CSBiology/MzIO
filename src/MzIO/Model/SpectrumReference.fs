@@ -10,12 +10,8 @@ open Newtonsoft.Json
 [<JsonObject(MemberSerialization = MemberSerialization.OptIn)>]
 type SpectrumReference [<JsonConstructor>] (sourceFileID: string , spectrumID: string) =
     
-    let mutable sourceFileID' = sourceFileID
-    let mutable spectrumID' =
-        if String.IsNullOrWhiteSpace spectrumID then 
-            raise (new System.ArgumentNullException ("spectrumID"))
-        else
-            spectrumID
+    let mutable sourceFileID'   = sourceFileID
+    let mutable spectrumID'     = spectrumID
 
     new(spectrumID) = new SpectrumReference ("sourceFileID", spectrumID)
     new()           = new SpectrumReference ("sourceFileID", "spectrumID")
@@ -25,7 +21,8 @@ type SpectrumReference [<JsonConstructor>] (sourceFileID: string , spectrumID: s
         with get()              = sourceFileID'
         and private set(value)  = sourceFileID' <- value
 
-    [<JsonProperty(Required = Required.Always)>]
+    //[<JsonProperty(Required = Required.Always)>]
+    [<JsonProperty(NullValueHandling = NullValueHandling.Ignore)>]
     member this.SpectrumID
         with get()              = spectrumID'
         and private set(value)  = spectrumID' <- value

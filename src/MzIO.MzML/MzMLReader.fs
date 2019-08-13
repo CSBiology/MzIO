@@ -20,6 +20,7 @@ open MzIO.Processing
 open MzIO.Processing.MzIOLinq
 
 
+/// Contains functions to read a MzML file, whole or only specific parts.
 module MzML =
 
     type private MzMLReaderTransactionScope() =
@@ -49,21 +50,23 @@ module MzML =
 
             (this :> IDisposable).Dispose()
 
+    // Use reader.ReadSubtree() in order to avoid moving into an element of the same or higher level.
+    /// Contains methods to acces spectrum and peak information of mzml files.
     type MzMLReader(filePath: string) =
 
         let mutable reader = XmlReader.Create(filePath)
 
-        member this.tryGetAttribute (name:string, ?xmlReader: XmlReader) =
+        member private this.tryGetAttribute (name:string, ?xmlReader: XmlReader) =
             let xmlReader = defaultArg xmlReader reader
             let tmp = xmlReader.GetAttribute(name)
             if tmp=null then None
             else Some tmp
 
-        member this.getAttribute (name:string, ?xmlReader: XmlReader) =
+        member private this.getAttribute (name:string, ?xmlReader: XmlReader) =
             let xmlReader = defaultArg xmlReader reader
             xmlReader.GetAttribute(name)
 
-        member this.getCVParam (?xmlReader:XmlReader) =
+        member private this.getCVParam (?xmlReader:XmlReader) =
             let xmlReader = defaultArg xmlReader reader
             let potValue =
                 match (this.tryGetAttribute ("value", xmlReader)) with
@@ -79,7 +82,7 @@ module MzML =
             | Some value -> CvParam<string>((this.getAttribute ("accession", xmlReader)), value)
             | None -> CvParam<string>((this.getAttribute ("accession", xmlReader)))
 
-        member this.getUserParam (?xmlReader:XmlReader) =
+        member private this.getUserParam (?xmlReader:XmlReader) =
             let xmlReader = defaultArg xmlReader reader
             let potValue =
                 match (this.tryGetAttribute ("value", xmlReader)) with
@@ -95,7 +98,7 @@ module MzML =
             | Some value -> UserParam<string>((this.getAttribute ("name", xmlReader)), value)
             | None -> UserParam<string>((this.getAttribute ("name", xmlReader)))
 
-        member this.getIDs (elementName:string) (attributeName:string) =
+        member private this.getIDs (elementName:string) (attributeName:string) =
             let readSubtree = reader.ReadSubtree()
             let readOp = readSubtree.Read
             let rec loop (acc:seq<string option>) =
@@ -116,7 +119,7 @@ module MzML =
             |> List.ofSeq
             |> (fun item -> if item.IsEmpty then None else Some (item |> Seq.ofList))
 
-        static member getArrayTypeOfP1D (peakArray:Peak1DArray) (arrayType:BinaryDataType) (keys:seq<string>) =
+        static member private getArrayTypeOfP1D (peakArray:Peak1DArray) (arrayType:BinaryDataType) (keys:seq<string>) =
             for key in keys do
                 match key with
                 //M/Z Array
@@ -127,7 +130,7 @@ module MzML =
                                   peakArray.IntensityDataType <- arrayType
                 | _            -> ()
 
-        static member getBinaryDataTypeOfP1D (peakArray:Peak1DArray) (keys:seq<string>) =
+        static member private getBinaryDataTypeOfP1D (peakArray:Peak1DArray) (keys:seq<string>) =
             for key in keys do
                 match key with
                 //Float32
@@ -144,7 +147,7 @@ module MzML =
                                     MzMLReader.getArrayTypeOfP1D peakArray BinaryDataType.Int64 keys
                 | _             ->  ()
 
-        static member getCompressionTypeOfP1D (peakArray:Peak1DArray) (keys:seq<string>) =
+        static member private getCompressionTypeOfP1D (peakArray:Peak1DArray) (keys:seq<string>) =
             for key in keys do
                 match key with
                 //NoCompression
@@ -157,14 +160,14 @@ module MzML =
                                     MzMLReader.getBinaryDataTypeOfP1D peakArray keys
                 | _             -> ()
 
-        static member createPeak1DArray (peakArray:Peak1DArray) =
+        static member private createPeak1DArray (peakArray:Peak1DArray) =
             peakArray.GetProperties false
             |> Seq.map (fun pair -> pair.Key)
             //|> Array.ofSeq
             |> MzMLReader.getCompressionTypeOfP1D peakArray
             peakArray
 
-        static member getArrayTypeOfP2D (peakArray:Peak2DArray) (arrayType:BinaryDataType) (keys:string []) =
+        static member private getArrayTypeOfP2D (peakArray:Peak2DArray) (arrayType:BinaryDataType) (keys:string []) =
             for key in keys do
                 match key with
                 //M/Z Array
@@ -178,7 +181,7 @@ module MzML =
                                   peakArray.RtDataType <- arrayType
                 | _            -> ()
 
-        static member getBinaryDataTypeOfP2D (peakArray:Peak2DArray) (keys:string []) =
+        static member private getBinaryDataTypeOfP2D (peakArray:Peak2DArray) (keys:string []) =
             for key in keys do
                 match key with
                 //Float32
@@ -195,7 +198,7 @@ module MzML =
                                     MzMLReader.getArrayTypeOfP2D peakArray BinaryDataType.Int64 keys
                 | _             ->  ()
 
-        static member getCompressionTypeOfP2D (peakArray:Peak2DArray) (keys:string []) =
+        static member private getCompressionTypeOfP2D (peakArray:Peak2DArray) (keys:string []) =
             for key in keys do
                 match key with
                 //NoCompression
@@ -208,14 +211,14 @@ module MzML =
                                     MzMLReader.getBinaryDataTypeOfP2D peakArray keys
                 | _             ->  ()
 
-        static member createPeak2DArray (peakArray:Peak2DArray) =
+        static member private createPeak2DArray (peakArray:Peak2DArray) =
             peakArray.GetProperties false
             |> Seq.map (fun pair -> pair.Key)
             |> Array.ofSeq
             |> MzMLReader.getCompressionTypeOfP2D peakArray
             peakArray
 
-        static member singleToBytes (floatArray: float[]) =
+        static member private singleToBytes (floatArray: float[]) =
             let byteArray = Array.init (floatArray.Length*4) (fun x -> byte(0 |> float32))
             Buffer.BlockCopy (floatArray, 0, byteArray, 0, byteArray.Length)
             byteArray
@@ -229,12 +232,12 @@ module MzML =
                         Buffer.BlockCopy  (Array.rev byteArray, 0, floatArray, 0, byteArray.Length)
                         Array.rev floatArray
 
-        static member doubleToBytes (floatArray: float[]) =
+        static member private doubleToBytes (floatArray: float[]) =
             let byteArray = Array.init (floatArray.Length*8) (fun x -> byte(0))
             Buffer.BlockCopy (floatArray, 0, byteArray, 0, byteArray.Length)
             byteArray
 
-        static member byteToDoubles (littleEndian:Boolean) (byteArray: byte[]) =
+        static member private byteToDoubles (littleEndian:Boolean) (byteArray: byte[]) =
             match littleEndian with
             | false ->  let floatArray = Array.init (byteArray.Length/8) (fun x -> 0.)
                         Buffer.BlockCopy (byteArray, 0, floatArray, 0, byteArray.Length)
@@ -244,7 +247,7 @@ module MzML =
                         floatArray
 
         ///Remove 1st two bytes because they are the header of zLib compression
-        static member decompressZlib (bytes : byte []) =
+        static member private decompressZlib (bytes : byte []) =
             let buffer = Array.skip 2 bytes
             let memoryStream = new MemoryStream ()
             memoryStream.Write(buffer, 0, Array.length buffer)
@@ -254,11 +257,11 @@ module MzML =
             deflateStream.CopyTo(outerMemoryStream)
             outerMemoryStream.ToArray()
 
-        member this.getBinary (?xmlReader: XmlReader)=
+        member private this.getBinary (?xmlReader: XmlReader)=
             let xmlReader = defaultArg xmlReader reader
             xmlReader.ReadElementContentAsString()
 
-        static member get1DPeaks (peaks:string list) (peakArray:Peak1DArray) =
+        static member private get1DPeaks (peaks:string list) (peakArray:Peak1DArray) =
             if peaks.Head.Length <> 0 then
                 match peakArray.CompressionType with
                 | BinaryDataCompressionType.NoCompression ->
@@ -349,7 +352,7 @@ module MzML =
             else
                 ()
 
-        static member get2DPeaks (peaks:string list) (peakArray:Peak2DArray) =
+        static member private get2DPeaks (peaks:string list) (peakArray:Peak2DArray) =
             match peakArray.CompressionType with
             | BinaryDataCompressionType.NoCompression ->
                 match peakArray.RtDataType with
@@ -437,7 +440,7 @@ module MzML =
                 | _ -> failwith "No compelement Type"
             | _ -> failwith "No compelement Type"
 
-        member this.getDataProcessingReference (spectrum:MassSpectrum, ?xmlReader: XmlReader) =
+        member private this.getDataProcessingReference (spectrum:MassSpectrum, ?xmlReader: XmlReader) =
             let xmlReader = defaultArg xmlReader reader
             let readSubtree = xmlReader.ReadSubtree()
             let readOp = readSubtree.Read
@@ -454,7 +457,7 @@ module MzML =
                         | None      ->  ()
             loop None () [] ()
 
-        member this.translatePeak1DArray(?xmlReader: XmlReader) =
+        member private this.translatePeak1DArray(?xmlReader: XmlReader) =
             let xmlReader = defaultArg xmlReader reader
             let readSubtree = xmlReader.ReadSubtree()
             let readOp = readSubtree.Read
@@ -479,7 +482,7 @@ module MzML =
                                         peakArray
             loop None () [] ()
 
-        member this.translatePeak2DArray(?xmlReader: XmlReader) =
+        member private this.translatePeak2DArray(?xmlReader: XmlReader) =
             let xmlReader = defaultArg xmlReader reader
             let readSubtree = xmlReader.ReadSubtree()
             let readOp = readSubtree.Read
@@ -504,28 +507,7 @@ module MzML =
                                         peakArray
             loop None () [] ()
 
-        //let getBinaryDataArrayList (spectrum:MassSpectrum) (reader:XmlReader) =
-        //    let readSubtree = reader.ReadSubtree()
-        //    let readOp = readSubtree.Read
-        //    let rec loop acc =
-        //        seq
-        //            {
-        //                if readSubtree.NodeType=XmlNodeType.Element then
-        //                    match readSubtree.Name with
-        //                    | "binaryDataArray" ->  yield getBinaryDataArray spectrum readSubtree
-        //                                            readOp() |> ignore
-        //                                            yield! loop acc
-        //                    |   _               ->  readOp() |> ignore
-        //                                            yield! loop acc
-        //                else
-        //                    if readOp()=true then yield! loop acc
-        //                    else yield! acc
-        //            }
-        //    loop Seq.empty
-        //    |> List.ofSeq
-        //    |> Seq.ofList
-
-        member this.getScanWindow (?xmlReader: XmlReader) =
+        member private this.getScanWindow (?xmlReader: XmlReader) =
             let xmlReader = defaultArg xmlReader reader
             let readSubtree =
                 //acc not used? Only here to call loop with reader.Read?
@@ -548,7 +530,7 @@ module MzML =
                     else scanWindow
             loop () ()
 
-        member this.getScanWindowList (?xmlReader: XmlReader) =
+        member private this.getScanWindowList (?xmlReader: XmlReader) =
             let xmlReader = defaultArg xmlReader reader
             let readSubtree =
                 let rec loop acc =
@@ -568,7 +550,7 @@ module MzML =
                     else scanWindowList
             loop () ()
 
-        member this.getScan (?xmlReader:XmlReader) =
+        member private this.getScan (?xmlReader:XmlReader) =
             let xmlReader = defaultArg xmlReader reader
             let readSubtree = 
                 let rec loop acc =
@@ -602,7 +584,7 @@ module MzML =
                         scan
             loop None None (new ScanWindowList()) [] [] ()
 
-        member this.getScanList(?xmlReader: XmlReader) =
+        member private this.getScanList(?xmlReader: XmlReader) =
             let xmlReader = defaultArg xmlReader reader
             let readSubtree =
                 let rec loop acc =
@@ -625,7 +607,7 @@ module MzML =
                         scanList
             loop () () () ()
 
-        member this.getActivation(?xmlReader: XmlReader) =
+        member private this.getActivation(?xmlReader: XmlReader) =
             let xmlReader = defaultArg xmlReader reader
             let readSubtree =
                 let rec loop acc =
@@ -646,7 +628,7 @@ module MzML =
                     else activation
             loop () ()
 
-        member this.getSelectedIon (?xmlReader: XmlReader)=
+        member private this.getSelectedIon (?xmlReader: XmlReader)=
             let xmlReader = defaultArg xmlReader reader
             let readSubtree =
                 let rec loop acc =
@@ -668,7 +650,7 @@ module MzML =
                     else selectedIon
             loop () ()
 
-        member this.getSelectedIonList(?xmlReader: XmlReader) =
+        member private this.getSelectedIonList(?xmlReader: XmlReader) =
             let xmlReader = defaultArg xmlReader reader
             let readSubtree =
                 let rec loop acc =
@@ -688,7 +670,7 @@ module MzML =
                     else selectedIonList
             loop () ()
 
-        member this.getIsolationWindow(?xmlReader: XmlReader) =
+        member private this.getIsolationWindow(?xmlReader: XmlReader) =
             let xmlReader = defaultArg xmlReader reader
             let readSubtree =
                 let rec loop acc =
@@ -709,7 +691,7 @@ module MzML =
                     else isolationWindow
             loop () ()
 
-        member this.getPrecursor(?xmlReader: XmlReader) =
+        member private this.getPrecursor(?xmlReader: XmlReader) =
             let xmlReader = defaultArg xmlReader reader
             let readSubtree =
                 let rec loop acc =
@@ -740,7 +722,7 @@ module MzML =
                         precursor
             loop None None (new IsolationWindow()) (new SelectedIonList()) (new Activation()) ()
 
-        member this.getPrecursorList(?xmlReader: XmlReader) =
+        member private this.getPrecursorList(?xmlReader: XmlReader) =
             let xmlReader = defaultArg xmlReader reader
             let readSubtree =
                 let rec loop acc =
@@ -760,7 +742,7 @@ module MzML =
                     else precursorList
             loop () ()
 
-        member this.getProduct(?xmlReader: XmlReader) =
+        member private this.getProduct(?xmlReader: XmlReader) =
             let xmlReader = defaultArg xmlReader reader
             let readSubtree =
                 let rec loop acc =
@@ -782,7 +764,7 @@ module MzML =
                         product
             loop (new IsolationWindow()) ()
 
-        member this.getProductList(?xmlReader: XmlReader) =
+        member private this.getProductList(?xmlReader: XmlReader) =
             let xmlReader = defaultArg xmlReader reader
             let readSubtree =
                 let rec loop acc =
@@ -802,7 +784,7 @@ module MzML =
                     else productList
             loop () ()
 
-        member this.getSpectrum(?xmlReader: XmlReader) =
+        member private this.getSpectrum(?xmlReader: XmlReader) =
             let xmlReader = defaultArg xmlReader reader
             let readSubtree =
                 let rec loop acc =
@@ -840,7 +822,7 @@ module MzML =
                     else spectrum
             loop null None None [] [] (new ScanList()) (new PrecursorList()) (new ProductList()) ()
 
-        member this.getSpectra() =
+        member private this.getSpectra() =
             let rec outerLoop acc =
                 if reader.Name = "spectrumList" then
                     let readSubtree = reader.ReadSubtree()
@@ -864,7 +846,7 @@ module MzML =
                     outerLoop (reader.Read())
             outerLoop false
 
-        member this.getChromatogram(?xmlReader: XmlReader) =
+        member private this.getChromatogram(?xmlReader: XmlReader) =
             let xmlReader = defaultArg xmlReader reader
             let readSubtree =
                 let rec loop acc =
@@ -898,7 +880,7 @@ module MzML =
                     else chromatogram
             loop null [] [] (new Precursor()) (new Product()) ()
 
-        member this.getChromatogramms() =
+        member private this.getChromatogramms() =
             let rec outerLoop acc =
                 if reader.Name = "chromatogramList" then
                     let readSubtree = reader.ReadSubtree()
@@ -922,7 +904,7 @@ module MzML =
                     outerLoop (reader.Read())
             outerLoop false
 
-        member this.getPeak1DArray(?xmlReader: XmlReader) =
+        member private this.getPeak1DArray(?xmlReader: XmlReader) =
             let xmlReader = defaultArg xmlReader reader
             let readSubtree =
                 let rec loop acc =
@@ -944,7 +926,7 @@ module MzML =
                     else peakArray
             loop None ()
 
-        member this.getPeak1DArrays() =
+        member private this.getPeak1DArrays() =
             let rec outerLoop acc =
                 if reader.Name = "spectrumList" then
                     let readSubtree = reader.ReadSubtree()
@@ -968,21 +950,7 @@ module MzML =
                     outerLoop (reader.Read())
             outerLoop false
 
-        //let readPeak1DArrays (reader:XmlReader) =
-        //    let readOp = reader.Read
-        //    let rec loop acc =
-        //        if reader.NodeType=XmlNodeType.Element then
-        //            if reader.Name = "spectrumList" then
-        //                getPeak1DArrays reader
-        //            else
-        //                readOp() |> ignore
-        //                loop acc
-        //        else
-        //            readOp() |> ignore
-        //            loop acc
-        //    loop Seq.empty
-
-        member this.getPeak2DArray (?xmlReader:XmlReader) =
+        member private this.getPeak2DArray (?xmlReader:XmlReader) =
             let xmlReader = defaultArg xmlReader reader
             let readSubtree =
                 let rec loop acc =
@@ -1004,7 +972,7 @@ module MzML =
                     else peakArray
             loop None ()
 
-        member this.getPeak2DArrays() =
+        member private this.getPeak2DArrays() =
             let rec outerLoop acc =
                 if reader.Name = "chromatogramList" then
                     let readSubtree = reader.ReadSubtree()
@@ -1028,7 +996,7 @@ module MzML =
                     outerLoop (reader.Read())
             outerLoop false
 
-        member this.getDefaultDataProcessingRef (?xmlReader:XmlReader) =
+        member private this.getDefaultDataProcessingRef (?xmlReader:XmlReader) =
             let xmlReader = defaultArg xmlReader reader
             let readSubtree =
                 let rec loop acc =
@@ -1049,7 +1017,7 @@ module MzML =
                     else id
             loop null ()
 
-        member this.getRun(?xmlReader: XmlReader) =
+        member private this.getRun(?xmlReader: XmlReader) =
             let xmlReader = defaultArg xmlReader reader
             let readSubtree =
                 let rec loop acc =
@@ -1086,7 +1054,7 @@ module MzML =
                         runList
             loop null null None None [] [] null null ()
 
-        member this.getProcessingMethod(?xmlReader: XmlReader) =
+        member private this.getProcessingMethod(?xmlReader: XmlReader) =
             let xmlReader = defaultArg xmlReader reader
             let readSubtree =
                 let rec loop acc =
@@ -1113,7 +1081,7 @@ module MzML =
                         dataProcStep
             loop null null [] [] ()
 
-        member this.getProcessingMethods(?xmlReader: XmlReader) =
+        member private this.getProcessingMethods(?xmlReader: XmlReader) =
             let xmlReader = defaultArg xmlReader reader
             let readSubtree =
                 let rec loop acc =
@@ -1133,7 +1101,7 @@ module MzML =
                     else dataProcessingStepList
             loop () ()
 
-        member this.getDataProcessing (?xmlReader: XmlReader)=
+        member private this.getDataProcessing (?xmlReader: XmlReader)=
             let xmlReader = defaultArg xmlReader reader
             let readSubtree =
                 let rec loop acc =
@@ -1154,7 +1122,7 @@ module MzML =
                         new DataProcessing(id, processingMethod)
             loop null (new DataProcessingStepList()) ()
 
-        member this.getDataProcessingList(?xmlReader: XmlReader) =
+        member private this.getDataProcessingList(?xmlReader: XmlReader) =
             let xmlReader = defaultArg xmlReader reader
             let readSubtree =
                 let rec loop acc =
@@ -1174,7 +1142,7 @@ module MzML =
                     else dataProcessingList
             loop () ()
 
-        member this.GetDetector(?xmlReader: XmlReader) =
+        member private this.GetDetector(?xmlReader: XmlReader) =
             let xmlReader = defaultArg xmlReader reader
             let readSubtree =
                 let rec loop acc =
@@ -1200,7 +1168,7 @@ module MzML =
                         componentList
             loop [] [] ()
 
-        member this.GetAnalyzer(?xmlReader: XmlReader) =
+        member private this.GetAnalyzer(?xmlReader: XmlReader) =
             let xmlReader = defaultArg xmlReader reader
             let readSubtree =
                 let rec loop acc =
@@ -1226,7 +1194,7 @@ module MzML =
                         componentList
             loop [] [] ()
 
-        member this.GetSource(?xmlReader: XmlReader) =
+        member private this.GetSource(?xmlReader: XmlReader) =
             let xmlReader = defaultArg xmlReader reader
             let readSubtree =
                 let rec loop acc =
@@ -1252,7 +1220,7 @@ module MzML =
                         componentList
             loop [] [] ()
 
-        member this.getComponentList(?xmlReader: XmlReader) =
+        member private this.getComponentList(?xmlReader: XmlReader) =
             let xmlReader = defaultArg xmlReader reader
             let readSubtree =
                 let rec loop acc =
@@ -1281,7 +1249,7 @@ module MzML =
                         componentList
             loop [] [] [] ()
 
-        member this.getInstrumentConfiguration(?xmlReader: XmlReader) =
+        member private this.getInstrumentConfiguration(?xmlReader: XmlReader) =
             let xmlReader = defaultArg xmlReader reader
             let readSubtree =
                 let rec loop acc =
@@ -1310,7 +1278,7 @@ module MzML =
                         instrument
             loop null (new ComponentList()) (new Software()) [] [] ()
 
-        member this.getInstrumentConfigurationList(?xmlReader: XmlReader) =
+        member private this.getInstrumentConfigurationList(?xmlReader: XmlReader) =
             let xmlReader = defaultArg xmlReader reader
             let readSubtree =
                 let rec loop acc =
@@ -1330,7 +1298,7 @@ module MzML =
                     else instrumentList
             loop () ()
 
-        member this.getSoftware(?xmlReader: XmlReader) =
+        member private this.getSoftware(?xmlReader: XmlReader) =
             let xmlReader = defaultArg xmlReader reader
             let readSubtree =
                 let rec loop acc =
@@ -1357,7 +1325,7 @@ module MzML =
                         software
             loop null [] [] ()
 
-        member this.getSoftwareList(?xmlReader: XmlReader) =
+        member private this.getSoftwareList(?xmlReader: XmlReader) =
             let xmlReader = defaultArg xmlReader reader
             let readSubtree =
                 let rec loop acc =
@@ -1377,7 +1345,7 @@ module MzML =
                     else softwareList
             loop () ()
 
-        member this.getSample(?xmlReader: XmlReader) =
+        member private this.getSample(?xmlReader: XmlReader) =
             let xmlReader = defaultArg xmlReader reader
             let readSubtree =
                 let rec loop acc =
@@ -1404,7 +1372,7 @@ module MzML =
                         sample
             loop null null [] [] ()
 
-        member this.getSampleList(?xmlReader: XmlReader) =
+        member private this.getSampleList(?xmlReader: XmlReader) =
             let xmlReader = defaultArg xmlReader reader
             let readSubtree =
                 let rec loop acc =
@@ -1424,7 +1392,7 @@ module MzML =
                     else sampleList
             loop () ()
 
-        member this.getContact(?xmlReader: XmlReader) =
+        member private this.getContact(?xmlReader: XmlReader) =
             let xmlReader = defaultArg xmlReader reader
             let readSubtree =
                 let rec loop acc =
@@ -1450,7 +1418,7 @@ module MzML =
                         contact
             loop [] [] ()
 
-        member this.getSourceFile(?xmlReader: XmlReader) =
+        member private this.getSourceFile(?xmlReader: XmlReader) =
             let xmlReader = defaultArg xmlReader reader
             let readSubtree =
                 let rec loop acc =
@@ -1477,7 +1445,7 @@ module MzML =
                         sourceFile
             loop null null null [] [] ()
 
-        member this.getSourceFileList(?xmlReader: XmlReader) =
+        member private this.getSourceFileList(?xmlReader: XmlReader) =
             let xmlReader = defaultArg xmlReader reader
             let readSubtree =
                 let rec loop acc =
@@ -1497,7 +1465,7 @@ module MzML =
                     else sourceFileList
             loop () ()
 
-        member this.getFileContent(?xmlReader: XmlReader) =
+        member private this.getFileContent(?xmlReader: XmlReader) =
             let xmlReader = defaultArg xmlReader reader
             let readSubtree =
                 let rec loop acc =
@@ -1523,7 +1491,7 @@ module MzML =
                         fileCon
             loop [] [] ()
 
-        member this.getFileDescription(?xmlReader: XmlReader) =
+        member private this.getFileDescription(?xmlReader: XmlReader) =
             let xmlReader = defaultArg xmlReader reader
             let readSubtree =
                 let rec loop acc =
@@ -1765,7 +1733,7 @@ module MzML =
                     outerLoop (reader.Read())
             outerLoop false
 
-        member this.ReadChromatogramms(runID) =
+        member private this.ReadChromatogramms(runID) =
             let rec outerLoop acc =
                 if reader.Name = "run" then
                     let readSubtree = reader.ReadSubtree()
@@ -1855,7 +1823,7 @@ module MzML =
                     outerLoop (reader.Read())
             outerLoop false
 
-        member this.tryGetPeak2DArray(chromatogramID:string) =
+        member private this.tryGetPeak2DArray(chromatogramID:string) =
             let readSubtree =
                 let rec loop acc =
                     if reader.NodeType=XmlNodeType.Element && reader.Name="chromatogram" then
@@ -1879,7 +1847,7 @@ module MzML =
                     else None
             loop ()
 
-        member this.getPeak2DArrays(chromatogramID:string) =
+        member private this.getPeak2DArrays(chromatogramID:string) =
             let rec outerLoop acc =
                 if reader.Name = "chromatogramList" then
                     let readSubtree = reader.ReadSubtree()
@@ -1970,7 +1938,6 @@ module MzML =
 
         interface IMzIODataReader with
     
-            // Needs improbement
             member this.ReadMassSpectra(runID: string) =
                 reader <- XmlReader.Create(filePath)
                 this.getSpectra(runID)
@@ -2012,46 +1979,57 @@ module MzML =
                     | :? Exception as ex -> 
                         raise (MzIOIOException(ex.Message, ex))
 
+        /// Read all mass spectra of one run from mzml file.
         member this.ReadMassSpectra(runID:string)               =
 
             (this :> IMzIODataReader).ReadMassSpectra(runID)
 
+        /// Read mass spectrum from mzml file.
         member this.ReadMassSpectrum(spectrumID:string)         =
 
             (this :> IMzIODataReader).ReadMassSpectrum(spectrumID)
 
+        /// Read peaks of mass spectrum from mzml file.
         member this.ReadSpectrumPeaks(spectrumID:string)        =
 
             (this :> IMzIODataReader).ReadSpectrumPeaks(spectrumID)
 
+        /// Read mass spectrum from baf file asynchronously.
         member this.ReadMassSpectrumAsync(spectrumID:string)    =
 
             (this :> IMzIODataReader).ReadMassSpectrumAsync(spectrumID)
 
+        /// Read peaks from mass spectrum from baf file asynchronously.
         member this.ReadSpectrumPeaksAsync(spectrumID:string)   =
 
             (this :> IMzIODataReader).ReadSpectrumPeaksAsync(spectrumID)
 
+        /// Not implemented yet.
         member this.ReadChromatograms(runID:string)             =
 
             (this :> IMzIODataReader).ReadChromatograms(runID)
 
+        /// Not implemented yet.
         member this.ReadChromatogramPeaks(runID:string)         =
 
             (this :> IMzIODataReader).ReadChromatogramPeaks(runID)
 
+        /// Not implemented yet.
         member this.ReadChromatogramAsync(runID:string)         =
 
             (this :> IMzIODataReader).ReadChromatogramAsync(runID)
 
+        /// Not implemented yet.
         member this.ReadChromatogramPeaksAsync(runID:string)    =
 
             (this :> IMzIODataReader).ReadChromatogramPeaksAsync(runID)
 
+        /// Not implemented yet.
         member this.ReadAllSpectrumPeaks(runID:string) =
 
             this.getAllPeak1DArrays(runID)
 
+        /// Create Peak2DArray based on range of retention time and m/z.
         member this.RtProfile(rtIndex: IMzIOArray<RtIndexEntry>, rtRange: RangeQuery, mzRange: RangeQuery) =
 
             reader <- XmlReader.Create(filePath)
@@ -2059,7 +2037,8 @@ module MzML =
             let profile = Array.zeroCreate<Peak2D> entries.Length
             let rtIdxs = [0..entries.Length-1]
             rtIdxs
-            |> List.iter (fun rtIdx ->
+            |> List.iter (
+                          fun rtIdx ->
                             let entry = entries.[rtIdx]
                             let peaks = this.ReadSpectrumPeaks(entry).Peaks
                             let p = 

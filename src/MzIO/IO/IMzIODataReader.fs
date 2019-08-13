@@ -25,5 +25,5 @@ type IMzIODataReader =
     abstract member ReadChromatogram        : string -> Chromatogram
     abstract member ReadChromatogramPeaks   : string -> Peak2DArray
 
-    abstract member ReadChromatogramAsync       : string -> Task<Chromatogram>  (*Async<Chromatogram>*)
-    abstract member ReadChromatogramPeaksAsync  : string -> Task<Peak2DArray>   (*Async<Peak2DArray>*)
+    abstract member ReadChromatogramAsync       : string -> Async<Chromatogram>  (*Async<Chromatogram>*)
+    abstract member ReadChromatogramPeaksAsync  : string -> Async<Peak2DArray>   (*Async<Peak2DArray>*)

@@ -100,6 +100,7 @@ type private SpectrumVariableCollection() =
             value <- Unchecked.defaultof<Decimal>
             false
 
+/// Baf specific peak array because baf intensities are saved as uint32 and not as float.
 type private BafPeaksArray(masses:double[], intensities:UInt32[]) =
 
     interface IMzIOArray<Peak1D> with
@@ -147,6 +148,7 @@ type private BafPeaksArray(masses:double[], intensities:UInt32[]) =
 
             (this :> IMzIOArray<Peak1D>).[idx]
 
+/// Contains methods to acces spectrum and peak information of baf files.
 [<Sealed>]
 type BafFileReader(bafFilePath:string) =
 
@@ -214,10 +216,12 @@ type BafFileReader(bafFilePath:string) =
             model.Runs.Add(run.ID, run)
             model
 
+        /// MzIO model based on shadow file or baf file. Creates shadow if it doesn't exist.
         member this.Model =
             this.RaiseDisposed()
             MzIOJson.HandleExternalModelFile(this, BafFileReader.GetModelFilePath(bafFilePath))
 
+        /// Save current mzio model in shadow file.
         member this.SaveModel() =
 
             this.RaiseDisposed()
@@ -265,27 +269,16 @@ type BafFileReader(bafFilePath:string) =
                 if
                     baf2SqlHandle <> Convert.ToUInt64 0 then Baf2SqlWrapper.baf2sql_array_close_storage(baf2SqlHandle)
                 else
-                    //if
-                    //    linq2BafSql <> null then (linq2BafSql :> IDisposable).Dispose()
-                    //else
-                        disposed <- true
-
-        //let model = MzIOJson.HandleExternalModelFile(this, this.GetModelFilePath())
-
-    //let supportedVariables = SupportedVariablesCollection.ReadSupportedVariables(linq2BafSql)
-
-        //with
-        //    | :? Exception as ex ->
-        //        raise (new MzIOIOException(ex.Message, ex))
-
-    member private this.linq2BafSql = linq2BafSql
+                    disposed <- true
 
     member this.BafFilePath = bafFilePath
 
+    /// Generates path for shadow file.
     static member private GetModelFilePath(bafFilePath:string) =
 
         sprintf "%s%s" bafFilePath ".MzIOmodel"
 
+    /// Checks wheter reader is disposed or not.
     member private this.RaiseDisposed() =
 
         if disposed = true then
@@ -294,6 +287,7 @@ type BafFileReader(bafFilePath:string) =
         else
             ()
 
+    /// Reads mass spectra from baf file.
     member private this.YieldMassSpectra() =
 
         let mutable ids = linq2BafSql.Spectra.OrderBy(fun x -> x.Rt).Select(fun x -> x.Id)
@@ -303,9 +297,10 @@ type BafFileReader(bafFilePath:string) =
         let tmp =
             ids
             |> Seq.map (fun id -> this.ReadMassSpectrum(getBafSqlSpectrum, getBafSqlAcquisitionKey, getBafSqlSteps, getPerSpectrumVariables, id.Value))
-        //cn.Close()
+
         tmp
 
+    /// reads peaks from baf file.
     member this.ReadSpectrumPeaks(spectrumID:string, getCentroids:bool) =
 
         this.RaiseDisposed()
@@ -329,17 +324,12 @@ type BafFileReader(bafFilePath:string) =
             this.RaiseDisposed()
 
             try
-
                 this.YieldMassSpectra()
-
             with
 
                 | :? MzIOIOException as ex ->
-
                     raise ex
-
                 | :? Exception as ex ->
-
                     raise (new MzIOIOException("Error reading spectrum.", ex))
 
         member this.ReadMassSpectrum(spectrumID:string) =
@@ -430,38 +420,27 @@ type BafFileReader(bafFilePath:string) =
                 | :? Exception as ex ->
                     raise (new MzIOIOException(ex.Message, ex))
 
+    /// Read mass spectrum from baf file.
     member private this.ReadMassSpectrum(getBafSqlSpectrum:Nullable<UInt64>->BafSqlSpectrum, getBafSqlAcquisitionKey:Nullable<UInt64>->BafSqlAcquisitionKey,
                                          getBafSqlSteps:Nullable<UInt64>->list<BafSqlStep>, getBafPerSpecVariables:UInt64->list<BafSqlPerSpectrumVariable>,
                                          spectrumId:UInt64) =
 
-        let bafSpec =
-            //(linq2BafSql.GetBafSqlSpectrum(this.linq2BafSql.Core, Nullable(spectrumId)))
-            //|> (Seq.takeWhile(fun item -> snd item = true))
-            //|> Seq.head
-            //|> (fun item -> fst item)
-            getBafSqlSpectrum(Nullable(spectrumId))
-
-        //if bafSpec = null then
-
-        //    raise (new MzIOIOException("No spectrum found for id: " + spectrumId.ToString()))
+        let bafSpec =  getBafSqlSpectrum(Nullable(spectrumId))
 
         let ms = new MassSpectrum(spectrumId.ToString())
 
         // determine ms level
-        let aqKey =
-            //linq2BafSql.GetBafSqlAcquisitionKey(this.linq2BafSql.Core, bafSpec.AcquisitionKey).Target :?> BafSqlAcquisitionKey
-            getBafSqlAcquisitionKey bafSpec.AcquisitionKey
+        let aqKey = getBafSqlAcquisitionKey bafSpec.AcquisitionKey
 
         let mutable msLevel = None
 
-        if (*aqKey <> null && *)aqKey.MsLevel.HasValue then
+        if aqKey.MsLevel.HasValue then
             // bruker starts ms level by 0, must be added by 1
             msLevel <- Some (aqKey.MsLevel.Value + (int64 1))
             ms.SetMsLevel(int32 msLevel.Value) |> ignore
 
         // determine type of spectrum and read peak data
         // if profile data available we prefer to get profile data otherwise centroided data (line spectra)
-
         if bafSpec.ProfileMzId.HasValue&& bafSpec.ProfileIntensityId.HasValue then
 
             ms.SetProfileSpectrum() |> ignore
@@ -558,6 +537,7 @@ type BafFileReader(bafFilePath:string) =
         else ()
         ms
 
+    /// Read peaks from baf file.
     member this.ReadSpectrumPeaks(spectrumId:UInt64, getCentroids:bool) =
 
         if not (cn.State = ConnectionState.Open) then cn.Open()
@@ -586,38 +566,47 @@ type BafFileReader(bafFilePath:string) =
         pa.Peaks <- new BafPeaksArray(masses, intensities)
         pa
 
+    /// Read all mass spectra of one run from baf file.
     member this.ReadMassSpectra(runID:string)               =
 
         (this :> IMzIODataReader).ReadMassSpectra(runID)
 
+    /// Read mass spectrum from baf file.
     member this.ReadMassSpectrum(spectrumID:string)         =
 
         (this :> IMzIODataReader).ReadMassSpectrum(spectrumID)
 
+    /// Read peaks of mass spectrum from baf file.
     member this.ReadSpectrumPeaks(spectrumID:string)        =
 
         (this :> IMzIODataReader).ReadSpectrumPeaks(spectrumID)
 
+    /// Read mass spectrum from baf file asynchronously.
     member this.ReadMassSpectrumAsync(spectrumID:string)    =
 
         (this :> IMzIODataReader).ReadMassSpectrumAsync(spectrumID)
 
+    /// Read peaks from mass spectrum from baf file asynchronously.
     member this.ReadSpectrumPeaksAsync(spectrumID:string)   =
 
         (this :> IMzIODataReader).ReadSpectrumPeaksAsync(spectrumID)
 
+    /// Not implemented yet.
     member this.ReadChromatograms(runID:string)             =
 
         (this :> IMzIODataReader).ReadChromatograms(runID)
 
+    /// Not implemented yet.
     member this.ReadChromatogramPeaks(runID:string)         =
 
         (this :> IMzIODataReader).ReadChromatogramPeaks(runID)
 
+    /// Not implemented yet.
     member this.ReadChromatogramAsync(runID:string)         =
 
         (this :> IMzIODataReader).ReadChromatogramAsync(runID)
 
+    /// Not implemented yet.
     member this.ReadChromatogramPeaksAsync(runID:string)    =
 
         (this :> IMzIODataReader).ReadChromatogramPeaksAsync(runID)
