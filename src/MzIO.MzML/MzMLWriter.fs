@@ -983,15 +983,31 @@ type MzMLWriter(path:string) =
         | BinaryDataType.Float64    -> "MS:1000523"
         | _ -> failwith "BinaryDataType is unknown"
 
-    static member private assignCompressionType(item:BinaryDataCompressionType) =
+    member this.WriteCvParamCompression(accession:string, name:string) =
+        writer.WriteStartElement("cvParam")
+        writer.WriteAttributeString("accession", accession)
+        writer.WriteAttributeString("cvRef", "MS")
+        writer.WriteAttributeString("name", name)
+        writer.WriteAttributeString("value", "")
+        writer.WriteEndElement()
+
+    member this.WriteUserParamCompression(name:string) =
+        writer.WriteStartElement("userParam")
+        writer.WriteAttributeString("name", name)
+        writer.WriteAttributeString("value", "")       
+        writer.WriteEndElement()
+
+    member private this.writeCompressionParam(item:BinaryDataCompressionType) =
         match item with
-        | BinaryDataCompressionType.NoCompression   -> "MS:1000576"
-        | BinaryDataCompressionType.ZLib            -> "MS:1000574"
-        | BinaryDataCompressionType.NumPress        -> failwith "BinaryDataCompressionType is unknown"
-        | BinaryDataCompressionType.NumPressZLib    -> failwith "BinaryDataCompressionType is unknown"
-        | BinaryDataCompressionType.NumPressPic     -> failwith "BinaryDataCompressionType is unknown"
-        | BinaryDataCompressionType.NumPressLin     -> failwith "BinaryDataCompressionType is unknown"
+        | BinaryDataCompressionType.NoCompression   -> this.WriteCvParamCompression("MS:1000576", "NoCompression")
+        | BinaryDataCompressionType.ZLib            -> this.WriteCvParamCompression("MS:1000574", "ZLib")
+        | BinaryDataCompressionType.NumPress        -> this.WriteUserParamCompression("NumPress")
+        | BinaryDataCompressionType.NumPressZLib    -> this.WriteUserParamCompression("NumPressZLib")
+        | BinaryDataCompressionType.NumPressPic     -> this.WriteCvParamCompression("MS:1002313", "NumPressPic")
+        | BinaryDataCompressionType.NumPressLin     -> this.WriteCvParamCompression("MS:1002314", "NumPressLin")
         | _ -> failwith "BinaryDataCompressionType is unknown"
+
+    
 
     member this.WriteQParams(item:Peak1DArray) =
         writer.WriteStartElement("cvParam")
@@ -1000,12 +1016,13 @@ type MzMLWriter(path:string) =
         writer.WriteAttributeString("name", item.MzDataType.ToString())
         writer.WriteAttributeString("value", "")
         writer.WriteEndElement()
-        writer.WriteStartElement("cvParam")
-        writer.WriteAttributeString("accession", (MzMLWriter.assignCompressionType item.CompressionType).ToString())
-        writer.WriteAttributeString("cvRef", "MS")
-        writer.WriteAttributeString("name", item.CompressionType.ToString())
-        writer.WriteAttributeString("value", "")
-        writer.WriteEndElement()
+        this.writeCompressionParam item.CompressionType
+        //writer.WriteStartElement("cvParam")
+        //writer.WriteAttributeString("accession", (MzMLWriter.assignCompressionType item.CompressionType).ToString())
+        //writer.WriteAttributeString("cvRef", "MS")
+        //writer.WriteAttributeString("name", item.CompressionType.ToString())
+        //writer.WriteAttributeString("value", "")
+        //writer.WriteEndElement()
         writer.WriteStartElement("cvParam")
         writer.WriteAttributeString("cvRef", "MS")
         writer.WriteAttributeString("accession", "MS:1000514")      
@@ -1023,12 +1040,13 @@ type MzMLWriter(path:string) =
         writer.WriteAttributeString("name", "not saved yet")
         writer.WriteAttributeString("value", "")
         writer.WriteEndElement()
-        writer.WriteStartElement("cvParam")
-        writer.WriteAttributeString("accession", (MzMLWriter.assignCompressionType item.CompressionType).ToString())
-        writer.WriteAttributeString("cvRef", "MS")
-        writer.WriteAttributeString("name", "not saved yet")
-        writer.WriteAttributeString("value", "")
-        writer.WriteEndElement()
+        this.writeCompressionParam item.CompressionType
+        //writer.WriteStartElement("cvParam")
+        //writer.WriteAttributeString("accession", (MzMLWriter.assignCompressionType item.CompressionType).ToString())
+        //writer.WriteAttributeString("cvRef", "MS")
+        //writer.WriteAttributeString("name", "not saved yet")
+        //writer.WriteAttributeString("value", "")
+        //writer.WriteEndElement()
         writer.WriteStartElement("cvParam")
         writer.WriteAttributeString("cvRef", "MS")
         writer.WriteAttributeString("accession", "MS:1000515")      

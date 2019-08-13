@@ -9,6 +9,7 @@ open MzIO.Model
 
 
 //potential error source: replaced Task<'T> with Async<'T>
+///Interface for the readers to share a set of basic functions that are associated with reading spectra and peak arrays.
 type IMzIODataReader =
 
     inherit IMzIOIO
@@ -24,5 +25,5 @@ type IMzIODataReader =
     abstract member ReadChromatogram        : string -> Chromatogram
     abstract member ReadChromatogramPeaks   : string -> Peak2DArray
 
-    abstract member ReadChromatogramAsync       : string -> Async<Chromatogram>
-    abstract member ReadChromatogramPeaksAsync  : string -> Async<Peak2DArray>
+    abstract member ReadChromatogramAsync       : string -> Task<Chromatogram>  (*Async<Chromatogram>*)
+    abstract member ReadChromatogramPeaksAsync  : string -> Task<Peak2DArray>   (*Async<Peak2DArray>*)

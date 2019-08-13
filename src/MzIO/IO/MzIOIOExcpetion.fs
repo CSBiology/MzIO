@@ -4,6 +4,7 @@
 open System
 
 
+/// Contains MzIO specific exceptions.
 type MzIOIOException() =
 
     inherit Exception()

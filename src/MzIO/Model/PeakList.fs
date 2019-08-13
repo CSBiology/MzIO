@@ -36,7 +36,7 @@ type IsolationWindow() =
 
     inherit DynamicObj()
 
-/// An abstract base class of a expansible description model item that contains the dynamic object and has an additional isolationWindow.
+/// An abstract base class of a expansible description ion selection method that contains the dynamic object and has an additional isolationWindow.
 [<AbstractClass>]
 [<JsonObject(MemberSerialization.OptIn)>]
 type IonSelectionMethod() =

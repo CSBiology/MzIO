@@ -5,6 +5,7 @@ open MzIO.Model.CvParam
 open MzIO.MetaData.ParamEditExtension
 
 
+/// Contains methods to set unit to specific values.
 module UO =
 
     type UO<'TPC when 'TPC :> DynamicObj>() =
