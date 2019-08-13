@@ -5,24 +5,20 @@ open System
 open Newtonsoft.Json
 
 
+/// Expansible description of a spectrum reference which also contains a refernece to the source file.
 [<Sealed>]
 [<JsonObject(MemberSerialization = MemberSerialization.OptIn)>]
 type SpectrumReference [<JsonConstructor>] (sourceFileID: string , spectrumID: string) =
     
     let mutable sourceFileID' = sourceFileID
-    let mutable spectrumID' = spectrumID
+    let mutable spectrumID' =
+        if String.IsNullOrWhiteSpace spectrumID then 
+            raise (new System.ArgumentNullException ("spectrumID"))
+        else
+            spectrumID
 
     new(spectrumID) = new SpectrumReference ("sourceFileID", spectrumID)
     new()           = new SpectrumReference ("sourceFileID", "spectrumID")
-
-    //spectrumReference with new variables or take type variables?
-    member this.SpectrumReference (sourceFileID: string, spectrumID: string) =
-        if spectrumID = null then
-             raise (new System.ArgumentNullException ("spectrumID"))
-        else sourceFileID' <- sourceFileID
-             spectrumID' <- spectrumID
-
-    member this.SpectrumReference (spectrumID: string) = this.SpectrumReference (null, spectrumID)
 
     [<JsonProperty(NullValueHandling = NullValueHandling.Ignore)>]
     member this.SourceFileID  
@@ -39,15 +35,6 @@ type SpectrumReference [<JsonConstructor>] (sourceFileID: string , spectrumID: s
     override this.Equals (obj: System.Object) =
         if Object.ReferenceEquals (this, obj) then true
         else
-            //let other = if (obj :? SpectrumReference) then obj :?> SpectrumReference else null
-            //let other = 
-            //    match obj with 
-            //    | :? SpectrumReference as spectrumReference -> spectrumReference
-            //    | _ -> null
-            // try
-            // obj :?> SpectrumReference
-            // with
-            //     | :? System.InvalidCastException -> null
             if (obj :? SpectrumReference) then
                 let other: SpectrumReference = obj :?> SpectrumReference    
                 if this.IsExternal then

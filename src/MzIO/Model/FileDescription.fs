@@ -7,27 +7,24 @@ open MzIO.Model.CvParam
 open Newtonsoft.Json
 
 
-/// <summary>
 /// This summarizes the different types of spectra that can be expected in the file. 
 /// This is expected to aid processing software in skipping files that do not contain appropriate spectrum types for it. 
 /// It should also describe the nativeID format used in the file by referring to an appropriate CV term.
-/// </summary>
 [<Sealed>]
 [<JsonObject(MemberSerialization.OptIn)>]
 type FileContent() =
 
     inherit DynamicObj()
 
+/// The primary class to save the informations of a contact using controlled (cvParam) or uncontrolled vocabulary (userParam).
 [<Sealed>]
 [<JsonObject(MemberSerialization.OptIn)>]
 type Contact() =
     
     inherit DynamicObj()
 
-/// <summary>
 /// Information pertaining to the entire mzML file 
 /// (i.e. not specific to any part of the data set) is stored here.
-/// </summary>
 [<Sealed>]
 [<JsonObject(MemberSerialization.OptIn)>]
 type FileDescription [<JsonConstructor>] (contact:Contact, fileContent:FileContent, sourceFiles:SourceFileList) =

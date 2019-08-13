@@ -7,46 +7,38 @@ open MzIO.Model.CvParam
 open Newtonsoft.Json
 
 
-/// <summary>
 /// Expansible description of a sample treatment.
-/// </summary>
 [<Sealed>]
 [<JsonObject(MemberSerialization.OptIn)>]
 type SampleTreatment() =
 
     inherit DynamicObj()
 
+/// The model item container for all sampletreatments of this experiment.
 [<Sealed>]
 type SampleTreatmentList [<JsonConstructor>] () =
 
     inherit ObservableCollection<SampleTreatment>()
 
-/// <summary>
 /// Expansible description of a sample preparation.
-/// </summary>
 [<Sealed>]
 [<JsonObject(MemberSerialization.OptIn)>]
 type SamplePreparation() =
     
     inherit DynamicObj()
 
+/// The model item container for all sample preparations of this experiment.
 [<Sealed>]
 type SamplePreparationList [<JsonConstructor>] () =
 
     inherit ObservableCollection<SamplePreparation>()
 
-/// <summary>
 /// Expansible description of a sample.
-/// </summary>
 [<Sealed>]
 [<JsonObject(MemberSerialization.OptIn, IsReference = true)>]
 type Sample (id:string, name:string, treatments:SampleTreatmentList, preperations:SamplePreparationList) =
 
     inherit NamedModelItem(id, name)
-
-    //let mutable treatments      = new SampleTreatmentList()
-
-    //let mutable preperations    = new SamplePreparationList()
 
     [<JsonConstructor>]
     new(id, name) = new Sample(id, name, new SampleTreatmentList(), new SamplePreparationList())
@@ -58,9 +50,7 @@ type Sample (id:string, name:string, treatments:SampleTreatmentList, preperation
     [<JsonProperty>]
     member this.Treatments      = treatments
 
-/// <summary>
-/// The model item container for samples.
-/// </summary>
+/// The model item container for samples of this experiment.
 [<Sealed>]
 type SampleList [<JsonConstructor>] internal (dict:Dictionary<string, obj>) =
 

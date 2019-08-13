@@ -6,9 +6,7 @@ open MzIO.Model
 open Newtonsoft.Json
 
 
-/// <summary>
 /// Base class of a ms run which is associated to a sample description.
-/// </summary>
 [<AbstractClass>]
 type RunBase ( [<JsonProperty("ID")>] id:string, sample:Sample) =
 
@@ -30,11 +28,9 @@ type RunBase ( [<JsonProperty("ID")>] id:string, sample:Sample) =
                     sample <- value
                     this.NotifyPropertyChanged("Sample")
 
-/// <summary>
 /// Expansible description of a ms run in a mz data model.
 /// Represents the entry point to the storage of peak lists that are result
 /// of instrument scans or data processings.
-/// </summary>
 [<Sealed>]
 [<JsonObject(MemberSerialization.OptIn, IsReference = true)>]
 type Run [<JsonConstructor>] (id:string, sample:Sample, defaultInstrument, defaultSpectrumProcessing, defaultChromatogramProcessing) =
@@ -56,8 +52,6 @@ type Run [<JsonConstructor>] (id:string, sample:Sample, defaultInstrument, defau
     new(id:string) = Run(id, new Sample(), new Instrument(), new DataProcessing(), new DataProcessing())
 
     new() = Run("id", new Sample(), new Instrument(), new DataProcessing(), new DataProcessing())
-
-    //member this.Run = base.ID
 
     [<JsonProperty(NullValueHandling = NullValueHandling.Ignore)>]
     member this.DefaultInstrument
@@ -89,11 +83,10 @@ type Run [<JsonConstructor>] (id:string, sample:Sample, defaultInstrument, defau
                     defaultChromatogramProcessing <- value
                     this.NotifyPropertyChanged("DefaultChromatogramProcessing")
 
-/// <summary>
 /// Expansible description of a ms run in a project model.
 /// Represents the entry point to the storage of peak lists that are result
 /// of instrument scans or data processings.
-/// </summary>
+/// Not implemented fully yet.
 [<Sealed>]
 [<JsonObject(MemberSerialization.OptIn, IsReference = true)>]
 type ProjectRun [<JsonConstructor>] ( [<JsonProperty("ID")>] id:string, sample:Sample) =
@@ -118,9 +111,7 @@ type ProjectRun [<JsonConstructor>] ( [<JsonProperty("ID")>] id:string, sample:S
                     runReference <- value
                     this.NotifyPropertyChanged("RunReference")
 
-/// <summary>
-/// The model item container for ms runs.
-/// </summary>
+/// The model item container for all ms runs of this experiment.
 [<Sealed>]
 type RunList [<JsonConstructor>] internal (dict:Dictionary<string, obj>) =
 
@@ -129,9 +120,8 @@ type RunList [<JsonConstructor>] internal (dict:Dictionary<string, obj>) =
     new() = new RunList(new Dictionary<string, obj>())
 
 
-/// <summary>
 /// The project item container for ms runs.
-/// </summary>
+/// Not implemented fully yet.
 [<Sealed>]
 type ProjectRunList [<JsonConstructor>] internal (dict:Dictionary<string, obj>) =
 

@@ -7,9 +7,7 @@ open MzIO.Model
 open Newtonsoft.Json
 
 
-/// <summary>
 /// Expansible description of a source file.
-/// </summary>
 [<JsonObject(MemberSerialization.OptIn, IsReference = true)>]
 type SourceFile [<JsonConstructor>] ( [<JsonProperty("ID")>] id:string, [<JsonProperty("Name")>] name:string, [<JsonProperty("Location")>] location:string) =
 
@@ -21,12 +19,9 @@ type SourceFile [<JsonConstructor>] ( [<JsonProperty("ID")>] id:string, [<JsonPr
         else
             location
 
-
     new(id, name) = SourceFile(id, name, "location")
     new(id) = SourceFile(id, "name", "location")
     new() = SourceFile("id", "name", "location")
-    
-    //member this.SourceFile = base.ID, base.Name
 
     [<JsonProperty(Required = Required.Always)>]
     member this.Location
@@ -38,6 +33,7 @@ type SourceFile [<JsonConstructor>] ( [<JsonProperty("ID")>] id:string, [<JsonPr
                     location' <- value
                     this.NotifyPropertyChanged("Location")
 
+/// The model item container for all source files of this experiment.
 [<Sealed>]
 [<JsonObject(MemberSerialization.OptIn)>]
 type SourceFileList [<JsonConstructor>] internal (dict:Dictionary<string, obj>) =

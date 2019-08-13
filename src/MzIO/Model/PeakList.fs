@@ -10,6 +10,7 @@ open Newtonsoft.Json.Linq
 open Newtonsoft.Json.Serialization
 
 
+/// An abstract base class of a expansible description model item that can be referenced by an id and has an additional dataProcessingReference.
 [<AbstractClass>]
 type PeakList (id:string, dataProcessingReference:string) =
 
@@ -28,16 +29,14 @@ type PeakList (id:string, dataProcessingReference:string) =
          and set(value) = dataProcessingReference <- value
 
 
-//Normally PsiMSExtension
-///// <summary>
-///// The primary or reference m/z about which the isolation window is defined. [PSI:MS]
-///// </summary>
+/// The primary class to reference which isolation window is defined. [PSI:MS]
 [<Sealed>]
 [<JsonObject(MemberSerialization.OptIn)>]
 type IsolationWindow() =
 
     inherit DynamicObj()
 
+/// An abstract base class of a expansible description model item that contains the dynamic object and has an additional isolationWindow.
 [<AbstractClass>]
 [<JsonObject(MemberSerialization.OptIn)>]
 type IonSelectionMethod() =
@@ -46,26 +45,27 @@ type IonSelectionMethod() =
 
     abstract member IsolationWindow : IsolationWindow
 
+/// The primary class to reference which type and energy level was used for activation.
 [<Sealed>]
 [<JsonObject(MemberSerialization.OptIn)>]
 type Activation() =
 
     inherit DynamicObj()
 
+/// The primary class to save the selected ions using controlled (cvParam) or uncontrolled vocabulary (userParam).
 [<Sealed>]
 [<JsonObject(MemberSerialization.OptIn)>]
 type SelectedIon() =
 
     inherit DynamicObj()
 
+/// The dynamic object container for all selected ions in the current spectrum.
 [<Sealed>]
 type SelectedIonList [<JsonConstructor>] () =
 
     inherit MzIO.Model.ObservableCollection<SelectedIon>()
 
-    //member internal this.SelectedIonList = SelectedIonList ()
-
-
+/// The primary class to reference the method of precursor ion selection and activation.
 [<Sealed>]
 [<JsonObject(MemberSerialization.OptIn)>]
 type Precursor (spectrumReference:SpectrumReference, isolationWindow:IsolationWindow, selectedIons:SelectedIonList, activation:Activation) =
@@ -74,14 +74,9 @@ type Precursor (spectrumReference:SpectrumReference, isolationWindow:IsolationWi
 
     let mutable spectrumReference' = spectrumReference
     
-    //right way for default?
     new(spectrumReference) = new Precursor(spectrumReference, new IsolationWindow(), new SelectedIonList(), new Activation())
     [<JsonConstructor>]
     new() = new Precursor(new SpectrumReference(), new IsolationWindow(), new SelectedIonList(), new Activation())
-
-    // original was spectrumReference' <- spectrum reference, but initializing Precursor() with spectrumReference does the same?
-    //member this.Precursor spectrumReference = Precursor (spectrumReference)
-    //member this.Precursor() = this.Precursor(SpectrumReference ())
 
     [<JsonProperty>]
     override this.IsolationWindow = isolationWindow
@@ -97,25 +92,25 @@ type Precursor (spectrumReference:SpectrumReference, isolationWindow:IsolationWi
         with get() = spectrumReference'
         and set(value) = spectrumReference' <- value
 
+/// The dynamic object container for all precursor ion isolations in the current spectrum.
 [<Sealed>]
 type PrecursorList [<JsonConstructor>] () =
 
     inherit MzIO.Model.ObservableCollection<Precursor>()
 
-    //member internal this.PrecursorList = PrecursorList ()
-
+/// The primary class to reference the range of m/z values over which the instrument scans and aquires a spectrum. 
 [<Sealed>]
 [<JsonObject(MemberSerialization.OptIn)>]
 type ScanWindow() =
     inherit DynamicObj()
 
+/// The dynamic object container for all scanwindows of the current spectrum.
 [<Sealed>]
 type ScanWindowList [<JsonConstructor>] () =
 
     inherit MzIO.Model.ObservableCollection<ScanWindow>()
 
-    //member internal this.ScanWindowList = ScanWindowList ()
-
+/// A class to reference the scan or acquisition from original raw file used to create this peak list, as specified in sourceFile. 
 [<Sealed>]
 [<JsonObject(MemberSerialization.OptIn)>]
 type Scan [<JsonConstructor>] (spectrumReference: SpectrumReference, scanWindows:ScanWindowList) =
@@ -124,15 +119,7 @@ type Scan [<JsonConstructor>] (spectrumReference: SpectrumReference, scanWindows
 
     let mutable spectrumReference' = spectrumReference
 
-    //do they need to be mutable?
-    //let scanWindows = new ScanWindowList()
-
-    //right way for default?
-    //[<JsonConstructor>]
     new() = Scan (new SpectrumReference (), new ScanWindowList())
-
-    // original was spectrumReference' <- spectrum reference, but initializing Precursor() with spectrumReference does the same?
-    //member this.Scan spectrumReference = Precursor(spectrumReference)
 
     [<JsonProperty>]
     member this.ScanWindows = scanWindows
@@ -142,16 +129,13 @@ type Scan [<JsonConstructor>] (spectrumReference: SpectrumReference, scanWindows
         with get() = spectrumReference'
         and private set(value) = spectrumReference' <- value
 
+/// The dynamic object container for descriptions of all scans of the current spectrum.
 [<Sealed>]
 type ScanList [<JsonConstructor>] () =
 
     inherit MzIO.Model.ObservableCollection<Scan>()
 
-    //[<JsonProperty>]
-    //let property = dict
-
-    //member internal this.PrecursorList = ScanList ()
-
+/// The primary class to reference the method of product ion selection and activation in a precursor ion selection scan.
 [<Sealed>]
 [<JsonObject(MemberSerialization.OptIn)>]
 type Product(isolationWindow) =
@@ -163,29 +147,23 @@ type Product(isolationWindow) =
     [<JsonProperty>]
     override this.IsolationWindow = isolationWindow
 
+/// The dynamic object container for all product ion isolations in the current spectrum.
 [<Sealed>]
 type ProductList [<JsonConstructor>] () =
 
     inherit MzIO.Model.ObservableCollection<Product>()
 
-    //member internal this.ProductList = ProductList ()
-
+/// The class to reference the spectrum specific metadata without actual peak data.
+/// Captures the settings of the isolation windows, information about precursor- and product ions 
+/// and references the source files.
 [<Sealed>]
 [<JsonObject(MemberSerialization.OptIn)>]
 type MassSpectrum [<JsonConstructor>] (id:string, dataPRocessingReference:string, precursors:PrecursorList, scans:ScanList, products:ProductList,  sourceFileReference:string) =
 
-    //inherit with variables or default constructors?
     inherit PeakList(id, dataPRocessingReference)
-
-    //let precursors = new PrecursorList()
-
-    //let scans = new ScanList()
-
-    //let products = new ProductList()
 
     let mutable sourceFileReference = sourceFileReference
 
-    //[<JsonConstructor>]
     new(id:string) = MassSpectrum(id, null, new PrecursorList(), new ScanList(), new ProductList(), null)
 
     new() = MassSpectrum("id")
@@ -204,6 +182,7 @@ type MassSpectrum [<JsonConstructor>] (id:string, dataPRocessingReference:string
         with get() = sourceFileReference
         and private set(value) = sourceFileReference <- value            
 
+/// Not implemented fully yet.
 [<Sealed>]
 [<JsonObject(MemberSerialization.OptIn)>]
 type Chromatogram [<JsonConstructor>] (id: string, precursor:Precursor, product:Product) =

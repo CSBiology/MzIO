@@ -5,11 +5,9 @@ open MzIO.Model
 open Newtonsoft.Json
 
 
-/// <summary>
 /// Exposes the root class of the mz data model.
 /// Captures the use of mass spectrometers, sample descriptions, the mz data generated 
 /// and the processing of that data at the level of peak lists.
-/// </summary>
 [<JsonObject(MemberSerialization.OptIn)>]
 type MzIOModel
     (name:string, fileDescription:FileDescription, samples:SampleList, softwares:SoftwareList, 
@@ -76,6 +74,3 @@ type MzIOModel
         with get() = runs'
         and set(value) = runs' <- value
 
-    //[<JsonProperty>]
-    //member this.DynamicObject =
-    //    (this :> DynamicObj).GetProperties false
