@@ -339,44 +339,42 @@ let bafTestHome     = @"D:\Users\Patrick\Desktop\BioInformatik\MzLiteTestFiles\B
 let bafMzMLFile     = @"C:\Users\Student\source\repos\wiffTestFiles\Bruker\170922_4597.mzML"
 
 let thermoUni       = @"C:\Users\Student\source\repos\wiffTestFiles\Thermo\data02.RAW"
-let thermoHome      = @"D:\Users\Patrick\Desktop\BioInformatik\MzLiteTestFiles\RawTestFiles\small.RAW"
 let termoMzML       = @"C:\Users\Student\source\repos\wiffTestFiles\Thermo\data02.mzML"
 
 let mzMLHome        = @"D:\Users\Patrick\Desktop\BioInformatik\MzLiteTestFiles\MzMLTestFiles\tiny.pwiz.1.1.txt"
 
-//let wiffReader          = new WiffFileReader(wiffTestHome, licenseHome)
+//let wiffReader          = new WiffFileReader(wiffTestUni, licensePath)
 //let wiffMzML            = new MzMLReader(mzMLOfWiffUni)
 
-let bafReader           = new BafFileReader(bafTestHome)
+//let bafReader           = new BafFileReader(bafTestHome)
 //let bafMzMLReader       = new MzMLReader(bafMzMLFile)
 
-//let thermoReader        = new ThermoRawFileReader(thermoHome)
+let thermoReader        = new ThermoRawFileReader(thermoUni)
 //let thermoMzMLReader    = new MzMLReader(termoMzML)
 
-let mzMLReader          = new MzMLReader(mzMLHome)
+//let mzMLReader          = new MzMLReader(mzMLHome)
 
 let getSpectras (reader:#IMzIODataReader) =
     reader.Model.Runs.GetProperties false
     |> Seq.collect (fun run -> reader.ReadMassSpectra (run.Value :?> Run).ID)
-    |> Seq.take 100
 
 //let rtIndexEntry = wiffReader.BuildRtIndex("sample=0")
 
 //let rtProfile = wiffReader.RtProfile (rtIndexEntry, (new MzIO.Processing.RangeQuery(1., 300., 600.)), (new MzIO.Processing.RangeQuery(1., 300., 600.)))
 
-let mzIOSQLNoCompression    = new MzSQL(bafTestHome + "NoCompression.mzIO")
-let mzIOSQLZLib             = new MzSQL(bafTestHome + "ZLib.mzIO")
-let mzIOSQLNumPress         = new MzSQL(bafTestHome + "NumPress.mzIO")
-let mzIOSQLNumPressZLib     = new MzSQL(bafTestHome + "NumPressZLib.mzIO")
+let mzIOSQLNoCompression    = new MzSQL(thermoUni + "NoCompression.mzIO")
+let mzIOSQLZLib             = new MzSQL(thermoUni + "ZLib.mzIO")
+let mzIOSQLNumPress         = new MzSQL(thermoUni + "NumPress.mzIO")
+let mzIOSQLNumPressZLib     = new MzSQL(thermoUni + "NumPressZLib.mzIO")
 
 
-let spectra = getSpectras bafReader
+let spectra = getSpectras thermoReader
 
 
-mzIOSQLNoCompression.insertMSSpectraBy  (mzIOSQLNoCompression.insertMSSpectrum) "run_1" bafReader BinaryDataCompressionType.NoCompression spectra
-mzIOSQLZLib.insertMSSpectraBy           (mzIOSQLZLib.insertMSSpectrum)          "run_1" bafReader BinaryDataCompressionType.ZLib spectra
-mzIOSQLNumPress.insertMSSpectraBy       (mzIOSQLNumPress.insertMSSpectrum)      "run_1" bafReader BinaryDataCompressionType.NumPress spectra
-mzIOSQLNumPressZLib.insertMSSpectraBy   (mzIOSQLNumPressZLib.insertMSSpectrum)  "run_1" bafReader BinaryDataCompressionType.NumPressZLib spectra
+mzIOSQLNoCompression.insertMSSpectraBy  (mzIOSQLNoCompression.insertMSSpectrum) "run_1" thermoReader BinaryDataCompressionType.NoCompression spectra
+mzIOSQLZLib.insertMSSpectraBy           (mzIOSQLZLib.insertMSSpectrum)          "run_1" thermoReader BinaryDataCompressionType.ZLib spectra
+mzIOSQLNumPress.insertMSSpectraBy       (mzIOSQLNumPress.insertMSSpectrum)      "run_1" thermoReader BinaryDataCompressionType.NumPress spectra
+mzIOSQLNumPressZLib.insertMSSpectraBy   (mzIOSQLNumPressZLib.insertMSSpectrum)  "run_1" thermoReader BinaryDataCompressionType.NumPressZLib spectra
 
 
 //mzIOSQLNoCompression.ReadMassSpectra "run_1"

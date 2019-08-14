@@ -112,17 +112,14 @@ type WiffTransactionScope() =
 
         (this :> ITransactionScope).Rollback()
 
+/// Contains methods to access spectrum and peak information of wiff files.
 type WiffFileReader(dataProvider:AnalystWiffDataProvider, disposed:Boolean, wiffFilePath:string, licenseFilePath:string) =
-
-    //let licenseFilePath = defaultArg licenseFilePath (sprintf @"%s"(__SOURCE_DIRECTORY__ + "\License\Clearcore2.license.xml"))
 
     let mutable dataProvider    = dataProvider
 
     let mutable batch           = AnalystDataProviderFactory.CreateBatch(wiffFilePath, dataProvider)
 
     let mutable disposed        = disposed
-
-    //let parseHelper = new ParseHelper()
 
     let wiffFileCheck =
 
@@ -496,38 +493,47 @@ type WiffFileReader(dataProvider:AnalystWiffDataProvider, disposed:Boolean, wiff
                 | :? Exception as ex -> 
                     raise (MzIOIOException(ex.Message, ex))
 
+    /// Read all mass spectra of one run of baf file.
     member this.ReadMassSpectra(runID:string)               =
 
         (this :> IMzIODataReader).ReadMassSpectra(runID)
 
+    /// Read mass spectrum of baf file.
     member this.ReadMassSpectrum(spectrumID:string)         =
 
         (this :> IMzIODataReader).ReadMassSpectrum(spectrumID)
 
+    /// Read peaks of mass spectrum of baf file.
     member this.ReadSpectrumPeaks(spectrumID:string)        =
 
         (this :> IMzIODataReader).ReadSpectrumPeaks(spectrumID)
 
+    /// Read mass spectrum of baf file asynchronously.
     member this.ReadMassSpectrumAsync(spectrumID:string)    =
 
         (this :> IMzIODataReader).ReadMassSpectrumAsync(spectrumID)
 
+    /// Read peaks of mass spectrum of baf file asynchronously.
     member this.ReadSpectrumPeaksAsync(spectrumID:string)   =
 
         (this :> IMzIODataReader).ReadSpectrumPeaksAsync(spectrumID)
 
+    /// Not implemented yet.
     member this.ReadChromatograms(runID:string)             =
 
         (this :> IMzIODataReader).ReadChromatograms(runID)
 
+    /// Not implemented yet.
     member this.ReadChromatogramPeaks(runID:string)         =
 
         (this :> IMzIODataReader).ReadChromatogramPeaks(runID)
 
+    /// Not implemented yet.
     member this.ReadChromatogramAsync(runID:string)         =
 
         (this :> IMzIODataReader).ReadChromatogramAsync(runID)
 
+    /// Not implemented yet.
     member this.ReadChromatogramPeaksAsync(runID:string)    =
 
         (this :> IMzIODataReader).ReadChromatogramPeaksAsync(runID)
@@ -553,16 +559,18 @@ type WiffFileReader(dataProvider:AnalystWiffDataProvider, disposed:Boolean, wiff
         else
             raise (new FormatException(sprintf "%s%s" "Not a valid wiff spectrum id format: " spectrumID))
 
-
+    /// Returns TIC of spectrum.
     member this.GetTIC(spectrumID:string) =
         let sampleIndex = WiffFileReader.getSampleIndex(spectrumID)
         let msExperiment = batch.GetSample(sampleIndex).MassSpectrometerSample
         msExperiment.GetTotalIonChromatogram().NumDataPoints
 
+    /// Returns TIC of whole run.
     member this.GetTotalTIC(runID:string) =
         this.ReadMassSpectra(runID)
         |> Seq.fold (fun start spectrum -> start + this.GetTIC(spectrum.ID)) 0
 
+    /// Returns dwell time of spectrum.
     member this.GetDwellTime(spectrumID:string) =
         let sampleIndex = WiffFileReader.getSampleIndex(spectrumID)
         use sample = batch.GetSample(sampleIndex).MassSpectrometerSample
@@ -575,7 +583,8 @@ type WiffFileReader(dataProvider:AnalystWiffDataProvider, disposed:Boolean, wiff
                         |> Seq.map (fun info -> info.DwellTime)
                     yield dewllTimes
             }
-
+    
+    /// Returns dilution factor of spectrum.
     member this.GetDilutionFactor(spectrumID:string) =
         let sampleIndex = WiffFileReader.getSampleIndex(spectrumID)
         use sample = batch.GetSample(sampleIndex).MassSpectrometerSample
@@ -585,6 +594,7 @@ type WiffFileReader(dataProvider:AnalystWiffDataProvider, disposed:Boolean, wiff
                 yield msExp.DilutionFactor
             }
 
+    /// Returns mass range of spectrum.
     member this.GetMassRange(spectrumID:string) =
         let sampleIndex = WiffFileReader.getSampleIndex(spectrumID)
         use sample = batch.GetSample(sampleIndex).MassSpectrometerSample
@@ -596,6 +606,7 @@ type WiffFileReader(dataProvider:AnalystWiffDataProvider, disposed:Boolean, wiff
             }
         |> Seq.distinct
 
+    /// Returns isolation window of spectrum.
     member this.GetIsolationWindow(spectrumID:string) =
         let sampleIndex = WiffFileReader.getSampleIndex(spectrumID)
         use sample = batch.GetSample(sampleIndex).MassSpectrometerSample
@@ -607,6 +618,7 @@ type WiffFileReader(dataProvider:AnalystWiffDataProvider, disposed:Boolean, wiff
             }
         |> Seq.distinctBy(fun item -> item.[0].Name)
 
+    /// Returns collision energy of spectrum.
     member this.GetCollisionEnergy(spectrumID:string) =
         let sampleIndex = WiffFileReader.getSampleIndex(spectrumID)
         use sample = batch.GetSample(sampleIndex).MassSpectrometerSample
@@ -618,11 +630,13 @@ type WiffFileReader(dataProvider:AnalystWiffDataProvider, disposed:Boolean, wiff
                         yield msExp.GetMassSpectrumInfo(scanIndex).CollisionEnergy
             }
 
+    /// Returns scan time of mass range.
     static member private getScanTime(massRange:MassRange) =
         match massRange with
         | :? FullScanMassRange  -> (massRange :?> FullScanMassRange).ScanTime
         | _     ->  failwith "No supported type for casting"
 
+    /// Returns scan time of spectrum.
     member this.GetScanTime(spectrumID:string) =
         let sampleIndex = WiffFileReader.getSampleIndex(spectrumID)
         use sample = batch.GetSample(sampleIndex).MassSpectrometerSample
@@ -636,5 +650,3 @@ type WiffFileReader(dataProvider:AnalystWiffDataProvider, disposed:Boolean, wiff
                     yield scanTimes
             }
         |> Seq.sum
-
-

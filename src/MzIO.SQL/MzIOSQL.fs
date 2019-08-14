@@ -43,6 +43,7 @@ type private MzSQLTransactionScope() =
 
         (this :> ITransactionScope).Rollback()
     
+/// Contains methods and procedures to create, insert and access MzSQL files.
 type MzSQL(path) =
 
     let mutable disposed = false
@@ -57,7 +58,7 @@ type MzSQL(path) =
 
     let mutable cn = new SQLiteConnection(sprintf "Data Source=%s;Version=3" sqlitePath)
 
-    let createFile =
+    do
         if File.Exists("sqlitePath") then 
             ()
         else
@@ -239,9 +240,7 @@ type MzSQL(path) =
             cmd.ExecuteNonQuery() |> ignore
         )        
 
-    member private this.InsertMassSpectrum =
-        insertMassSpectrum
-
+    /// Prepare function to select element of Description table of MzSQL.
     static member private prepareSelectMassSpectrum(cn:SQLiteConnection, tr:byref<SQLiteTransaction>) =
         MzSQL.RaiseConnectionState(cn)
         MzSQL.RaiseTransactionState(cn, &tr)
@@ -259,9 +258,7 @@ type MzSQL(path) =
         | Some spectrum -> spectrum
         | None          -> failwith ("No enum with this SpectrumID found")
 
-    member private this.SelectMassSpectrum =
-        selectMassSpectrum
-
+    /// Prepare function to select elements of Description table of MzSQL.
     static member private prepareSelectMassSpectra(cn:SQLiteConnection, tr:byref<SQLiteTransaction>) =
         MzSQL.RaiseConnectionState(cn)
         MzSQL.RaiseTransactionState(cn, &tr)
@@ -286,6 +283,7 @@ type MzSQL(path) =
         |> (fun spectra -> if spectra.IsEmpty then failwith ("No enum with this RunID found") else spectra)
         |> (fun spectra -> spectra :> IEnumerable<MassSpectrum>)
 
+    /// Prepare function to select elements of PeakArray and PeakData tables of MzSQL.
     static member private prepareSelectPeak1DArray(cn:SQLiteConnection, tr:byref<SQLiteTransaction>) =
         MzSQL.RaiseConnectionState(cn)
         MzSQL.RaiseTransactionState(cn, &tr)
@@ -302,9 +300,7 @@ type MzSQL(path) =
         use reader = cmd.ExecuteReader()            
         loop reader (new Peak1DArray())
 
-    member private this.SelectPeak1DArray =
-        selectPeak1DArray
-
+    /// Prepare function to insert element into Chromatogram table of MzSQL.
     static member private prepareInsertChromatogram(cn:SQLiteConnection, tr:byref<SQLiteTransaction>) =
         MzSQL.RaiseConnectionState(cn)
         MzSQL.RaiseTransactionState(cn, &tr)
@@ -339,10 +335,8 @@ type MzSQL(path) =
             cmd.Parameters.["@peakData"].Value      <- encoder.Encode(peaks)
             cmd.ExecuteNonQuery() |> ignore
         )        
-       
-    member private this.InsertChromatogram =
-        insertChromatogram
 
+    /// Prepare function to select element of Description table of MzSQL.
     static member private prepareSelectChromatogram(cn:SQLiteConnection, tr:byref<SQLiteTransaction>) =
         MzSQL.RaiseConnectionState(cn)
         MzSQL.RaiseTransactionState(cn, &tr)
@@ -358,9 +352,7 @@ type MzSQL(path) =
         use reader = cmd.ExecuteReader()            
         loop reader (new Chromatogram())
 
-    member private this.SelectChromatogram =
-        selectChromatogram
-
+    /// Prepare function to select elements of Description table of MzSQL.
     static member private prepareSelectChromatograms(cn:SQLiteConnection, tr:byref<SQLiteTransaction>) =
         MzSQL.RaiseConnectionState(cn)
         MzSQL.RaiseTransactionState(cn, &tr)
@@ -384,9 +376,7 @@ type MzSQL(path) =
         |> List.ofSeq
         |> (fun item -> item :> IEnumerable<Chromatogram>)
 
-    member private this.SelectChromatograms =
-        selectChromatograms
-
+    /// Prepare function to select elements of PeakArray and PeakData tables of MzSQL.
     static member private prepareSelectPeak2DArray(cn:SQLiteConnection, tr:byref<SQLiteTransaction>) =
         MzSQL.RaiseConnectionState(cn)
         MzSQL.RaiseTransactionState(cn, &tr)
@@ -403,9 +393,6 @@ type MzSQL(path) =
         use reader = cmd.ExecuteReader()            
         loop reader (new Peak2DArray())
 
-    member private this.SelectPeak2DArray =
-        selectPeak2DArray
-
     interface IMzIODataReader with
 
         member this.ReadMassSpectra(runID: string) =
@@ -414,11 +401,11 @@ type MzSQL(path) =
 
         member this.ReadMassSpectrum(spectrumID: string) =
             this.RaiseDisposed()
-            this.SelectMassSpectrum(spectrumID)
+            selectMassSpectrum(spectrumID)
 
         member this.ReadSpectrumPeaks(spectrumID: string) =
             this.RaiseDisposed()
-            this.SelectPeak1DArray(spectrumID)
+            selectPeak1DArray(spectrumID)
 
         member this.ReadMassSpectrumAsync(spectrumID:string) =        
             Task<MzIO.Model.MassSpectrum>.Run(fun () -> this.ReadMassSpectrum(spectrumID))
@@ -428,49 +415,59 @@ type MzSQL(path) =
 
         member this.ReadChromatograms(runID: string) =
             this.RaiseDisposed()
-            this.SelectChromatograms(runID)
+            selectChromatograms(runID)
 
         member this.ReadChromatogram(chromatogramID: string) =
             this.RaiseDisposed()
-            this.SelectChromatogram(chromatogramID)
+            selectChromatogram(chromatogramID)
 
         member this.ReadChromatogramPeaks(chromatogramID: string) =
             this.RaiseDisposed()
-            this.SelectPeak2DArray(chromatogramID)
+            selectPeak2DArray(chromatogramID)
 
         member this.ReadChromatogramAsync(chromatogramID:string) =
-           async {return this.SelectChromatogram(chromatogramID)}
+           async {return selectChromatogram(chromatogramID)}
         
         member this.ReadChromatogramPeaksAsync(chromatogramID:string) =
-           async {return this.SelectPeak2DArray(chromatogramID)}
+           async {return selectPeak2DArray(chromatogramID)}
 
+    /// Read all mass spectra of one run of MzSQL.
     member this.ReadMassSpectra(runID: string) =
             (this :> IMzIODataReader).ReadMassSpectra(runID)
 
+    /// Read mass spectrum of MzSQL.
     member this.ReadMassSpectrum(spectrumID: string) =
         (this :> IMzIODataReader).ReadMassSpectrum(spectrumID)
 
+    /// Read peaks of mass spectrum of MzSQL.
     member this.ReadSpectrumPeaks(spectrumID: string) =
         (this :> IMzIODataReader).ReadSpectrumPeaks(spectrumID)
 
+    /// Read mass spectrum of MzSQL asynchronously.
     member this.ReadMassSpectrumAsync(spectrumID:string) =        
         (this :> IMzIODataReader).ReadMassSpectrumAsync(spectrumID)
 
+    /// Read peaks of mass spectrum of MzSQL asynchronously.
     member this.ReadSpectrumPeaksAsync(spectrumID:string) =            
         (this :> IMzIODataReader).ReadSpectrumPeaksAsync(spectrumID)
 
+    /// Read all chromatograms of one run of MzSQL.
     member this.ReadChromatograms(runID: string) =
         (this :> IMzIODataReader).ReadChromatograms(runID)
 
+    /// Read chromatogram of MzSQL.
     member this.ReadChromatogram(chromatogramID: string) =
         (this :> IMzIODataReader).ReadChromatogram(chromatogramID)
 
+    /// Read peaks of chromatogram of MzSQL.
     member this.ReadChromatogramPeaks(chromatogramID: string) =
         (this :> IMzIODataReader).ReadChromatogramPeaks(chromatogramID)
 
+    /// Read chromatogram of MzSQL asynchronously.
     member this.ReadChromatogramAsync(chromatogramID:string) =
         (this :> IMzIODataReader).ReadChromatogramAsync(chromatogramID)
         
+    /// Read peaks of chromatogram of MzSQL asynchronously.
     member this.ReadChromatogramPeaksAsync(chromatogramID:string) =
         (this :> IMzIODataReader).ReadChromatogramPeaksAsync(chromatogramID)
 
@@ -478,11 +475,11 @@ type MzSQL(path) =
 
         member this.InsertMass(runID: string, spectrum: MassSpectrum, peaks: Peak1DArray) =
             this.RaiseDisposed()
-            this.InsertMassSpectrum encoder runID spectrum peaks
+            insertMassSpectrum encoder runID spectrum peaks
 
         member this.InsertChrom(runID: string, chromatogram: Chromatogram, peaks: Peak2DArray) =
             this.RaiseDisposed()
-            this.InsertChromatogram runID chromatogram peaks
+            insertChromatogram runID chromatogram peaks
 
         member this.InsertAsyncMass(runID: string, spectrum: MassSpectrum, peaks: Peak1DArray) =
             async {return (this.InsertMass(runID, spectrum, peaks))}
@@ -490,15 +487,19 @@ type MzSQL(path) =
         member this.InsertAsyncChrom(runID: string, chromatogram: Chromatogram, peaks: Peak2DArray) =
             async {return (this.InsertChrom(runID, chromatogram, peaks))}
 
+    /// Write runID, spectrum and peaks into MzSQL file.
     member this.InsertMass(runID: string, spectrum: MassSpectrum, peaks: Peak1DArray) =
         (this :> IMzIODataWriter).InsertMass(runID, spectrum, peaks)
 
+    /// Write runID, chromatogram and peaks into MzSQL file.
     member this.InsertChrom(runID: string, chromatogram: Chromatogram, peaks: Peak2DArray) =
         (this :> IMzIODataWriter).InsertChrom(runID, chromatogram, peaks)
 
+    /// Write runID, spectrum and peaks into MzSQL file asynchronously.
     member this.InsertAsyncMass(runID: string, spectrum: MassSpectrum, peaks: Peak1DArray) =
         (this :> IMzIODataWriter).InsertAsyncMass(runID, spectrum, peaks)
 
+    /// Write runID, chromatogram and peaks into MzSQL file asynchronously.
     member this.InsertAsyncChrom(runID: string, chromatogram: Chromatogram, peaks: Peak2DArray) =
         (this :> IMzIODataWriter).InsertAsyncChrom(runID, chromatogram, peaks)
         

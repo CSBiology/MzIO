@@ -13,7 +13,7 @@ open System.Collections.Generic
 ///Contains functions to acces the sqlite db that is created in order to access information of the baf file.
 module Linq2BafSql =
 
-    /// Class to represent the spectrum table of the baf shadow file.
+    /// Class to represent the spectrum table from the baf shadow file.
     [<Sealed>]
     [<Table(Name = "Spectra")>]
     type BafSqlSpectrum(
@@ -122,7 +122,7 @@ module Linq2BafSql =
             with get() = lineSnrId 
             and  set(value) = lineSnrId <- value
 
-    /// Class to represent the acquisition key table of the baf shadow file.
+    /// Class to represent the acquisition key table from the baf shadow file.
     [<Sealed>]
     [<Table(Name = "AcquisitionKeys")>]
     type BafSqlAcquisitionKey(id:Nullable<UInt64>, poalrity:Nullable<int64>, scanMode:Nullable<int64>, aqMode:Nullable<int64>, msLevel:Nullable<int64>) =
@@ -156,7 +156,7 @@ module Linq2BafSql =
             with get() = msLevel 
             and  set(value) = msLevel <- value
 
-    /// Class to represent the per spectrum variable table of the baf shadow file.
+    /// Class to represent the per spectrum variable table from the baf shadow file.
     [<Sealed>]
     [<Table(Name = "PerSpectrumVariables")>]
     type BafSqlPerSpectrumVariable(spec:Nullable<UInt64>, var:Nullable<UInt64>, value':Nullable<Decimal>) =
@@ -178,7 +178,7 @@ module Linq2BafSql =
             with get() = value' 
             and  set(value) = value' <- value
 
-    /// Class to represent the supported variable table of the baf shadow file.
+    /// Class to represent the supported variable table from the baf shadow file.
     [<Sealed>]
     [<Table(Name = "SupportedVariables")>]
     type BafSqlSupportedVariable() =
@@ -225,7 +225,7 @@ module Linq2BafSql =
             with get() = disDim
             and  set(value) = disDim <- value
 
-    /// Class to represent the sql step table of the baf shadow file.
+    /// Class to represent the sql step table from the baf shadow file.
     [<Sealed>]
     [<Table(Name = "Steps")>]
     type BafSqlStep(tarSpec:Nullable<UInt64>, num:Nullable<int64>, isoType:Nullable<int64>, reaType:Nullable<int64>, msLvl:Nullable<int64>, mass:Nullable<float>) =
@@ -333,7 +333,7 @@ module Linq2BafSql =
             else 
                 Nullable(reader.GetDecimal(n))
 
-        /// Prepare function to select element of Spectra table in shadow file.
+        /// Prepare function to select element from Spectra table in shadow file.
         member this.PrepareGetBafSqlSpectrum (cn:SQLiteConnection) =
             Linq2BafSql.RaiseConnectionState(cn)
             let querystring = 
@@ -358,7 +358,7 @@ module Linq2BafSql =
             use reader = cmd.ExecuteReader()
             readerloop reader (new BafSqlSpectrum())
 
-        /// Prepare function to select element of AcquisitionKeys table in shadow file.
+        /// Prepare function to select element from AcquisitionKeys table in shadow file.
         member this.PrepareGetBafSqlAcquisitionKey (cn:SQLiteConnection) =
             Linq2BafSql.RaiseConnectionState(cn)
             let querystring = 
@@ -379,7 +379,7 @@ module Linq2BafSql =
             use reader = cmd.ExecuteReader()
             readerloop reader (new BafSqlAcquisitionKey())
 
-        /// Prepare function to select element of Steps table in shadow file.
+        /// Prepare function to select element from Steps table in shadow file.
         member this.PrepareGetBafSqlSteps (cn:SQLiteConnection) =
             Linq2BafSql.RaiseConnectionState(cn)
             let querystring = 
@@ -402,7 +402,7 @@ module Linq2BafSql =
             use reader = cmd.ExecuteReader()
             readerloop reader Seq.empty
 
-        /// Prepare function to select element of PerSpectrumVariables table in shadow file.
+        /// Prepare function to select element from PerSpectrumVariables table in shadow file.
         member this.PrepareGetPerSpectrumVariables(cn:SQLiteConnection) =
             Linq2BafSql.RaiseConnectionState(cn)
             let querystring = 

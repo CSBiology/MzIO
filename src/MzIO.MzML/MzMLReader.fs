@@ -51,7 +51,7 @@ module MzML =
             (this :> IDisposable).Dispose()
 
     // Use reader.ReadSubtree() in order to avoid moving into an element of the same or higher level.
-    /// Contains methods to acces spectrum and peak information of mzml files.
+    /// Contains methods to access spectrum and peak information of mzml files.
     type MzMLReader(filePath: string) =
 
         let mutable reader = XmlReader.Create(filePath)
@@ -1979,27 +1979,27 @@ module MzML =
                     | :? Exception as ex -> 
                         raise (MzIOIOException(ex.Message, ex))
 
-        /// Read all mass spectra of one run from mzml file.
+        /// Read all mass spectra of one run of mzml file.
         member this.ReadMassSpectra(runID:string)               =
 
             (this :> IMzIODataReader).ReadMassSpectra(runID)
 
-        /// Read mass spectrum from mzml file.
+        /// Read mass spectrum of mzml file.
         member this.ReadMassSpectrum(spectrumID:string)         =
 
             (this :> IMzIODataReader).ReadMassSpectrum(spectrumID)
 
-        /// Read peaks of mass spectrum from mzml file.
+        /// Read peaks of mass spectrum of mzml file.
         member this.ReadSpectrumPeaks(spectrumID:string)        =
 
             (this :> IMzIODataReader).ReadSpectrumPeaks(spectrumID)
 
-        /// Read mass spectrum from baf file asynchronously.
+        /// Read mass spectrum of baf file asynchronously.
         member this.ReadMassSpectrumAsync(spectrumID:string)    =
 
             (this :> IMzIODataReader).ReadMassSpectrumAsync(spectrumID)
 
-        /// Read peaks from mass spectrum from baf file asynchronously.
+        /// Read peaks of mass spectrum of baf file asynchronously.
         member this.ReadSpectrumPeaksAsync(spectrumID:string)   =
 
             (this :> IMzIODataReader).ReadSpectrumPeaksAsync(spectrumID)

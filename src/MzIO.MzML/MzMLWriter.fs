@@ -19,7 +19,7 @@ open MzIO.IO
 open MzIO.Model.CvParam
 
 
-/// Enum that enables to control and check the position of the writer.
+/// Contains segment names of the MzML file to check the position and state of the writer.
 type private MzMLWriteState =
     ERROR
     | INITIAL
@@ -31,7 +31,7 @@ type private MzMLWriteState =
     | CHROMATOGRAM_LIST
     | CHROMATOGRAM
 
-/// Class which contains methods to encode and compress collections of doubles.
+/// Contains methods to encode and compress collections of doubles.
 [<Sealed>]
 type private MzMLCompression(?initialBufferSize:int) =
 
@@ -127,7 +127,7 @@ type private MzMLTransactionScope() =
 
         (this :> ITransactionScope).Rollback()
 
-/// Contains methods to create a mzml file based on mzio model.
+/// Contains methods to create a MzML file based on MzIO model.
 [<Sealed>]
 type MzMLWriter(path:string) =
 
@@ -720,7 +720,7 @@ type MzMLWriter(path:string) =
         |> Seq.iter (fun run -> this.WriteRun(run.Value :?> Run, model, spectra, peaks, chromatogramListCount))
         //writer.WriteEndElement()    
 
-    /// Write whole mzml file based on MzIOModel, spectra and peaks.
+    /// Write whole MzML file based on MzIOModel, spectra and peaks.
     member private this.WriteMzMl(item:MzIOModel, spectra:seq<MassSpectrum>, peaks:seq<Peak1DArray>) = 
         this.EnsureWriteState(MzMLWriteState.INITIAL)
         this.EnterWriteState(MzMLWriteState.INITIAL, MzMLWriteState.MzIOModel)
@@ -755,7 +755,7 @@ type MzMLWriter(path:string) =
     //    currentWriteState <- MzMLWriteState.INITIAL
     //    this.Close()
 
-    /// Write spectrum list in into mzml file based on MzIOModel.
+    /// Write spectrum list in into MzML file based on MzIOModel.
     member private this.WriteSingleSpectrumList(count:string, spectrumProcessingRef:string) =
         this.EnsureWriteState(MzMLWriteState.SPECTRUM_LIST)
         writer.WriteStartElement("spectrumList") 
@@ -765,7 +765,7 @@ type MzMLWriter(path:string) =
         //writer.WriteEndElement()
         this.EnterWriteState(MzMLWriteState.SPECTRUM_LIST, MzMLWriteState.SPECTRUM)
 
-    /// Write run in into mzml file based on MzIOModel.
+    /// Write run in into MzML file based on MzIOModel.
     member private this.WriteSingleRun(runID:string, instrumentRef:string, defaultSourceFileRef:string, sampleRef:string, count:string, spectrumProcessingRef:string) =
         this.EnsureWriteState(MzMLWriteState.RUN)
         writer.WriteStartElement("run")
@@ -777,7 +777,7 @@ type MzMLWriter(path:string) =
         this.WriteSingleSpectrumList(count, spectrumProcessingRef)
         //writer.WriteEndElement()  
 
-    /// Write every element up to run into mzml file based on MzIOModel.
+    /// Write every element up to run into MzML file based on MzIOModel.
     member private this.writeMzIOModel(item:MzIOModel) =
         this.EnsureWriteState(MzMLWriteState.INITIAL)
         this.EnterWriteState(MzMLWriteState.INITIAL, MzMLWriteState.MzIOModel)
@@ -825,7 +825,7 @@ type MzMLWriter(path:string) =
         member this.InsertAsyncChrom(runID: string, chromatogram: Chromatogram, peaks: Peak2DArray) =
             async {return (this.InsertChrom(runID, chromatogram, peaks))}
 
-    /// Write spectrum into mzml file.
+    /// Write runID, spectrum and peaks into MzML file.
     member this.InsertMass(runID: string, spectrum: MassSpectrum, peaks: Peak1DArray) =
         (this :> IMzIODataWriter).InsertMass(runID, spectrum, peaks)
 
@@ -833,7 +833,7 @@ type MzMLWriter(path:string) =
     member this.InsertChrom(runID: string, chromatogram: Chromatogram, peaks: Peak2DArray) =
         (this :> IMzIODataWriter).InsertChrom(runID, chromatogram, peaks)
 
-    /// Write spectrum into mzml file asynchronously.
+    /// Write runID, spectrum and peaks into MzML file asynchronously.
     member this.InsertAsyncMass(runID: string, spectrum: MassSpectrum, peaks: Peak1DArray) =
         (this :> IMzIODataWriter).InsertAsyncMass(runID, spectrum, peaks)
 
