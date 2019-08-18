@@ -209,113 +209,6 @@ let insertMSSpectraBy insertSpectrumF outFilepath runID (reader:IMzIODataReader)
     trans.Dispose() 
     db.Dispose()
 
-let prepareSqlSelectMassSpectra (cn:SQLiteConnection) (tr:SQLiteTransaction) =
-    let queryString = "SELECT Description FROM Spectrum WHERE RunID = @runID"
-    let cmd = new SQLiteCommand(queryString, cn, tr)
-    cmd.Parameters.Add("@runID", Data.DbType.String) |> ignore
-    let rec loop (reader:SQLiteDataReader) acc =
-        seq
-            {
-                match reader.Read() with
-                | true  -> 
-                    yield MzIOJson.deSerializeMassSpectrum(reader.GetString(0))
-                    yield! loop reader acc
-                | false -> 
-                    yield! acc 
-            }
-    fun id ->
-    cmd.Parameters.["@runID"].Value <- id            
-    use reader = cmd.ExecuteReader()            
-    loop reader Seq.empty
-    |> List.ofSeq
-    |> (fun item -> item :> IEnumerable<MassSpectrum>)
-
-let prepareSelectPeak1DArray (cn:SQLiteConnection) (tr:SQLiteTransaction) =
-    let decoder = new BinaryDataDecoder()
-    let queryString = "SELECT PeakArray, PeakData FROM Spectrum WHERE SpectrumID = @spectrumID"
-    let cmd = new SQLiteCommand(queryString, cn, tr)
-    cmd.Parameters.Add("@spectrumID", Data.DbType.String) |> ignore
-    let rec loop (reader:SQLiteDataReader) peaks =
-        match reader.Read() with
-        | true  -> loop reader (decoder.Decode(reader.GetStream(1), MzIOJson.FromJson<Peak1DArray>(reader.GetString(0))))
-        | false -> peaks 
-    fun id ->
-    cmd.Parameters.["@spectrumID"].Value <- id            
-    use reader = cmd.ExecuteReader()            
-    loop reader (new Peak1DArray())
-    
-let selectPeak1DArrays (runID:string) path =
-    let cn = new SQLiteConnection(sprintf "Data Source=%s;Version=3" path)
-    cn.Open()
-    let tr = cn.BeginTransaction()
-    let selectSpectra = prepareSqlSelectMassSpectra cn tr
-    let selectSQLPeak1DArray = prepareSelectPeak1DArray cn tr
-    selectSpectra runID
-    |> Seq.map (fun spectrum -> selectSQLPeak1DArray spectrum.ID)
-
-let selectModel (cn:SQLiteConnection) (tr:SQLiteTransaction) =
-    let querySelect = "SELECT Content FROM Model WHERE Lock = 0"
-    let cmdSelect = new SQLiteCommand(querySelect, cn, tr)
-    let selectReader = cmdSelect.ExecuteReader()
-    let rec loopSelect (reader:SQLiteDataReader) model =
-        match reader.Read() with
-        | true  -> loopSelect reader (MzIOJson.deSerializeMzIOModel(reader.GetString(0)))
-        | false -> model           
-    loopSelect selectReader (new MzIOModel())
-
-let prepareUpdateRunIDOfMzIOModel (cn:SQLiteConnection) (tr:SQLiteTransaction) =
-    let querySelect = "SELECT Content FROM Model WHERE Lock = 0"
-    let cmdSelect = new SQLiteCommand(querySelect, cn, tr)
-    let selectReader = cmdSelect.ExecuteReader()
-    let model =
-        let rec loopSelect (reader:SQLiteDataReader) model =
-            match reader.Read() with
-            | true  -> loopSelect reader (MzIOJson.deSerializeMzIOModel(reader.GetString(0)))
-            | false -> model           
-        loopSelect selectReader (new MzIOModel())
-    fun runID ->
-        if model.Runs.TryAdd(runID, new Run(runID)) then
-            let jsonModel = MzIOJson.ToJson(model)
-            let queryUpdate = sprintf "UPDATE Model SET Content = '%s' WHERE Lock = 0" jsonModel
-            let cmdUpdate = new SQLiteCommand(queryUpdate, cn, tr)
-            cmdUpdate.ExecuteNonQuery() |> ignore
-            //tr.Commit()
-        else
-            ()
-
-///Prepare function to insert MzQuantMLDocument-record.
-let prepareInsertMassSpectrum (cn:SQLiteConnection) (tr:SQLiteTransaction) =
-    let encoder = new BinaryDataEncoder()
-    let updateRunID = prepareUpdateRunIDOfMzIOModel cn tr
-    let queryString = 
-        "INSERT INTO Spectrum (
-            RunID,
-            SpectrumID,
-            Description,
-            PeakArray,
-            PeakData)
-            VALUES(
-                @runID,
-                @spectrumID,
-                @description,
-                @peakArray,
-                @peakData)"
-    let cmd = new SQLiteCommand(queryString, cn, tr)
-    cmd.Parameters.Add("@runID"         ,Data.DbType.String)    |> ignore
-    cmd.Parameters.Add("@spectrumID"    ,Data.DbType.String)    |> ignore
-    cmd.Parameters.Add("@description"   ,Data.DbType.String)    |> ignore
-    cmd.Parameters.Add("@peakArray"     ,Data.DbType.String)    |> ignore
-    cmd.Parameters.Add("@peakData"      ,Data.DbType.Binary)    |> ignore
-    (fun (runID:string) (spectrum:MassSpectrum) (peaks:Peak1DArray) ->
-        updateRunID runID
-        cmd.Parameters.["@runID"].Value         <- runID
-        cmd.Parameters.["@spectrumID"].Value    <- spectrum.ID
-        cmd.Parameters.["@description"].Value   <- MzIOJson.ToJson(spectrum)
-        cmd.Parameters.["@peakArray"].Value     <- MzIOJson.ToJson(peaks)
-        cmd.Parameters.["@peakData"].Value      <- encoder.Encode(peaks)
-        cmd.ExecuteNonQuery() |> ignore
-    )
-
 
 #time
 let rand = new System.Random()
@@ -343,13 +236,13 @@ let termoMzML       = @"C:\Users\Student\source\repos\wiffTestFiles\Thermo\data0
 
 let mzMLHome        = @"D:\Users\Patrick\Desktop\BioInformatik\MzLiteTestFiles\MzMLTestFiles\tiny.pwiz.1.1.txt"
 
-//let wiffReader          = new WiffFileReader(wiffTestUni, licensePath)
+let wiffReader          = new WiffFileReader(wiffTestHome, licenseHome)
 //let wiffMzML            = new MzMLReader(mzMLOfWiffUni)
 
 //let bafReader           = new BafFileReader(bafTestHome)
 //let bafMzMLReader       = new MzMLReader(bafMzMLFile)
 
-let thermoReader        = new ThermoRawFileReader(thermoUni)
+//let thermoReader        = new ThermoRawFileReader(thermoUni)
 //let thermoMzMLReader    = new MzMLReader(termoMzML)
 
 //let mzMLReader          = new MzMLReader(mzMLHome)
@@ -362,19 +255,47 @@ let getSpectras (reader:#IMzIODataReader) =
 
 //let rtProfile = wiffReader.RtProfile (rtIndexEntry, (new MzIO.Processing.RangeQuery(1., 300., 600.)), (new MzIO.Processing.RangeQuery(1., 300., 600.)))
 
-let mzIOSQLNoCompression    = new MzSQL(thermoUni + "NoCompression.mzIO")
-let mzIOSQLZLib             = new MzSQL(thermoUni + "ZLib.mzIO")
-let mzIOSQLNumPress         = new MzSQL(thermoUni + "NumPress.mzIO")
-let mzIOSQLNumPressZLib     = new MzSQL(thermoUni + "NumPressZLib.mzIO")
+//let mzSQLNoCompression    = new MzSQL(wiffTestHome + "NoCompression.mzIO")
+//let mzSQLZLib             = new MzSQL(wiffTestHome + "ZLib.mzIO")
+//let mzSQLNumPress         = new MzSQL(wiffTestHome + "NumPress.mzIO")
+//let mzSQLNumPressZLib     = new MzSQL(wiffTestHome + "NumPressZLib.mzIO")
 
+let mzMLNoCompression    = new MzMLWriter(wiffTestHome + "NoCompression.mzml")
+let mzMLZLib             = new MzMLWriter(wiffTestHome + "ZLib.mzml")
+let mzMLNumPress         = new MzMLWriter(wiffTestHome + "NumPress.mzml")
+let mzMLNumPressZLib     = new MzMLWriter(wiffTestHome + "NumPressZLib.mzml")
 
-let spectra = getSpectras thermoReader
+wiffReader.Model.Runs.GetProperties false
+|> Seq.head
+|> fun item -> item.Value :?> Run
+|> fun item -> item
 
+let spectra = 
+    getSpectras wiffReader
+    |> Seq.take 5000
+    |> Array.ofSeq
 
-mzIOSQLNoCompression.insertMSSpectraBy  (mzIOSQLNoCompression.insertMSSpectrum) "run_1" thermoReader BinaryDataCompressionType.NoCompression spectra
-mzIOSQLZLib.insertMSSpectraBy           (mzIOSQLZLib.insertMSSpectrum)          "run_1" thermoReader BinaryDataCompressionType.ZLib spectra
-mzIOSQLNumPress.insertMSSpectraBy       (mzIOSQLNumPress.insertMSSpectrum)      "run_1" thermoReader BinaryDataCompressionType.NumPress spectra
-mzIOSQLNumPressZLib.insertMSSpectraBy   (mzIOSQLNumPressZLib.insertMSSpectrum)  "run_1" thermoReader BinaryDataCompressionType.NumPressZLib spectra
+let IsolationWindows =
+    spectra
+    |> Seq.collect (fun spectrum -> spectrum.Precursors.GetProperties false)
+    |> Seq.map (fun item -> (item.Value :?> Precursor).IsolationWindow)
+    |> Array.ofSeq
+
+let cvParams = 
+    IsolationWindows
+    |> Seq.collect (fun isolationWindow -> isolationWindow.GetProperties false)
+    |> Seq.map (fun param -> (param.Value :?> CvParam<IConvertible>))
+    |> Seq.filter (fun param -> param.CvAccession = "MS:1000827")
+    |> Array.ofSeq
+
+//for i in cvParams do
+//    printfn "%A" (tryGetCvUnitAccession (i :> IParamBase<#IConvertible>))
+    
+
+mzMLNoCompression.insertMSSpectraBy  (mzMLNoCompression.insertMSSpectrum) wiffReader.Model "run_1" wiffReader BinaryDataCompressionType.NoCompression spectra
+mzMLZLib.insertMSSpectraBy           (mzMLZLib.insertMSSpectrum)          wiffReader.Model "run_1" wiffReader BinaryDataCompressionType.ZLib          spectra
+//mzMLNumPress.insertMSSpectraBy       (mzMLNumPress.insertMSSpectrum)      wiffReader.Model "run_1" wiffReader BinaryDataCompressionType.NumPress      spectra
+//mzMLNumPressZLib.insertMSSpectraBy   (mzMLNumPressZLib.insertMSSpectrum)  wiffReader.Model "run_1" wiffReader BinaryDataCompressionType.NumPressZLib  spectra
 
 
 //mzIOSQLNoCompression.ReadMassSpectra "run_1"
