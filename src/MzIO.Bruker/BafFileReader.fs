@@ -208,11 +208,10 @@ type BafFileReader(bafFilePath:string) =
             let model = new MzIOModel(modelName)
 
             let sampleName = Path.GetFileNameWithoutExtension(bafFilePath)
-            let sample = new Sample("sample_1", sampleName);
+            let sample = new Sample("sample_1", sampleName)
             model.Samples.Add(sample.ID, sample)
-
-            let run = new Run("run_1")
-            run.Sample <- sample
+            let run = new Run("run_1", sampleName, "DefaultInstrumentName")
+            //run.Sample <- sample
             model.Runs.Add(run.ID, run)
             model
 

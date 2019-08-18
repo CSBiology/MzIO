@@ -363,7 +363,7 @@ type WiffFileReader(dataProvider:AnalystWiffDataProvider, disposed:Boolean, wiff
                             model.Instruments.Add(instrument.ID, instrument)
                     )
                     let runID = String.Format("sample={0}", sampleIdx)
-                    let run = new Run(runID, MzIOSample, instrument)
+                    let run = new Run(runID, sampleID, instrumentID)
                     model.Runs.Add(run.ID, run)
 
                 )

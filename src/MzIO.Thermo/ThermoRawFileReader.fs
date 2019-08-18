@@ -76,7 +76,7 @@ type ThermoRawTransactionScope() =
 
 
 [<Sealed>]
-type ThermoRawFileReader(rawFilePath:string) =(* : IMzLiteDataReader*)
+type ThermoRawFileReader(rawFilePath:string) =
 
     let rawFilePath =
         if String.IsNullOrWhiteSpace(rawFilePath) then
@@ -175,12 +175,8 @@ type ThermoRawFileReader(rawFilePath:string) =(* : IMzLiteDataReader*)
         Convert.ToInt32(rawFile.GetTrailerExtraValue(scanNo, 9(*"Charge State:"*)))
 
 
-    /// <summary>
     /// Parse the scan number from spectrum native id.
     /// Native id has the format: 'scan=[scanNumber]', i.e. for scan number 1000 the id is 'scan=1000'.
-    /// </summary>
-    /// <param name="id"></param>
-    /// <returns></returns>
     member private this.ParseSpectrumId(id:string) =
         
         if id = null then 
@@ -201,11 +197,7 @@ type ThermoRawFileReader(rawFilePath:string) =(* : IMzLiteDataReader*)
                 raise (new FormatException("Wrong native id format in: " + id))
 
 
-    /// <summary>
     /// Builds a spectrum id from scan number in format : 'scan=scanNumber'.
-    /// </summary>
-    /// <param name="scanNumber"></param>
-    /// <returns></returns>
     static member private GetSpectrumID(scanNumber:int) =
 
         sprintf "scan=%s" (scanNumber.ToString())
@@ -227,7 +219,7 @@ type ThermoRawFileReader(rawFilePath:string) =(* : IMzLiteDataReader*)
     member private this.ReadMassSpectrum(scanNo:int) =
 
         rawFile.SelectInstrument(rawFile.GetInstrumentType(0), 1)
-
+        
         this.RaiseDisposed()
 
         //try
@@ -431,8 +423,8 @@ type ThermoRawFileReader(rawFilePath:string) =(* : IMzLiteDataReader*)
             let sample      = new Sample("sample_1", sampleName)
             model.Samples.Add(sample.ID, sample)
 
-            let run         = new Run("run_1")
-            run.Sample      = sample |> ignore
+            let run         = new Run("run_1", sampleName, rawFile.GetInstrumentData().Name)
+            //run.Sample      = sample |> ignore
             model.Runs.Add(run.ID, run)
 
             model
