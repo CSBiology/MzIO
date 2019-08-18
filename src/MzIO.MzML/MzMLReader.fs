@@ -1039,12 +1039,16 @@ module MzML =
                     if readOp()=true then loop id instrumentRef sourceFileRef sampleRef cvParams userParams spectrumProcessing chromaProcessing read
                     else
                         let run =
-                            new Run(
-                                    id,
-                                    (if sampleRef.IsSome then new Sample(sampleRef.Value, "default") else new Sample()),
-                                    new Instrument(instrumentRef), new DataProcessing(spectrumProcessing),
-                                    if chromaProcessing <> null then new DataProcessing(chromaProcessing) else new DataProcessing()
-                                   )
+                            if sampleRef.IsSome then
+                                new Run(
+                                        id, sampleRef.Value, instrumentRef, new DataProcessing(spectrumProcessing),
+                                        if chromaProcessing <> null then new DataProcessing(chromaProcessing) else new DataProcessing()
+                                       )
+                            else
+                                new Run(
+                                        id, instrumentRef, new DataProcessing(spectrumProcessing),
+                                        if chromaProcessing <> null then new DataProcessing(chromaProcessing) else new DataProcessing()
+                                       )
                         cvParams
                         |> Seq.iter (fun cvParam -> run.AddCvParam cvParam)
                         userParams
@@ -1053,6 +1057,25 @@ module MzML =
                         runList.AddModelItem(run)
                         runList
             loop null null None None [] [] null null ()
+
+        member private this.getInstrumentRef() =
+            let xmlReader = XmlReader.Create(filePath)
+            let readSubtree =
+                let rec loop acc =
+                    if xmlReader.NodeType=XmlNodeType.Element && xmlReader.Name="run" then
+                        xmlReader.ReadSubtree()
+                    else loop (xmlReader.Read())
+                loop false
+            let readOp = readSubtree.Read
+            let rec loop read =
+                if readSubtree.NodeType=XmlNodeType.Element then
+                    match readSubtree.Name with
+                    | "run"                 ->  (this.getAttribute ("defaultInstrumentConfigurationRef", readSubtree))
+                    |   _                   ->  null
+                else
+                    null
+                    
+            loop ()
 
         member private this.getProcessingMethod(?xmlReader: XmlReader) =
             let xmlReader = defaultArg xmlReader reader
@@ -1900,10 +1923,14 @@ module MzML =
                 let model = new MzIOModel(modelName)
 
                 let sampleName = Path.GetFileNameWithoutExtension(filePath)
-                let sample = new Sample("sample_1", sampleName);
+                let sample = new Sample("sample_1", sampleName)
                 model.Samples.TryAdd(sample.ID, sample) |> ignore
-                let run = new Run("run_1")
-                run.Sample <- sample
+                let instruments = this.getInstrumentConfigurationList()
+                instruments.GetProperties false
+                |> Seq.iter (fun instrument -> model.Instruments.Add(instrument.Key, instrument.Value :?> Instrument))
+                let instrumentRef = this.getInstrumentRef()
+                let run = new Run("run_1", sampleName, instrumentRef)
+                //run.Sample <- sample
                 model.Runs.TryAdd(run.ID, run)  |> ignore
                 model
 

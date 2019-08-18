@@ -185,11 +185,16 @@ type MzMLWriter(path:string) =
             raise (MzIOIOException(String.Format("Invalid write state: expected '{0}' but current is '{1}'.", expectedWs, currentWriteState)))
 
     member private this.WriteCvParam(param:CvParam<#IConvertible>) =
+        let potValue = tryGetValue (param :> IParamBase<#IConvertible>)
+        let value =
+            match potValue with
+            | Some value -> if value = null then "" else value.ToString()
+            | None       -> ""
         writer.WriteStartElement("cvParam")
         writer.WriteAttributeString("cvRef", "MS")
         writer.WriteAttributeString("accession", param.CvAccession)        
         writer.WriteAttributeString("name", "not saved yet")
-        writer.WriteAttributeString("value", if (tryGetValue (param :> IParamBase<#IConvertible>)).IsSome then (tryGetValue (param :> IParamBase<#IConvertible>)).Value.ToString() else "")
+        writer.WriteAttributeString("value", value)
         if (tryGetCvUnitAccession (param :> IParamBase<#IConvertible>)).IsSome then
             writer.WriteAttributeString("unitCvRef", "UO")
             writer.WriteAttributeString("unitAccession", (tryGetCvUnitAccession (param :> IParamBase<#IConvertible>)).Value.ToString())
@@ -312,24 +317,28 @@ type MzMLWriter(path:string) =
         writer.WriteEndElement()
 
     member private this.WriteSelectedIonList(item:SelectedIonList) =
-        writer.WriteStartElement("selectedIonList")
-        writer.WriteAttributeString("count", (Seq.length (item.GetProperties false)).ToString())
-        item.GetProperties false
-        |> Seq.iter (fun selectedIon -> this.WriteSelectedIon(selectedIon.Value :?> SelectedIon))
-        writer.WriteEndElement()
+        if item.Count() > 0 then
+            writer.WriteStartElement("selectedIonList")
+            writer.WriteAttributeString("count", (Seq.length (item.GetProperties false)).ToString())
+            item.GetProperties false
+            |> Seq.iter (fun selectedIon -> this.WriteSelectedIon(selectedIon.Value :?> SelectedIon))
+            writer.WriteEndElement()
 
     member private this.WriteIsolationWindow(item:IsolationWindow) =
-        writer.WriteStartElement("isolationWindow")
-        item.GetProperties false
-        |> Seq.iter (fun param -> this.assignParam param.Value)
-        writer.WriteEndElement()
+        if item.Count() > 0 then
+            writer.WriteStartElement("isolationWindow")
+            item.GetProperties false
+            |> Seq.iter (fun param ->
+                this.assignParam param.Value)
+            writer.WriteEndElement()
 
     member private this.WriteScanWindowList(item:ScanWindowList) =
-        writer.WriteStartElement("scanWindowList")
-        writer.WriteAttributeString("count", (Seq.length (item.GetProperties false)).ToString())
-        item.GetProperties false
-        |> Seq.iter (fun scanWindow -> this.WriteScanWindow(scanWindow.Value :?> ScanWindow))
-        writer.WriteEndElement()    
+        if item.Count() > 0 then
+            writer.WriteStartElement("scanWindowList")
+            writer.WriteAttributeString("count", (Seq.length (item.GetProperties false)).ToString())
+            item.GetProperties false
+            |> Seq.iter (fun scanWindow -> this.WriteScanWindow(scanWindow.Value :?> ScanWindow))
+            writer.WriteEndElement()    
 
     /// Assign the cv accession based on the BinaryDataType.
     static member private assignBinaryDataType(item:BinaryDataType) =
@@ -541,8 +550,7 @@ type MzMLWriter(path:string) =
             this.WritePrecursorList(spectrum.Precursors)
         if Seq.length (spectrum.Products.GetProperties false) <> 0 then
             this.WriteProductList(spectrum.Products)
-        if Seq.length (peaks.GetProperties false) <> 0 then
-            this.WriteBinaryDataArrayList(spectrum, peaks)
+        this.WriteBinaryDataArrayList(spectrum, peaks)
         writer.WriteEndElement()
         index
 
@@ -618,10 +626,12 @@ type MzMLWriter(path:string) =
     member private this.WriteRun(item:Run, model:MzIOModel, spectra:seq<MassSpectrum>, peaks:seq<Peak1DArray>, chromatogramListCount:int) =
         this.EnsureWriteState(MzMLWriteState.RUN)
         writer.WriteStartElement("run")
-        writer.WriteAttributeString("defaultInstrumentConfigurationRef", item.DefaultInstrument.ID)
-        writer.WriteAttributeString("defaultSourceFileRef", ((Seq.head(model.FileDescription.SourceFiles.GetProperties false)).Value :?> SourceFile).ID)
+        writer.WriteAttributeString("defaultInstrumentConfigurationRef", item.DefaultInstrumentID)
+        let sourceFileCount = model.FileDescription.SourceFiles.Count()
+        if sourceFileCount > 0 then
+            writer.WriteAttributeString("defaultSourceFileRef", ((Seq.head(model.FileDescription.SourceFiles.GetProperties false)).Value :?> SourceFile).ID)
         writer.WriteAttributeString("id", item.ID)
-        writer.WriteAttributeString("sampleRef", item.Sample.ID)
+        writer.WriteAttributeString("sampleRef", item.SampleID)
         item.GetProperties false
         |> Seq.iter (fun param -> this.assignParam param.Value)
         this.EnterWriteState(MzMLWriteState.RUN, MzMLWriteState.SPECTRUM_LIST)
@@ -766,11 +776,13 @@ type MzMLWriter(path:string) =
         this.EnterWriteState(MzMLWriteState.SPECTRUM_LIST, MzMLWriteState.SPECTRUM)
 
     /// Write run in into MzML file based on MzIOModel.
-    member private this.WriteSingleRun(runID:string, instrumentRef:string, defaultSourceFileRef:string, sampleRef:string, count:string, spectrumProcessingRef:string) =
+    member private this.WriteSingleRun(runID:string, instrumentRef:string, potDefaultSourceFileRef:string option, sampleRef:string, count:string, spectrumProcessingRef:string) =
         this.EnsureWriteState(MzMLWriteState.RUN)
         writer.WriteStartElement("run")
         writer.WriteAttributeString("defaultInstrumentConfigurationRef", instrumentRef)
-        writer.WriteAttributeString("defaultSourceFileRef", defaultSourceFileRef)
+        match potDefaultSourceFileRef with
+        | Some defaultSourceFileRef -> writer.WriteAttributeString("defaultSourceFileRef", defaultSourceFileRef)
+        | None                      -> ()
         writer.WriteAttributeString("id", runID)
         writer.WriteAttributeString("sampleRef", sampleRef)
         this.EnterWriteState(MzMLWriteState.RUN, MzMLWriteState.SPECTRUM_LIST)
@@ -916,17 +928,23 @@ type MzMLWriter(path:string) =
         this.InsertMass(runID, spectrum, modifiedP)
 
     /// Starts bulkinsert of mass spectra into a MzLiteSQL database
-    member this.insertMSSpectraBy insertSpectrumF (model:MzIOModel)(runID:string) (reader:IMzIODataReader) (compress: BinaryDataCompressionType) (spectra: seq<MassSpectrum>) = 
+    member this.insertMSSpectraBy insertSpectrumF (model:MzIOModel) (runID:string) (reader:IMzIODataReader) (compress: BinaryDataCompressionType) (spectra: seq<MassSpectrum>) = 
         this.writeMzIOModel(model)
-        let sourceFileID = ((Seq.head(model.FileDescription.SourceFiles.GetProperties false)).Value :?> SourceFile).ID
-        let instrumentRef = ((Seq.head(model.Runs.GetProperties false)).Value :?> Run).DefaultInstrument.ID
-        let sampleRef = ((Seq.head(model.Runs.GetProperties false)).Value :?> Run).Sample.ID
-        let spectrumProcessingRef = ((Seq.head(model.Runs.GetProperties false)).Value :?> Run).DefaultSpectrumProcessing.ID
-        let count = spectra.Count().ToString()
-        this.WriteSingleRun(runID, instrumentRef, sourceFileID, sampleRef, count, spectrumProcessingRef)
+        let potDefaultSourceFileRef = if model.FileDescription.SourceFiles.Count() > 0 then Some ((Seq.head(model.FileDescription.SourceFiles.GetProperties false)).Value :?> SourceFile).ID else None
+        let instrumentRef           = ((Seq.head(model.Runs.GetProperties false)).Value :?> Run).DefaultInstrumentID
+        let sampleRef               = ((Seq.head(model.Runs.GetProperties false)).Value :?> Run).SampleID
+        let spectrumProcessingRef   = ((Seq.head(model.Runs.GetProperties false)).Value :?> Run).DefaultSpectrumProcessing.ID
+        let count                   = spectra.Count().ToString()
+        this.WriteSingleRun(runID, instrumentRef, potDefaultSourceFileRef, sampleRef, count, spectrumProcessingRef)
+        
+        let realRun = 
+            model.Runs.GetProperties false
+            |> Seq.head
+            |> fun item -> item.Value :?> Run
+
         let bulkInsert spectra = 
             spectra
-            |> Seq.iter (insertSpectrumF runID reader compress)
+            |> Seq.iter (insertSpectrumF realRun.ID reader compress)
         bulkInsert spectra
         writer.WriteEndElement()
         writer.WriteEndElement()
