@@ -281,14 +281,16 @@ module Linq2BafSql =
                 core.ExecuteQuery<int>("CREATE INDEX StepsID ON Steps (TargetSpectrum)")
             with
                 | :? Exception ->
-                    failwith "INDEX On TargedSpectrum in Steps table already exists, creation is skipped" 
+                    //failwith "INDEX On TargedSpectrum in Steps table already exists, creation is skipped" 
+                    [-1] |> seq<int>
         
         let checkIndexSpectrumID =
             try
                 core.ExecuteQuery<int>("CREATE INDEX SpectrumID ON PerSpectrumVariables (Spectrum)")
             with
                 | :? Exception ->
-                    failwith "INDEX On SpectrumID in PerSpectrumVariables table already exists, creation is skipped"
+                    //failwith "INDEX On SpectrumID in PerSpectrumVariables table already exists, creation is skipped"
+                    [-1] |> seq<int>
 
         interface IDisposable with
 
