@@ -236,10 +236,10 @@ let termoMzML       = @"C:\Users\Student\source\repos\wiffTestFiles\Thermo\data0
 
 let mzMLHome        = @"D:\Users\Patrick\Desktop\BioInformatik\MzLiteTestFiles\MzMLTestFiles\tiny.pwiz.1.1.txt"
 
-let wiffReader          = new WiffFileReader(wiffTestHome, licenseHome)
+//let wiffReader          = new WiffFileReader(wiffTestHome, licenseHome)
 //let wiffMzML            = new MzMLReader(mzMLOfWiffUni)
 
-//let bafReader           = new BafFileReader(bafTestHome)
+let bafReader           = new BafFileReader(bafTestUni)
 //let bafMzMLReader       = new MzMLReader(bafMzMLFile)
 
 //let thermoReader        = new ThermoRawFileReader(thermoUni)
@@ -260,40 +260,14 @@ let getSpectras (reader:#IMzIODataReader) =
 //let mzSQLNumPress         = new MzSQL(wiffTestHome + "NumPress.mzIO")
 //let mzSQLNumPressZLib     = new MzSQL(wiffTestHome + "NumPressZLib.mzIO")
 
-let mzMLNoCompression    = new MzMLWriter(wiffTestHome + "NoCompression.mzml")
-let mzMLZLib             = new MzMLWriter(wiffTestHome + "ZLib.mzml")
-let mzMLNumPress         = new MzMLWriter(wiffTestHome + "NumPress.mzml")
-let mzMLNumPressZLib     = new MzMLWriter(wiffTestHome + "NumPressZLib.mzml")
+//let mzMLNoCompression    = new MzMLWriter(wiffTestHome + "NoCompression.mzml")
+//let mzMLZLib             = new MzMLWriter(wiffTestHome + "ZLib.mzml")
+//let mzMLNumPress         = new MzMLWriter(wiffTestHome + "NumPress.mzml")
+//let mzMLNumPressZLib     = new MzMLWriter(wiffTestHome + "NumPressZLib.mzml")
 
-wiffReader.Model.Runs.GetProperties false
-|> Seq.head
-|> fun item -> item.Value :?> Run
-|> fun item -> item
 
-let spectra = 
-    getSpectras wiffReader
-    |> Seq.take 5000
-    |> Array.ofSeq
-
-let IsolationWindows =
-    spectra
-    |> Seq.collect (fun spectrum -> spectrum.Precursors.GetProperties false)
-    |> Seq.map (fun item -> (item.Value :?> Precursor).IsolationWindow)
-    |> Array.ofSeq
-
-let cvParams = 
-    IsolationWindows
-    |> Seq.collect (fun isolationWindow -> isolationWindow.GetProperties false)
-    |> Seq.map (fun param -> (param.Value :?> CvParam<IConvertible>))
-    |> Seq.filter (fun param -> param.CvAccession = "MS:1000827")
-    |> Array.ofSeq
-
-//for i in cvParams do
-//    printfn "%A" (tryGetCvUnitAccession (i :> IParamBase<#IConvertible>))
-    
-
-mzMLNoCompression.insertMSSpectraBy  (mzMLNoCompression.insertMSSpectrum) wiffReader.Model "run_1" wiffReader BinaryDataCompressionType.NoCompression spectra
-mzMLZLib.insertMSSpectraBy           (mzMLZLib.insertMSSpectrum)          wiffReader.Model "run_1" wiffReader BinaryDataCompressionType.ZLib          spectra
+//mzMLNoCompression.insertMSSpectraBy  (mzMLNoCompression.insertMSSpectrum) wiffReader.Model "run_1" wiffReader BinaryDataCompressionType.NoCompression spectra
+//mzMLZLib.insertMSSpectraBy           (mzMLZLib.insertMSSpectrum)          wiffReader.Model "run_1" wiffReader BinaryDataCompressionType.ZLib          spectra
 //mzMLNumPress.insertMSSpectraBy       (mzMLNumPress.insertMSSpectrum)      wiffReader.Model "run_1" wiffReader BinaryDataCompressionType.NumPress      spectra
 //mzMLNumPressZLib.insertMSSpectraBy   (mzMLNumPressZLib.insertMSSpectrum)  wiffReader.Model "run_1" wiffReader BinaryDataCompressionType.NumPressZLib  spectra
 
