@@ -49,7 +49,7 @@ type IndexRange(low: int, high: int) =
 /// Contains several methods to search under different circumstances for data in IMzIOArray within a given range.
 type BinarySearch =
 
-    /// Generates a IndexRange based on the given query.
+    /// Generates a IndexRange based on the given query and array.
     static member Search<'TItem, 'TQuery>(items:IMzIOArray<'TItem>, query:'TQuery, searchCompare: ('TItem*'TQuery) -> int, result:byref<IndexRange option>) =
 
         let mutable lo = 0
@@ -99,7 +99,7 @@ type BinarySearch =
                     tmpResult <- false
         tmpResult
 
-    /// Generates a IndexRange based on the given query.
+    /// Generates a IndexRange based on the given query and array.
     static member Search<'TItem, 'TQuery>(items:IMzIOArray<'TItem>, query:'TQuery, searchCompare: ('TItem*'TQuery) -> int) =
         let mutable result = Some (new IndexRange())
         if BinarySearch.Search(items, query, searchCompare, & result) then

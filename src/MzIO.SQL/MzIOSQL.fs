@@ -202,7 +202,13 @@ type MzSQL(path) =
         let cmd = new SQLiteCommand(queryString, cn, tr)
         cmd.Parameters.Add("@model" ,Data.DbType.String)    |> ignore
         fun (runID:string) (model:MzIOModel) ->
-            if model.Runs.TryAdd(runID, new Run()) then
+            let run = 
+                let tmp =
+                    model.Runs.GetProperties false
+                    |> Seq.head
+                    |> (fun item -> item.Value :?> Run)
+                new Run(runID, tmp.SampleID, tmp.DefaultInstrumentID,tmp.DefaultSpectrumProcessing, tmp.DefaultChromatogramProcessing)
+            if model.Runs.TryAdd(run.ID, run) then
                 cmd.Parameters.["@model"].Value <- MzIOJson.ToJson(model)
                 cmd.ExecuteNonQuery() |> ignore
             else 
@@ -576,11 +582,28 @@ type MzSQL(path) =
         let modifiedP = spectrumPeaksModifierF reader spectrum compress
         this.InsertMass(runID, spectrum, modifiedP)
 
+    static member private updateModel(newModel:MzIOModel, oldModel:MzIOModel) =
+        oldModel.GetProperties false
+        |> Seq.iter (fun item -> newModel.TryAdd(item.Key, item.Value) |> ignore)
+        oldModel.Instruments.GetProperties false
+        |> Seq.iter (fun item -> newModel.Instruments.TryAdd(item.Key, item.Value) |> ignore)
+        oldModel.Runs.GetProperties false
+        |> Seq.iter (fun item -> newModel.Runs.TryAdd(item.Key, item.Value) |> ignore)
+        oldModel.DataProcessings.GetProperties false
+        |> Seq.iter (fun item -> newModel.DataProcessings.TryAdd(item.Key, item.Value) |> ignore)
+        oldModel.Softwares.GetProperties false
+        |> Seq.iter (fun item -> newModel.Softwares.TryAdd(item.Key, item.Value) |> ignore)
+        oldModel.Samples.GetProperties false
+        |> Seq.iter (fun item -> newModel.Samples.TryAdd(item.Key, item.Value) |> ignore)
+        oldModel.FileDescription <- newModel.FileDescription
+        newModel
+
     /// Starts bulkinsert of mass spectra into a MzLiteSQL database
     member this.insertMSSpectraBy insertSpectrumF (runID:string) (reader:IMzIODataReader) (compress: BinaryDataCompressionType) (spectra: seq<MassSpectrum>) = 
         let selectModel = MzSQL.prepareSelectModel(cn, &tr)
         let updateRunID = MzSQL.prepareUpdateRunIDOfMzIOModel(cn, &tr)
-        updateRunID runID (selectModel())
+        let model = MzSQL.updateModel(selectModel(), reader.Model)
+        updateRunID runID model
         let bulkInsert spectra = 
             spectra
             |> Seq.iter (insertSpectrumF runID reader compress)
