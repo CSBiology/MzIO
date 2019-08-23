@@ -1,14 +1,16 @@
 ﻿namespace MzIO.Processing
 
+
 open System
 open System.Linq
 open System.Collections.Generic
 open MzIO.IO
-open MzIO.MetaData.PSIMSExtension(*.PSIMS*)
+open MzIO.MetaData.PSIMSExtension
 open MzIO.Model
 open MzIO.Binary
 open MzIO.Processing
 open MzIO.Processing.MzIOLinq
+
 
 [<Sealed>]
 type SwathQuery(targetMz:double, rtRange:RangeQuery, ms2Masses:RangeQuery[]) =

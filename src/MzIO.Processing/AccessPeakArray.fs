@@ -7,7 +7,7 @@ module AccessPeakArray =
     open MzIO.IO
 
 
-    /// Returns a MzLite.Binary.Peak1DArray
+    /// Returns a MzIO.Binary.Peak1DArray
     let getPeak1DArray (reader:IMzIODataReader) msID = 
         reader.ReadSpectrumPeaks(msID)
 
