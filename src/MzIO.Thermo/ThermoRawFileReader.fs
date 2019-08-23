@@ -60,10 +60,12 @@ type ThermoRawTransactionScope() =
 
     interface ITransactionScope with
     
+        /// Does Nothing.
         member this.Commit() =
 
             ()
 
+        /// Does Nothing.
         member this.Rollback() =
 
             ()

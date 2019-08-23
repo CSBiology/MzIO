@@ -24,16 +24,20 @@ type private MzMLReaderTransactionScope() =
 
     interface ITransactionScope with
 
+        /// Does Nothing.
         member this.Commit() =
             ()
 
+        /// Does Nothing.
         member this.Rollback() =
             ()
 
+    /// Does Nothing.
     member this.Commit() =
 
         (this :> ITransactionScope).Commit()
 
+    /// Does Nothing.
     member this.Rollback() =
 
         (this :> ITransactionScope).Rollback()
