@@ -928,17 +928,17 @@ type MzMLWriter(path:string) =
         this.InsertMass(runID, spectrum, modifiedP)
 
     /// Starts bulkinsert of mass spectra into a MzLiteSQL database
-    member this.insertMSSpectraBy insertSpectrumF (model:MzIOModel) (runID:string) (reader:IMzIODataReader) (compress: BinaryDataCompressionType) (spectra: seq<MassSpectrum>) = 
-        this.writeMzIOModel(model)
-        let potDefaultSourceFileRef = if model.FileDescription.SourceFiles.Count() > 0 then Some ((Seq.head(model.FileDescription.SourceFiles.GetProperties false)).Value :?> SourceFile).ID else None
-        let instrumentRef           = ((Seq.head(model.Runs.GetProperties false)).Value :?> Run).DefaultInstrumentID
-        let sampleRef               = ((Seq.head(model.Runs.GetProperties false)).Value :?> Run).SampleID
-        let spectrumProcessingRef   = ((Seq.head(model.Runs.GetProperties false)).Value :?> Run).DefaultSpectrumProcessing.ID
+    member this.insertMSSpectraBy insertSpectrumF (runID:string) (reader:IMzIODataReader) (compress: BinaryDataCompressionType) (spectra: seq<MassSpectrum>) = 
+        this.writeMzIOModel(reader.Model)
+        let potDefaultSourceFileRef = if reader.Model.FileDescription.SourceFiles.Count() > 0 then Some ((Seq.head(reader.Model.FileDescription.SourceFiles.GetProperties false)).Value :?> SourceFile).ID else None
+        let instrumentRef           = ((Seq.head(reader.Model.Runs.GetProperties false)).Value :?> Run).DefaultInstrumentID
+        let sampleRef               = ((Seq.head(reader.Model.Runs.GetProperties false)).Value :?> Run).SampleID
+        let spectrumProcessingRef   = ((Seq.head(reader.Model.Runs.GetProperties false)).Value :?> Run).DefaultSpectrumProcessing.ID
         let count                   = spectra.Count().ToString()
         this.WriteSingleRun(runID, instrumentRef, potDefaultSourceFileRef, sampleRef, count, spectrumProcessingRef)
         
         let realRun = 
-            model.Runs.GetProperties false
+            reader.Model.Runs.GetProperties false
             |> Seq.head
             |> fun item -> item.Value :?> Run
 
