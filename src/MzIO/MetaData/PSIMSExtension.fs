@@ -10,7 +10,7 @@ open MzIO.Binary
 
 module PSIMSExtension =
 
-    type PSIMS_Units =
+    type private PSIMS_Units =
 
         static member Mz             = "MS:1000040"
         static member NumberOfCounts = "MS:1000131"
@@ -21,7 +21,7 @@ module PSIMSExtension =
         member this.PSIMS_NumberOfCounts =
             this.SetUnit(PSIMS_Units.NumberOfCounts)
 
-    type PSIMS_Spectrum =
+    type private PSIMS_Spectrum =
 
         static member MsLevel = "MS:1000511"
         static member CentroidSpectrum = "MS:1000127"

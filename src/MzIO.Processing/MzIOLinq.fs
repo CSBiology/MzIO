@@ -1,5 +1,6 @@
 ﻿namespace MzIO.Processing
 
+
 open System
 open System.Collections.Generic
 open System.Linq
@@ -11,6 +12,8 @@ open MzIO.IO
 open MzIO
 open MzIO.Processing
 
+
+///Module that contains classes with methods to search, sort and group mass spectra based on their properties, e.g. ms level.
 module MzIOLinq =
 
     type IEnumerable<'T> with

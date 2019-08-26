@@ -1,15 +1,24 @@
 ﻿namespace MzIO.Processing
 
 
+open System
+open MzIO.IO
+open MzIO.Model
+open System.Collections.Generic
+open MzIO.MetaData.PSIMSExtension
+open MzIO.Processing.Indexer  
+open MzIO.Model.CvParam
+
+
 module AccessMassSpectrum = 
 
-    open System
-    open MzIO.IO
-    open MzIO.Model
-    open System.Collections.Generic
-    open MzIO.MetaData.PSIMSExtension
-    open MzIO.Processing.Indexer  
-    open MzIO.Model.CvParam
+    type private PSIMS_Spectrum =
+
+        static member MsLevel = "MS:1000511"
+        static member CentroidSpectrum = "MS:1000127"
+        static member ProfileSpectrum = "MS:1000128"
+        static member MS1Spectrum = "MS:1000579"
+        static member MSnSpectrum = "MS:1000580"
 
     /// accesses the Header of the WiffFile referenced by the path
     let getMassSpectraBy (reader:IMzIODataReader) runID = 
