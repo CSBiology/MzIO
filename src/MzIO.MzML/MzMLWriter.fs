@@ -135,6 +135,7 @@ type private MzMLTransactionScope() =
 [<Sealed>]
 type MzMLWriter(path:string) =
 
+    /// Binding of the XMLWriter.
     let writer =
         let mutable writerSettings = new XmlWriterSettings()
         writerSettings.Indent <- true
@@ -148,7 +149,8 @@ type MzMLWriter(path:string) =
 
     let mutable model = new MzIOModel(Path.GetFileNameWithoutExtension(path))
 
-    member this.Close() =
+    /// Closes connection to MzML file and prohibits further manipulation with this instance of the writer object.
+    member private this.Close() =
 
         if isClosed = false then
 
@@ -167,6 +169,7 @@ type MzMLWriter(path:string) =
                     raise (new MzIOIOException("Error closing mzml output file.", ex))
         else ()
 
+    /// Writes everything into MzML file, closes the connection and disposes everything left.
     member this.Commit() =
         writer.Close()
         writer.Dispose()
@@ -188,6 +191,7 @@ type MzMLWriter(path:string) =
         if currentWriteState <> expectedWs then
             raise (MzIOIOException(String.Format("Invalid write state: expected '{0}' but current is '{1}'.", expectedWs, currentWriteState)))
 
+    /// Creates a cvParam element and inserts it into the MzML file.
     member private this.WriteCvParam(param:CvParam<#IConvertible>) =
         let potValue = tryGetValue (param :> IParamBase<#IConvertible>)
         let value =
@@ -205,18 +209,20 @@ type MzMLWriter(path:string) =
             writer.WriteAttributeString("unitName", "not saved yet")        
         writer.WriteEndElement()
 
+    /// Creates a userParam element and inserts it into the MzML file.
     member private this.WriteUserParam(param:UserParam<#IConvertible>) =
         writer.WriteStartElement("userParam")
         writer.WriteAttributeString("name", param.Name)
         //writer.WriteAttributeString("type", "not saved yet")
         writer.WriteAttributeString("value", if (tryGetValue (param :> IParamBase<#IConvertible>)).IsSome then 
-            (tryGetValue (param :> IParamBase<#IConvertible>)).Value.ToString() else "")
+                                                (tryGetValue (param :> IParamBase<#IConvertible>)).Value.ToString() else "")
         if (tryGetCvUnitAccession (param :> IParamBase<#IConvertible>)).IsSome then
             writer.WriteAttributeString("unitCvRef", "UO")
             writer.WriteAttributeString("unitAccession", (tryGetCvUnitAccession (param :> IParamBase<#IConvertible>)).Value.ToString())
             writer.WriteAttributeString("unitName", "not saved yet")        
         writer.WriteEndElement()
 
+    /// Creates a cvList element and inserts it into the MzML file.
     member private this.WriteCvList() =
         writer.WriteStartElement("cvList")
         writer.WriteAttributeString("count", "2")
@@ -241,6 +247,7 @@ type MzMLWriter(path:string) =
         | :? UserParam<'T>   -> this.WriteUserParam  (item :?> UserParam<'T>)
         |   _ -> failwith "Not castable to Cv nor UserParam"
 
+    /// Creates a detector element and inserts it into the MzML file.
     member private this.WriteDetector(item:DetectorComponent) =
         writer.WriteStartElement("detector")
         writer.WriteAttributeString("order", "3")
@@ -248,6 +255,7 @@ type MzMLWriter(path:string) =
         |> Seq.iter (fun param -> this.assignParam(param.Value))
         writer.WriteEndElement()
 
+    /// Creates a detector element and inserts it into the MzML file.
     member private this.WriteAnalyzer(item:AnalyzerComponent) =
         writer.WriteStartElement("analyzer")
         writer.WriteAttributeString("order", "2")
@@ -255,6 +263,7 @@ type MzMLWriter(path:string) =
         |> Seq.iter (fun param -> this.assignParam(param.Value))
         writer.WriteEndElement()
 
+    /// Creates a source element and inserts it into the MzML file.
     member private this.WriteSource(item:SourceComponent) =
         writer.WriteStartElement("source")
         writer.WriteAttributeString("order", "1")
@@ -262,6 +271,7 @@ type MzMLWriter(path:string) =
         |> Seq.iter (fun param -> this.assignParam(param.Value))
         writer.WriteEndElement()
 
+    /// Creates a processingMethod element and inserts it into the MzML file.
     member private this.WriteProcessingMethod(item:DataProcessingStep) =
         writer.WriteStartElement("processingMethod")
         writer.WriteAttributeString("order", item.Name)
@@ -270,6 +280,7 @@ type MzMLWriter(path:string) =
         |> Seq.iter (fun param -> this.assignParam(param.Value))
         writer.WriteEndElement()
 
+    /// Creates a softwareRef element and inserts it into the MzML file.
     member private this.WriteSoftwareRef(item:Software) =
         writer.WriteStartElement("softwareRef")
         writer.WriteAttributeString("ref", item.ID)
@@ -283,6 +294,7 @@ type MzMLWriter(path:string) =
         | :? DetectorComponent  -> this.WriteDetector   (item :?> DetectorComponent)
         |   _ -> failwith "Not castable to SourceComponent nor AnalyzerComponent nor DetectorComponent"
 
+    /// Creates a componentList element and inserts it into the MzML file.
     member private this.WriteComponentList(item:ComponentList) =
         writer.WriteStartElement("componentList")
         writer.WriteAttributeString("count", item.Count().ToString())
@@ -290,6 +302,7 @@ type MzMLWriter(path:string) =
         |> Seq.iter (fun component' -> this.assignComponent(component'.Value))
         writer.WriteEndElement()
 
+    /// Creates a sourceFile element and inserts it into the MzML file.
     member private this.WriteSourceFile(item:SourceFile) =
         writer.WriteStartElement("sourceFile")
         writer.WriteAttributeString("id", item.ID)
@@ -299,27 +312,32 @@ type MzMLWriter(path:string) =
         |> Seq.iter (fun param -> this.assignParam(param.Value))
         writer.WriteEndElement()
 
+    /// Creates a selectedIon element and inserts it into the MzML file.
     member private this.WriteSelectedIon(item:SelectedIon) =
         writer.WriteStartElement("selectedIon")
         item.GetProperties false
         |> Seq.iter (fun param -> this.assignParam param.Value)
         writer.WriteEndElement()
 
+    /// Creates a scanWindow element and inserts it into the MzML file.
     member private this.WriteScanWindow(item:ScanWindow) =
         writer.WriteStartElement("scanWindow")
         item.GetProperties false
         |> Seq.iter (fun param -> this.assignParam param.Value)
         writer.WriteEndElement()
 
+    /// Creates a binary element and inserts it into the MzML file.
     member private this.WriteBinary(item:string) =
         writer.WriteElementString("binary", item)
 
+    /// Creates a activation element and inserts it into the MzML file.
     member private this.WriteActivation(item:Activation) =
         writer.WriteStartElement("activation")
         item.GetProperties false
         |> Seq.iter (fun param -> this.assignParam param.Value)
         writer.WriteEndElement()
-
+    
+    /// Creates a selectedIonList element and inserts it into the MzML file.
     member private this.WriteSelectedIonList(item:SelectedIonList) =
         if item.Count() > 0 then
             writer.WriteStartElement("selectedIonList")
@@ -328,6 +346,7 @@ type MzMLWriter(path:string) =
             |> Seq.iter (fun selectedIon -> this.WriteSelectedIon(selectedIon.Value :?> SelectedIon))
             writer.WriteEndElement()
 
+    /// Creates a isolationWindow element and inserts it into the MzML file.
     member private this.WriteIsolationWindow(item:IsolationWindow) =
         if item.Count() > 0 then
             writer.WriteStartElement("isolationWindow")
@@ -336,6 +355,7 @@ type MzMLWriter(path:string) =
                 this.assignParam param.Value)
             writer.WriteEndElement()
 
+    /// Creates a scanWindowList element and inserts it into the MzML file.
     member private this.WriteScanWindowList(item:ScanWindowList) =
         if item.Count() > 0 then
             writer.WriteStartElement("scanWindowList")
@@ -353,6 +373,7 @@ type MzMLWriter(path:string) =
         | BinaryDataType.Float64    -> "MS:1000523"
         | _ -> failwith "BinaryDataType is unknown"
 
+    /// Creates a cvParam element for compression type and inserts it into the MzML file.
     member private this.WriteCvParamCompression(accession:string, name:string) =
         writer.WriteStartElement("cvParam")
         writer.WriteAttributeString("accession", accession)
@@ -361,6 +382,7 @@ type MzMLWriter(path:string) =
         writer.WriteAttributeString("value", "")
         writer.WriteEndElement()
 
+    /// Creates a userParam element for compression and inserts it into the MzML file.
     member private this.WriteUserParamCompression(name:string) =
         writer.WriteStartElement("userParam")
         writer.WriteAttributeString("name", name)
@@ -428,6 +450,7 @@ type MzMLWriter(path:string) =
         writer.WriteAttributeString("unitName", "number of counts")
         writer.WriteEndElement()
 
+    /// Creates a binaryDataArray element and inserts it into the MzML file.
     member private this.WriteBinaryDataArray(spectrum:MassSpectrum, peaks:Peak1DArray) =
         let encoder = new MzMLCompression()
         let qs = 
@@ -458,11 +481,13 @@ type MzMLWriter(path:string) =
         this.WriteBinary(encodedIntensities)
         writer.WriteFullEndElement()  
 
+    /// Creates a product element and inserts it into the MzML file.
     member private this.WriteProduct(item:Product) =
         writer.WriteStartElement("product")
         this.WriteIsolationWindow(item.IsolationWindow)
         writer.WriteEndElement()  
 
+    /// Creates a precursor element and inserts it into the MzML file.
     member private this.WritePrecursor(item:Precursor) =
         writer.WriteStartElement("precursor")
         //writer.WriteAttributeString("externalSpectrumID", item.SpectrumReference.SpectrumID)
@@ -475,6 +500,7 @@ type MzMLWriter(path:string) =
         this.WriteActivation(item.Activation)
         writer.WriteEndElement()
     
+    /// Creates a scan element and inserts it into the MzML file.
     member private this.WriteScan(item:Scan) =
         writer.WriteStartElement("scan")
         //writer.WriteAttributeString("externalSpectrumID", item.SpectrumReference.SpectrumID)
@@ -489,12 +515,14 @@ type MzMLWriter(path:string) =
             this.WriteScanWindowList(item.ScanWindows)
         writer.WriteEndElement()
 
+    /// Creates a binaryDataArrayList element and inserts it into the MzML file.
     member private this.WriteBinaryDataArrayList(spectrum:MassSpectrum, peaks:Peak1DArray) =
         writer.WriteStartElement("binaryDataArrayList")
         writer.WriteAttributeString("count", "2")
         this.WriteBinaryDataArray(spectrum, peaks)
         writer.WriteEndElement()
 
+    /// Creates a productList element and inserts it into the MzML file.
     member private this.WriteProductList(item:ProductList) =
         writer.WriteStartElement("productList")
         writer.WriteAttributeString("count", item.Count().ToString())
@@ -502,6 +530,7 @@ type MzMLWriter(path:string) =
         |> Seq.iter (fun product -> this.WriteProduct(product.Value :?> Product))
         writer.WriteEndElement()
 
+    /// Creates a precursorList element and inserts it into the MzML file.
     member private this.WritePrecursorList(item:PrecursorList) =
         writer.WriteStartElement("precursorList")
         writer.WriteAttributeString("count", item.Count().ToString())
@@ -509,6 +538,7 @@ type MzMLWriter(path:string) =
         |> Seq.iter (fun precursor -> this.WritePrecursor(precursor.Value :?> Precursor))
         writer.WriteEndElement()
 
+    /// Creates a scanList element and inserts it into the MzML file.
     member private this.WriteScanList<'T when 'T :> IConvertible>(item:ScanList) =
         let scans = (item.GetProperties false) |> Seq.filter (fun value -> value.Value :? Scan)
         writer.WriteStartElement("scanList")
@@ -535,6 +565,7 @@ type MzMLWriter(path:string) =
         //|> Seq.iter (fun param -> this.assignParam(param.Value))
         //writer.WriteEndElement()
 
+    /// Creates a spectrum element and inserts it into the MzML file.
     member private this.WriteSpectrum(spectrum:MassSpectrum, index:int, peaks:Peak1DArray) =
         this.EnsureWriteState(MzMLWriteState.SPECTRUM)
         writer.WriteStartElement("spectrum")
@@ -558,6 +589,7 @@ type MzMLWriter(path:string) =
         writer.WriteEndElement()
         index
 
+    /// Creates a chromatogramList element and inserts it into the MzML file.
     member private this.WriteChromatogramList(item:Run, chromatogramListCount:int) =
         this.EnsureWriteState(MzMLWriteState.CHROMATOGRAM_LIST)
         writer.WriteStartElement("chromatogramList") 
@@ -567,6 +599,7 @@ type MzMLWriter(path:string) =
         //this.WriteChromatogram()
         writer.WriteEndElement()
 
+    /// Creates a spectrumList element and inserts it into the MzML file.
     member private this.WriteSpectrumList(item:Run, spectra:seq<MassSpectrum>, peaks:seq<Peak1DArray>) =
         this.EnsureWriteState(MzMLWriteState.SPECTRUM_LIST)
         writer.WriteStartElement("spectrumList") 
@@ -576,6 +609,7 @@ type MzMLWriter(path:string) =
         Seq.fold2 (fun start spectrum peak -> this.WriteSpectrum(spectrum, start + 1, peak)) 0 spectra peaks |> ignore
         writer.WriteEndElement()
 
+    /// Creates a dataProcessing element and inserts it into the MzML file.
     member private this.WriteDataProcessing(item:DataProcessing) =
         writer.WriteStartElement("dataProcessing") 
         writer.WriteAttributeString("id", item.ID)
@@ -583,6 +617,7 @@ type MzMLWriter(path:string) =
         |> Seq.iter (fun dataStep -> this.WriteProcessingMethod (dataStep.Value :?> DataProcessingStep))
         writer.WriteEndElement()
 
+    /// Creates a instrumentConfiguration element and inserts it into the MzML file.
     member private this.WriteInstrumentConfiguration(item:Instrument) =
         writer.WriteStartElement("instrumentConfiguration")
         writer.WriteAttributeString("id", item.ID)
@@ -592,6 +627,7 @@ type MzMLWriter(path:string) =
         this.WriteSoftwareRef item.Software
         writer.WriteEndElement()
 
+    /// Creates a software element and inserts it into the MzML file.
     member private this.WriteSoftware(item:Software) =
         writer.WriteStartElement("software")
         writer.WriteAttributeString("id", item.ID)
@@ -600,6 +636,7 @@ type MzMLWriter(path:string) =
         |> Seq.iter (fun param -> this.assignParam param.Value)
         writer.WriteEndElement()
 
+    /// Creates a sample element and inserts it into the MzML file.
     member private this.WriteSample(item:Sample) =
         writer.WriteStartElement("sample")
         writer.WriteAttributeString("id", item.ID)
@@ -608,12 +645,14 @@ type MzMLWriter(path:string) =
         |> Seq.iter (fun param -> this.assignParam param.Value)
         writer.WriteEndElement()
 
+    /// Creates a contact element and inserts it into the MzML file.
     member private this.WriteContact(item:Contact) =
         writer.WriteStartElement("contact")
         item.GetProperties false
         |> Seq.iter (fun param -> this.assignParam param.Value)
         writer.WriteEndElement()
 
+    /// Creates a sourceFileList element and inserts it into the MzML file.
     member private this.WriteSourceFileList(item:SourceFileList) =
         writer.WriteStartElement("sourceFileList")
         writer.WriteAttributeString("count", item.Count().ToString())
@@ -621,12 +660,14 @@ type MzMLWriter(path:string) =
         |> Seq.iter (fun source -> this.WriteSourceFile (source.Value :?> SourceFile))
         writer.WriteEndElement()
 
+    /// Creates a fileContent element and inserts it into the MzML file.
     member private this.WriteFileContent(item:FileContent) =
         writer.WriteStartElement("fileContent")
         item.GetProperties false
         |> Seq.iter (fun param -> this.assignParam param.Value)
         writer.WriteEndElement()
 
+    /// Creates a run element and inserts it into the MzML file.
     member private this.WriteRun(item:Run, model:MzIOModel, spectra:seq<MassSpectrum>, peaks:seq<Peak1DArray>, chromatogramListCount:int) =
         this.EnsureWriteState(MzMLWriteState.RUN)
         writer.WriteStartElement("run")
@@ -647,6 +688,7 @@ type MzMLWriter(path:string) =
             this.EnterWriteState(MzMLWriteState.CHROMATOGRAM_LIST, MzMLWriteState.CHROMATOGRAM)
         writer.WriteEndElement()
 
+    /// Creates a dataProcessingList element and inserts it into the MzML file.
     member private this.WriteDataProcessingList(item:DataProcessingList) =
         writer.WriteStartElement("dataProcessingList")
         writer.WriteAttributeString("count", item.Count().ToString())
@@ -654,6 +696,7 @@ type MzMLWriter(path:string) =
         |> Seq.iter (fun dataProc -> this.WriteDataProcessing (dataProc.Value :?> DataProcessing))
         writer.WriteEndElement()
 
+    /// Creates a instrumentConfigurationList element and inserts it into the MzML file.
     member private this.WriteInstrumentConfigurationList(item:InstrumentList) =
         writer.WriteStartElement("instrumentConfigurationList")
         writer.WriteAttributeString("count", item.Count().ToString())
@@ -661,17 +704,20 @@ type MzMLWriter(path:string) =
         |> Seq.iter (fun instConf -> this.WriteInstrumentConfiguration (instConf.Value :?> Instrument))
         writer.WriteEndElement()
 
+    /// Creates a target element and inserts it into the MzML file.
     member private this.WriteTarget(item:MzIOModel) =
         writer.WriteStartElement("target")
         item.GetProperties false
         |> Seq.iter (fun param -> this.assignParam param.Value)
         writer.WriteEndElement()
 
+    /// Creates a sourceFileRef element and inserts it into the MzML file.
     member private this.WriteSourceFileRef(item:string) =
         writer.WriteStartElement("sourceFileRef")
         writer.WriteAttributeString("ref", item)
         writer.WriteEndElement()
 
+    /// Creates a targetList element and inserts it into the MzML file.
     member private this.WriteTargetList(item:SourceFileList) =
         writer.WriteStartElement("targetList")
         writer.WriteAttributeString("count", item.Count().ToString())
@@ -679,6 +725,7 @@ type MzMLWriter(path:string) =
         |> Seq.iter (fun sourceFile -> this.WriteSourceFileRef((sourceFile.Value :?> SourceFile).ID))
         writer.WriteEndElement()
 
+    /// Creates a sourceFileRefList element and inserts it into the MzML file.
     member private this.WriteSourceFileRefList(item:SourceFileList) =
         writer.WriteStartElement("sourceFileRefList")
         writer.WriteAttributeString("count", item.Count().ToString())
@@ -686,6 +733,7 @@ type MzMLWriter(path:string) =
         |> Seq.iter (fun sourceFile -> this.WriteSourceFileRef((sourceFile.Value :?> SourceFile).ID))
         writer.WriteEndElement()
 
+    /// Creates a scanSettings element and inserts it into the MzML file.
     member private this.WriteScanSettings(item:MzIOModel) =
         writer.WriteStartElement("scanSettings")
         writer.WriteAttributeString("id", "PlaceHolderID_settings")
@@ -696,12 +744,14 @@ type MzMLWriter(path:string) =
         //this.WriteTargetList(item)
         writer.WriteEndElement()
         
+    /// Creates a scanSettingsList element and inserts it into the MzML file.
     member private this.WriteScanSettingsList(item:MzIOModel) =
         writer.WriteStartElement("scanSettingsList")
         writer.WriteAttributeString("count", item.FileDescription.SourceFiles.Count().ToString())
         this.WriteScanSettings(item)
         writer.WriteEndElement()
 
+    /// Creates a softwareList element and inserts it into the MzML file.
     member private this.WriteSoftwareList(item:SoftwareList) =
         this.EnsureWriteState(MzMLWriteState.MzIOModel)
         writer.WriteStartElement("softwareList")
@@ -710,6 +760,7 @@ type MzMLWriter(path:string) =
         |> Seq.iter (fun software -> this.WriteSoftware(software.Value :?> Software))
         writer.WriteEndElement()
 
+    /// Creates a sampleList element and inserts it into the MzML file.
     member private this.WriteSampleList(item:SampleList) =
         this.EnsureWriteState(MzMLWriteState.MzIOModel)
         writer.WriteStartElement("sampleList")
@@ -718,6 +769,7 @@ type MzMLWriter(path:string) =
         |> Seq.iter (fun sample -> this.WriteSample (sample.Value :?> Sample))
         writer.WriteEndElement()
 
+    /// Creates a fileDescription element and inserts it into the MzML file.
     member private this.WriteFileDescription(item:FileDescription) =
         this.EnsureWriteState(MzMLWriteState.MzIOModel)
         writer.WriteStartElement("fileDescription")
@@ -728,11 +780,13 @@ type MzMLWriter(path:string) =
             this.WriteContact(item.Contact)
         writer.WriteEndElement()
 
+    /// Creates a Run element and inserts it into the MzML file.
+    /// Requires one writer.WriteEndElement() to finish the element.
     member private this.WriteRunList(item:RunList, model:MzIOModel, spectra:seq<MassSpectrum>, peaks:seq<Peak1DArray>, chromatogramListCount:int) =
         this.EnsureWriteState(MzMLWriteState.RUN)
         item.GetProperties false
         |> Seq.iter (fun run -> this.WriteRun(run.Value :?> Run, model, spectra, peaks, chromatogramListCount))
-        //writer.WriteEndElement()    
+        //writer.WriteEndElement()
 
     /// Write whole MzML file based on MzIOModel, spectra and peaks.
     member private this.WriteMzMl(item:MzIOModel, spectra:seq<MassSpectrum>, peaks:seq<Peak1DArray>) = 
@@ -780,6 +834,7 @@ type MzMLWriter(path:string) =
         this.EnterWriteState(MzMLWriteState.SPECTRUM_LIST, MzMLWriteState.SPECTRUM)
 
     /// Write run in into MzML file based on MzIOModel.
+    /// Requires one writer.WriteEndElement() to finish the element.
     member private this.WriteSingleRun(runID:string, instrumentRef:string, potDefaultSourceFileRef:string option, sampleRef:string, count:string, spectrumProcessingRef:string) =
         this.EnsureWriteState(MzMLWriteState.RUN)
         writer.WriteStartElement("run")
@@ -827,17 +882,21 @@ type MzMLWriter(path:string) =
 
     interface IMzIODataWriter with
 
+         /// Write runID, spectrum and peaks into MzML file into the MzML file.
         member this.InsertMass(runID, spectrum: MassSpectrum, peaks: Peak1DArray) =
             this.EnsureWriteState(MzMLWriteState.SPECTRUM)
             this.WriteSpectrum(spectrum, 0, peaks) |> ignore
 
+        /// Not implemented yet
         member this.InsertChrom(runID: string, chromatogram: Chromatogram, peaks: Peak2DArray) =
             this.EnsureWriteState(MzMLWriteState.CHROMATOGRAM)
             this.WriteChromatogram(chromatogram, peaks)
 
+        /// Write runID, spectrum and peaks into MzML file asynchronously into the MzML file.
         member this.InsertAsyncMass(runID: string, spectrum: MassSpectrum, peaks: Peak1DArray) =
             async {return (this.InsertMass(runID, spectrum, peaks))}
 
+        /// Not implemented yet.
         member this.InsertAsyncChrom(runID: string, chromatogram: Chromatogram, peaks: Peak2DArray) =
             async {return (this.InsertChrom(runID, chromatogram, peaks))}
 
@@ -859,23 +918,28 @@ type MzMLWriter(path:string) =
         
     interface IDisposable with
 
+        /// Closes connection to MzML file and prohibits further manipulation with this instance of the writer object.
         member this.Dispose() =
             this.Close()
 
+    /// Closes connection to MzML file and prohibits further manipulation with this instance of the writer object.
     member this.Dispose() =
 
         (this :> IDisposable).Dispose()
 
     interface IMzIOIO with
 
+        /// Ensures that writer is at start position and if not failes.
         member this.BeginTransaction() =
             this.EnsureWriteState(MzMLWriteState.INITIAL)
             new MzMLTransactionScope() :> ITransactionScope
 
+        /// Creates default MzIOModel with name of path as name for new instance of MzIOModel.
         member this.CreateDefaultModel() =
             this.EnsureWriteState(MzMLWriteState.INITIAL)
             new MzIOModel(Path.GetFileNameWithoutExtension(path))
 
+        /// Writes MzIOModel into MzML file.
         member this.SaveModel() =
             this.EnsureWriteState(MzMLWriteState.INITIAL)
             this.writeMzIOModel(this.Model)
@@ -883,27 +947,31 @@ type MzMLWriter(path:string) =
             writer.WriteEndElement()
             writer.WriteEndElement()
 
-        member this.Model =
-            //this.EnsureWriteState(MzMLWriteState.INITIAL)
-            model
+        /// Access in memory MzIOModel of MzMLWriter.
+        member this.Model = model
 
+    /// Ensures that writer is at start position and if not failes.
     member this.BeginTransaction() =
         
         (this :> IMzIOIO).BeginTransaction()
 
+    /// Creates default MzIOModel with name of path as name for new instance of MzIOModel.
     member this.CreateDefaultModel() =
         (this :> IMzIOIO).CreateDefaultModel()        
 
+    /// Writes MzIOModel into MzML file.
     member this.SaveModel() =
         (this :> IMzIOIO).SaveModel()
 
+    /// Access in memory MzIOModel of MzMLWriter.
     member this.Model = 
         (this :> IMzIOIO).Model
 
+    /// Updates current in memory MzIOModel of the MzIOWriter by adding values of new MzIOModel.
     member this.UpdateModel(model':MzIOModel) = 
         model <- model'
 
-    /// copies MassSpectrum into DB schema
+    /// Inserts runID, MassSpectra with corresponding Peak1DArrasy into datbase Spectrum table with chosen compression type for the peak data.
     member this.insertMSSpectrum (runID:string) (reader:IMzIODataReader) (compress: BinaryDataCompressionType) (spectrum: MassSpectrum)= 
         let peakArray = reader.ReadSpectrumPeaks(spectrum.ID)
         match compress with 
@@ -926,7 +994,7 @@ type MzMLWriter(path:string) =
         | _ ->
             failwith "Not a valid compression Method"
 
-    /// modifies spectrum according to the used spectrumPeaksModifierF and inserts the result into the DB schema 
+    /// Modifies spectrum according to the used spectrumPeaksModifierF and inserts the result into the MzML file.
     member this.insertModifiedSpectrumBy (spectrumPeaksModifierF: IMzIODataReader -> MassSpectrum -> BinaryDataCompressionType -> Peak1DArray) (runID:string) (reader:IMzIODataReader) (compress: BinaryDataCompressionType) (spectrum: MassSpectrum) = 
         let modifiedP = spectrumPeaksModifierF reader spectrum compress
         this.InsertMass(runID, spectrum, modifiedP)

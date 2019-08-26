@@ -72,6 +72,7 @@ type MzSQL(path) =
         MzSQL.RaiseConnectionState(cn)
         cn.BeginTransaction()
 
+    /// Initialization of all prePareFunctions for the current connection.
     let insertModel =
         MzSQL.prepareInsertModel(cn, &tr)
 
@@ -122,21 +123,24 @@ type MzSQL(path) =
         disposed <- false
         new SQLiteConnection(sprintf "Data Source=%s;Version=3" sqlitePath)
 
+    /// Closes SQLiteConnection.
     member this.Close() = cn.Close() 
 
+    /// Checks whether SQLiteConnection is open or not and reopens it, when is should be closed.
     static member RaiseConnectionState(cn:SQLiteConnection) =
         if (cn.State=ConnectionState.Open) then 
             ()
         else
             cn.Open()
 
+    /// Checks whether SQLiteConnection is open or not and reopens it, when is should be closed.
     static member RaiseTransactionState(cn:SQLiteConnection, tr:byref<SQLiteTransaction>) =
-
         if tr.Connection = null then
             tr <- cn.BeginTransaction()
         else
             ()
 
+    /// Checks whether connection is disposed or not and fails if it is.
     member private this.RaiseDisposed() =
 
             if disposed then 
@@ -144,6 +148,7 @@ type MzSQL(path) =
             else 
                 ()
 
+    /// Creates the tables in the connected dataBase.
     static member private SqlInitSchema(cn:SQLiteConnection) =
         MzSQL.RaiseConnectionState(cn)
         use cmd = new SQLiteCommand("CREATE TABLE IF NOT EXISTS Model (Lock INTEGER  NOT NULL PRIMARY KEY DEFAULT(0) CHECK (Lock=0), Content TEXT NOT NULL)", cn)
@@ -153,6 +158,7 @@ type MzSQL(path) =
         use cmd = new SQLiteCommand("CREATE TABLE IF NOT EXISTS Chromatogram (RunID TEXT NOT NULL, ChromatogramID TEXT NOT NULL PRIMARY KEY, Description TEXT NOT NULL, PeakArray TEXT NOT NULL, PeakData BINARY NOT NULL)", cn)
         cmd.ExecuteNonQuery() |> ignore
 
+    /// Selects model from DB. It has always the same ID and only one Model should be saved per DB.
     static member private trySelectModel(cn:SQLiteConnection, tr:byref<SQLiteTransaction>) =
         MzSQL.SqlInitSchema(cn)
         MzSQL.RaiseConnectionState(cn)
@@ -166,6 +172,7 @@ type MzSQL(path) =
             | false -> model           
         loopSelect selectReader None
 
+    /// Prepare function to insert MzIOModel-JSONString.
     static member private prepareInsertModel(cn:SQLiteConnection, tr:byref<SQLiteTransaction>) =
         MzSQL.RaiseConnectionState(cn)
         MzSQL.RaiseTransactionState(cn, &tr)
@@ -185,6 +192,7 @@ type MzSQL(path) =
             cmd.ExecuteNonQuery() |> ignore
         ) 
 
+    /// Prepare function to select MzIOModel as a MzIOModel object.
     static member prepareSelectModel(cn:SQLiteConnection, tr:byref<SQLiteTransaction>) =
         let querySelect = "SELECT Content FROM Model WHERE Lock = 0"
         let cmd = new SQLiteCommand(querySelect, cn, tr)
@@ -196,11 +204,8 @@ type MzSQL(path) =
         use reader = cmd.ExecuteReader()
         loopSelect reader (new MzIOModel())
 
-    member this.SelectModel =
-        selectModel
-
-    static member private prepareUpdateRunIDOfMzIOModel(cn:SQLiteConnection, tr:byref<SQLiteTransaction>) =
-        
+    /// Prepare function to upadte runID in MzIOModel in DB.
+    static member private prepareUpdateRunIDOfMzIOModel(cn:SQLiteConnection, tr:byref<SQLiteTransaction>) =        
         //let jsonModel = MzIOJson.ToJson(model)
         let queryString = "UPDATE Model SET Content = @model WHERE Lock = 0"
         let cmd = new SQLiteCommand(queryString, cn, tr)
@@ -405,18 +410,22 @@ type MzSQL(path) =
 
     interface IMzIODataReader with
 
+        /// Read all mass spectra of one run of MzSQL.
         member this.ReadMassSpectra(runID: string) =
             this.RaiseDisposed()
             selectMassSpectra(runID)
 
+        /// Read mass spectrum of MzSQL.
         member this.ReadMassSpectrum(spectrumID: string) =
             this.RaiseDisposed()
             selectMassSpectrum(spectrumID)
 
+        /// Read peaks of mass spectrum of MzSQL.
         member this.ReadSpectrumPeaks(spectrumID: string) =
             this.RaiseDisposed()
             selectPeak1DArray(spectrumID)
 
+        /// Read mass spectrum of MzSQL asynchronously.
         member this.ReadMassSpectrumAsync(spectrumID:string) =    
             let tmp = this :> IMzIODataReader
             async
@@ -425,6 +434,7 @@ type MzSQL(path) =
                 }
             //Task<MzIO.Model.MassSpectrum>.Run(fun () -> this.ReadMassSpectrum(spectrumID))
 
+        /// Read peaks of mass spectrum of MzSQL asynchronously.
         member this.ReadSpectrumPeaksAsync(spectrumID:string) =  
             let tmp = this :> IMzIODataReader
             async
@@ -433,21 +443,26 @@ type MzSQL(path) =
                 }
             //Task<Peak1DArray>.Run(fun () -> this.ReadSpectrumPeaks(spectrumID))
 
+        /// Read all chromatograms of one run of MzSQL.
         member this.ReadChromatograms(runID: string) =
             this.RaiseDisposed()
             selectChromatograms(runID)
 
+        /// Read chromatogram of MzSQL.
         member this.ReadChromatogram(chromatogramID: string) =
             this.RaiseDisposed()
             selectChromatogram(chromatogramID)
 
+        /// Read peaks of chromatogram of MzSQL.
         member this.ReadChromatogramPeaks(chromatogramID: string) =
             this.RaiseDisposed()
             selectPeak2DArray(chromatogramID)
 
+        /// Read chromatogram of MzSQL asynchronously.
         member this.ReadChromatogramAsync(chromatogramID:string) =
            async {return selectChromatogram(chromatogramID)}
         
+        /// Read peaks of chromatogram of MzSQL asynchronously.
         member this.ReadChromatogramPeaksAsync(chromatogramID:string) =
            async {return selectPeak2DArray(chromatogramID)}
 
@@ -525,51 +540,61 @@ type MzSQL(path) =
         
     interface IDisposable with
 
+        /// Disposes everything and closes connection.
         member this.Dispose() =
-            disposed <- true
-            tr.Dispose()
+            disposed <- true            
             cn.Close()
+            tr.Dispose()
 
+    /// Disposes everything and closes connection.
     member this.Dispose() =
 
         (this :> IDisposable).Dispose()
 
     interface IMzIOIO with
 
+        /// Open connection to MzSQL data base.
         member this.BeginTransaction() =
             this.RaiseDisposed()
             MzSQL.RaiseConnectionState(cn)
             MzSQL.RaiseTransactionState(cn, &tr)
             new MzSQLTransactionScope() :> ITransactionScope
 
+        /// Creates model based on model in MzSQL or default model when no model was in the db.
         member this.CreateDefaultModel() =
             this.RaiseDisposed()
             new MzIOModel(Path.GetFileNameWithoutExtension(sqlitePath))
 
+        /// Saves MzIOModel of in memory into the MzSQL data base.
         member this.SaveModel() =
             this.RaiseDisposed()
             insertModel this.Model
             tr.Commit()
 
+        /// Access MzIOModel in memory.
         member this.Model =
             this.RaiseDisposed()
             model
 
+    /// Open connection to MzSQL data base.
     member this.BeginTransaction() =
         
         (this :> IMzIOIO).BeginTransaction()
 
+    /// Creates model based on model in MzSQL or default model when no model was in the db.
     member this.CreateDefaultModel() =
         (this :> IMzIOIO).CreateDefaultModel()        
 
+    /// Saves MzIOModel of in memory into the MzSQL data base.
     member this.SaveModel() =
         (this :> IMzIOIO).SaveModel()
-
+        
+    /// Access MzIOModel in memory.
     member this.Model = 
         (this :> IMzIOIO).Model
 
-    /// copies MassSpectrum into DB schema
-    member this.insertMSSpectrum (runID:string) (reader:IMzIODataReader) (compress: BinaryDataCompressionType) (spectrum: MassSpectrum)= 
+    /// Inserts runID, MassSpectra with corresponding Peak1DArrasy into datbase Spectrum table with chosen compression type for the peak data.
+    member this.insertMSSpectrum (runID:string) (reader:IMzIODataReader) (compress: BinaryDataCompressionType) (spectrum: MassSpectrum) = 
         let peakArray = reader.ReadSpectrumPeaks(spectrum.ID)
         match compress with 
         | BinaryDataCompressionType.NoCompression  -> 
@@ -591,11 +616,12 @@ type MzSQL(path) =
         | _ ->
             failwith "Not a valid compression Method"
 
-    /// modifies spectrum according to the used spectrumPeaksModifierF and inserts the result into the DB schema 
+    /// Modifies spectrum according to the used spectrumPeaksModifier and inserts the result into the MzSQL data base. 
     member this.insertModifiedSpectrumBy (spectrumPeaksModifierF: IMzIODataReader -> MassSpectrum -> BinaryDataCompressionType -> Peak1DArray) (runID:string) (reader:IMzIODataReader) (compress: BinaryDataCompressionType) (spectrum: MassSpectrum) = 
         let modifiedP = spectrumPeaksModifierF reader spectrum compress
         this.InsertMass(runID, spectrum, modifiedP)
 
+    /// Updates the an MzIOModel by adding all values of the other MzIOModel.
     static member private updateModel(newModel:MzIOModel, oldModel:MzIOModel) =
         oldModel.GetProperties false
         |> Seq.iter (fun item -> newModel.TryAdd(item.Key, item.Value) |> ignore)
