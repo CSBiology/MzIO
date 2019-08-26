@@ -1967,10 +1967,20 @@ type MzMLReader(filePath: string) =
             this.getSpecificPeak1DArray(spectrumID)
 
         member this.ReadMassSpectrumAsync(spectrumID: string) =
-            Task<MzIO.Model.MassSpectrum>.Run(fun () -> this.ReadMassSpectrum(spectrumID))
+            let tmp = this :> IMzIODataReader
+            async
+                {
+                    return tmp.ReadMassSpectrum(spectrumID)
+                }
+            //Task<MzIO.Model.MassSpectrum>.Run(fun () -> this.ReadMassSpectrum(spectrumID))
 
         member this.ReadSpectrumPeaksAsync(spectrumID: string) =
-            Task<MzIO.Model.MassSpectrum>.Run(fun () -> this.ReadSpectrumPeaks(spectrumID))
+            let tmp = this :> IMzIODataReader
+            async
+                {
+                    return tmp.ReadSpectrumPeaks(spectrumID)
+                }
+            //Task<MzIO.Model.MassSpectrum>.Run(fun () -> this.ReadSpectrumPeaks(spectrumID))
 
         member this.ReadChromatograms(runID:string) =
             this.ReadChromatogramms(runID)

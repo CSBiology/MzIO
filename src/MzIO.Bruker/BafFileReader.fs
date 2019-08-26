@@ -386,13 +386,21 @@ type BafFileReader(bafFilePath:string) =
 
         /// Returns spectrum with key from BAF file async.
         member this.ReadMassSpectrumAsync(spectrumID:string) =
-
-            Task<MzIO.Model.MassSpectrum>.Run(fun () -> (this :> IMzIODataReader).ReadMassSpectrum(spectrumID))
+            let tmp = this :> IMzIODataReader
+            async
+                {
+                    return tmp.ReadMassSpectrum(spectrumID)
+                }
+            //Task<MzIO.Model.MassSpectrum>.Run(fun () -> (this :> IMzIODataReader).ReadMassSpectrum(spectrumID))
 
         /// Returns peaks of spectrum with key from BAF file async.
         member this.ReadSpectrumPeaksAsync(spectrumID:string) =
-
-            Task<Peak1DArray>.Run(fun () -> (this :> IMzIODataReader).ReadSpectrumPeaks(spectrumID))
+            let tmp = this :> IMzIODataReader
+            async
+                {
+                    return tmp.ReadSpectrumPeaks(spectrumID)
+                }
+            //Task<Peak1DArray>.Run(fun () -> (this :> IMzIODataReader).ReadSpectrumPeaks(spectrumID))
 
         /// Not implemented yet.
         member this.ReadChromatograms(runID:string) =

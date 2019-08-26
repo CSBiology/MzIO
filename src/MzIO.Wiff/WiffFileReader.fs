@@ -448,22 +448,20 @@ type WiffFileReader(dataProvider:AnalystWiffDataProvider, disposed:Boolean, wiff
             //        -> failwith (MzIOIOException.MzIOIOException(ex.Message, ex).ToString())
 
         member this.ReadMassSpectrumAsync(spectrumID:string) =        
-            //let tmp = this :> IMzIODataReader
-            //async
-            //    {
-            //        return tmp.ReadMassSpectrum(spectrumID)
-            //    }
-
-            Task<MzIO.Model.MassSpectrum>.Run(fun () -> this.ReadMassSpectrum(spectrumID))
+            let tmp = this :> IMzIODataReader
+            async
+                {
+                    return tmp.ReadMassSpectrum(spectrumID)
+                }
+            //Task<MzIO.Model.MassSpectrum>.Run(fun () -> this.ReadMassSpectrum(spectrumID))
 
         member this.ReadSpectrumPeaksAsync(spectrumID:string) =            
-            //let tmp = this :> IMzIODataReader
-            //async
-            //    {
-            //        return tmp.ReadSpectrumPeaks(spectrumID)
-            //    }
-
-            Task<Peak1DArray>.Run(fun () -> this.ReadSpectrumPeaks(spectrumID))
+            let tmp = this :> IMzIODataReader
+            async
+                {
+                    return tmp.ReadSpectrumPeaks(spectrumID)
+                }
+            //Task<Peak1DArray>.Run(fun () -> this.ReadSpectrumPeaks(spectrumID))
 
 
         member this.ReadChromatograms(runID:string) =

@@ -345,12 +345,20 @@ type ThermoRawFileReader(rawFilePath:string) =
             this.ReadSpectrumPeaks(scanNo)
 
         member this.ReadMassSpectrumAsync(spectrumID:string) =
-
-            Task<MassSpectrum>.Run(fun () -> (this :> IMzIODataReader).ReadMassSpectrum(spectrumID))
+            let tmp = this :> IMzIODataReader
+            async
+                {
+                    return tmp.ReadMassSpectrum(spectrumID)
+                }
+            //Task<MassSpectrum>.Run(fun () -> (this :> IMzIODataReader).ReadMassSpectrum(spectrumID))
 
         member this.ReadSpectrumPeaksAsync(spectrumID:string) =
-
-            Task<Peak1DArray>.Run(fun () -> (this :> IMzIODataReader).ReadSpectrumPeaks(spectrumID))
+            let tmp = this :> IMzIODataReader
+            async
+                {
+                    return tmp.ReadSpectrumPeaks(spectrumID)
+                }
+            //Task<Peak1DArray>.Run(fun () -> (this :> IMzIODataReader).ReadSpectrumPeaks(spectrumID))
 
         member this.ReadChromatogram(chromatogramID:string) =
 
