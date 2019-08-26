@@ -565,7 +565,7 @@ type MzSQL(path) =
             this.RaiseDisposed()
             new MzIOModel(Path.GetFileNameWithoutExtension(sqlitePath))
 
-        /// Saves MzIOModel of in memory into the MzSQL data base.
+        /// Saves in memory MzIOModel into the MzSQL data base.
         member this.SaveModel() =
             this.RaiseDisposed()
             insertModel this.Model
@@ -585,7 +585,7 @@ type MzSQL(path) =
     member this.CreateDefaultModel() =
         (this :> IMzIOIO).CreateDefaultModel()        
 
-    /// Saves MzIOModel of in memory into the MzSQL data base.
+    /// Saves in memory MzIOModel into the MzSQL data base.
     member this.SaveModel() =
         (this :> IMzIOIO).SaveModel()
         

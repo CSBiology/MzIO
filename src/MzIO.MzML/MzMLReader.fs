@@ -1921,7 +1921,7 @@ type MzMLReader(filePath: string) =
         /// Current MzIOModel in the memory
         member this.Model = this.model
         
-        /// Create and update shadow file
+        /// Saves in memory MzIOModel in the shadow file.
         member this.SaveModel() =
 
             try
@@ -1943,7 +1943,7 @@ type MzMLReader(filePath: string) =
 
         (this :> IMzIOIO).CreateDefaultModel()
 
-    /// Create and/or update shadow file.
+    /// Saves in memory MzIOModel in the shadow file.
     member this.SaveModel() =
 
         (this :> IMzIOIO).SaveModel()

@@ -231,7 +231,7 @@ type BafFileReader(bafFilePath:string) =
             this.RaiseDisposed()
             MzIOJson.HandleExternalModelFile(this, BafFileReader.GetModelFilePath(bafFilePath))
 
-        /// Save current mzio model in shadow file.
+        /// Saves in memory MzIOModel in the shadow file.
         member this.SaveModel() =
 
             this.RaiseDisposed()
@@ -258,7 +258,7 @@ type BafFileReader(bafFilePath:string) =
 
         (this :> IMzIOIO).CreateDefaultModel()
 
-    /// Saves current MzIOModel in the memory as a Shadowfile.
+    /// Saves in memory MzIOModel in the shadow file.
     member this.SaveModel() =
 
         (this :> IMzIOIO).SaveModel()

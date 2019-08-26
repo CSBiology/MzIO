@@ -399,10 +399,12 @@ type ThermoRawFileReader(rawFilePath:string) =
             model.Runs.Add(run.ID, run)
             model
 
+        /// Current in memory MzIOModel.
         member this.Model =
             this.RaiseDisposed()
             this.model        
 
+        /// Saves in memory MzIOModel in the shadow file.
         member this.SaveModel() =
 
             this.RaiseDisposed()
@@ -414,6 +416,7 @@ type ThermoRawFileReader(rawFilePath:string) =
 
                     raise (new MzIOIOException(ex.Message, ex))
 
+        /// Opens connection to RAW file.
         member this.BeginTransaction() =
 
             this.RaiseDisposed()
