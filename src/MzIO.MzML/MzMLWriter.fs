@@ -285,7 +285,7 @@ type MzMLWriter(path:string) =
 
     member private this.WriteComponentList(item:ComponentList) =
         writer.WriteStartElement("componentList")
-        writer.WriteAttributeString("count", (item.GetProperties false |> Seq.length).ToString())
+        writer.WriteAttributeString("count", item.Count().ToString())
         item.GetProperties false
         |> Seq.iter (fun component' -> this.assignComponent(component'.Value))
         writer.WriteEndElement()
@@ -323,7 +323,7 @@ type MzMLWriter(path:string) =
     member private this.WriteSelectedIonList(item:SelectedIonList) =
         if item.Count() > 0 then
             writer.WriteStartElement("selectedIonList")
-            writer.WriteAttributeString("count", (Seq.length (item.GetProperties false)).ToString())
+            writer.WriteAttributeString("count", item.Count().ToString())
             item.GetProperties false
             |> Seq.iter (fun selectedIon -> this.WriteSelectedIon(selectedIon.Value :?> SelectedIon))
             writer.WriteEndElement()
@@ -339,7 +339,7 @@ type MzMLWriter(path:string) =
     member private this.WriteScanWindowList(item:ScanWindowList) =
         if item.Count() > 0 then
             writer.WriteStartElement("scanWindowList")
-            writer.WriteAttributeString("count", (Seq.length (item.GetProperties false)).ToString())
+            writer.WriteAttributeString("count", item.Count().ToString())
             item.GetProperties false
             |> Seq.iter (fun scanWindow -> this.WriteScanWindow(scanWindow.Value :?> ScanWindow))
             writer.WriteEndElement()    
@@ -485,7 +485,7 @@ type MzMLWriter(path:string) =
             writer.WriteAttributeString("spectrumID", item.SpectrumReference.SpectrumID)
         item.GetProperties false
         |> Seq.iter (fun param -> this.assignParam param.Value)
-        if Seq.length (item.ScanWindows.GetProperties false) >0 then
+        if item.Count() > 0 then
             this.WriteScanWindowList(item.ScanWindows)
         writer.WriteEndElement()
 
@@ -497,14 +497,14 @@ type MzMLWriter(path:string) =
 
     member private this.WriteProductList(item:ProductList) =
         writer.WriteStartElement("productList")
-        writer.WriteAttributeString("count", (Seq.length (item.GetProperties false)).ToString())
+        writer.WriteAttributeString("count", item.Count().ToString())
         item.GetProperties false
         |> Seq.iter (fun product -> this.WriteProduct(product.Value :?> Product))
         writer.WriteEndElement()
 
     member private this.WritePrecursorList(item:PrecursorList) =
         writer.WriteStartElement("precursorList")
-        writer.WriteAttributeString("count", (Seq.length (item.GetProperties false)).ToString())
+        writer.WriteAttributeString("count", item.Count().ToString())
         item.GetProperties false
         |> Seq.iter (fun precursor -> this.WritePrecursor(precursor.Value :?> Precursor))
         writer.WriteEndElement()
@@ -512,7 +512,7 @@ type MzMLWriter(path:string) =
     member private this.WriteScanList<'T when 'T :> IConvertible>(item:ScanList) =
         let scans = (item.GetProperties false) |> Seq.filter (fun value -> value.Value :? Scan)
         writer.WriteStartElement("scanList")
-        writer.WriteAttributeString("count", (Seq.length scans).ToString())
+        writer.WriteAttributeString("count", scans.Count().ToString())
         item.GetProperties false
         |> Seq.iter (fun param -> 
             match param.Value with
@@ -540,7 +540,7 @@ type MzMLWriter(path:string) =
         writer.WriteStartElement("spectrum")
         if not (String.IsNullOrWhiteSpace spectrum.DataProcessingReference) then 
             writer.WriteAttributeString("dataProcessingRef", spectrum.DataProcessingReference)
-        writer.WriteAttributeString("defaultArrayLength", (Seq.length peaks.Peaks).ToString())
+        writer.WriteAttributeString("defaultArrayLength", peaks.Peaks.Count().ToString())
         writer.WriteAttributeString("id", spectrum.ID)
         writer.WriteAttributeString("index", sprintf "%i" index)
         if not (String.IsNullOrWhiteSpace spectrum.SourceFileReference) then 
@@ -548,11 +548,11 @@ type MzMLWriter(path:string) =
         //writer.WriteAttributeString("spotID", "not saved yet")
         spectrum.GetProperties false
         |> Seq.iter (fun param -> this.assignParam(param.Value))
-        if Seq.length (spectrum.Scans.GetProperties false) <> 0 then
+        if spectrum.Scans.Count() <> 0 then
             this.WriteScanList(spectrum.Scans)
-        if Seq.length (spectrum.Precursors.GetProperties false) <> 0 then
+        if spectrum.Precursors.Count() <> 0 then
             this.WritePrecursorList(spectrum.Precursors)
-        if Seq.length (spectrum.Products.GetProperties false) <> 0 then
+        if spectrum.Products.Count() <> 0 then
             this.WriteProductList(spectrum.Products)
         this.WriteBinaryDataArrayList(spectrum, peaks)
         writer.WriteEndElement()
@@ -616,7 +616,7 @@ type MzMLWriter(path:string) =
 
     member private this.WriteSourceFileList(item:SourceFileList) =
         writer.WriteStartElement("sourceFileList")
-        writer.WriteAttributeString("count", (Seq.length (item.GetProperties false)).ToString())
+        writer.WriteAttributeString("count", item.Count().ToString())
         item.GetProperties false
         |> Seq.iter (fun source -> this.WriteSourceFile (source.Value :?> SourceFile))
         writer.WriteEndElement()
@@ -649,14 +649,14 @@ type MzMLWriter(path:string) =
 
     member private this.WriteDataProcessingList(item:DataProcessingList) =
         writer.WriteStartElement("dataProcessingList")
-        writer.WriteAttributeString("count", (Seq.length (item.GetProperties false)).ToString())
+        writer.WriteAttributeString("count", item.Count().ToString())
         item.GetProperties false
         |> Seq.iter (fun dataProc -> this.WriteDataProcessing (dataProc.Value :?> DataProcessing))
         writer.WriteEndElement()
 
     member private this.WriteInstrumentConfigurationList(item:InstrumentList) =
         writer.WriteStartElement("instrumentConfigurationList")
-        writer.WriteAttributeString("count", (Seq.length (item.GetProperties false)).ToString())
+        writer.WriteAttributeString("count", item.Count().ToString())
         item.GetProperties false
         |> Seq.iter (fun instConf -> this.WriteInstrumentConfiguration (instConf.Value :?> Instrument))
         writer.WriteEndElement()
@@ -674,14 +674,14 @@ type MzMLWriter(path:string) =
 
     member private this.WriteTargetList(item:SourceFileList) =
         writer.WriteStartElement("targetList")
-        writer.WriteAttributeString("count", (Seq.length (item.GetProperties false)).ToString())
+        writer.WriteAttributeString("count", item.Count().ToString())
         item.GetProperties false
         |> Seq.iter (fun sourceFile -> this.WriteSourceFileRef((sourceFile.Value :?> SourceFile).ID))
         writer.WriteEndElement()
 
     member private this.WriteSourceFileRefList(item:SourceFileList) =
         writer.WriteStartElement("sourceFileRefList")
-        writer.WriteAttributeString("count", (Seq.length (item.GetProperties false)).ToString())
+        writer.WriteAttributeString("count", item.Count().ToString())
         item.GetProperties false
         |> Seq.iter (fun sourceFile -> this.WriteSourceFileRef((sourceFile.Value :?> SourceFile).ID))
         writer.WriteEndElement()
@@ -691,21 +691,21 @@ type MzMLWriter(path:string) =
         writer.WriteAttributeString("id", "PlaceHolderID_settings")
         item.GetProperties false
         |> Seq.iter (fun param -> this.assignParam(param))
-        if Seq.length (item.FileDescription.SourceFiles.GetProperties false) > 0 then
+        if item.FileDescription.SourceFiles.Count() > 0 then
             this.WriteSourceFileRefList(item.FileDescription.SourceFiles)
         //this.WriteTargetList(item)
         writer.WriteEndElement()
         
     member private this.WriteScanSettingsList(item:MzIOModel) =
         writer.WriteStartElement("scanSettingsList")
-        writer.WriteAttributeString("count", (Seq.length (item.FileDescription.SourceFiles.GetProperties false)).ToString())
+        writer.WriteAttributeString("count", item.FileDescription.SourceFiles.Count().ToString())
         this.WriteScanSettings(item)
         writer.WriteEndElement()
 
     member private this.WriteSoftwareList(item:SoftwareList) =
         this.EnsureWriteState(MzMLWriteState.MzIOModel)
         writer.WriteStartElement("softwareList")
-        writer.WriteAttributeString("count", (Seq.length (item.GetProperties false)).ToString())
+        writer.WriteAttributeString("count", item.Count().ToString())
         item.GetProperties false
         |> Seq.iter (fun software -> this.WriteSoftware(software.Value :?> Software))
         writer.WriteEndElement()
@@ -713,7 +713,7 @@ type MzMLWriter(path:string) =
     member private this.WriteSampleList(item:SampleList) =
         this.EnsureWriteState(MzMLWriteState.MzIOModel)
         writer.WriteStartElement("sampleList")
-        writer.WriteAttributeString("count", (Seq.length (item.GetProperties false)).ToString())
+        writer.WriteAttributeString("count", item.Count().ToString())
         item.GetProperties false
         |> Seq.iter (fun sample -> this.WriteSample (sample.Value :?> Sample))
         writer.WriteEndElement()
@@ -722,9 +722,9 @@ type MzMLWriter(path:string) =
         this.EnsureWriteState(MzMLWriteState.MzIOModel)
         writer.WriteStartElement("fileDescription")
         this.WriteFileContent(item.FileContent)
-        if Seq.length (item.SourceFiles.GetProperties false) > 0 then
+        if item.SourceFiles.Count() > 0 then
             this.WriteSourceFileList(item.SourceFiles)
-        if Seq.length (item.Contact.GetProperties false) >0 then
+        if item.Contact.Count() > 0 then
             this.WriteContact(item.Contact)
         writer.WriteEndElement()
 
@@ -745,10 +745,10 @@ type MzMLWriter(path:string) =
         writer.WriteAttributeString("version", "1.1.0")
         this.WriteCvList()
         this.WriteFileDescription(item.FileDescription)
-        if Seq.length (item.Samples.GetProperties false) <> 0 then
+        if item.Samples.Count() <> 0 then
             this.WriteSampleList(item.Samples)
         this.WriteSoftwareList(item.Softwares)
-        if Seq.length (item.FileDescription.SourceFiles.GetProperties false) > 0 then
+        if item.FileDescription.SourceFiles.Count() > 0 then
             this.WriteScanSettingsList(item)
         this.WriteInstrumentConfigurationList(item.Instruments)
         this.WriteDataProcessingList(item.DataProcessings)
@@ -805,10 +805,10 @@ type MzMLWriter(path:string) =
         writer.WriteAttributeString("version", "1.1.0")
         this.WriteCvList()
         this.WriteFileDescription(item.FileDescription)
-        if Seq.length (item.Samples.GetProperties false) <> 0 then
+        if item.Samples.Count() <> 0 then
             this.WriteSampleList(item.Samples)
         this.WriteSoftwareList(item.Softwares)
-        if Seq.length (item.FileDescription.SourceFiles.GetProperties false) > 0 then
+        if item.FileDescription.SourceFiles.Count() > 0 then
             this.WriteScanSettingsList(item)
         this.WriteInstrumentConfigurationList(item.Instruments)
         this.WriteDataProcessingList(item.DataProcessings)
