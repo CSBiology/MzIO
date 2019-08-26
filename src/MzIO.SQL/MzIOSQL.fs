@@ -140,7 +140,7 @@ type MzSQL(path) =
         else
             ()
 
-    /// Checks whether connection is disposed or not and fails if it is.
+    /// Checks whether connection is disposed or not and fails when it is.
     member private this.RaiseDisposed() =
 
             if disposed then 
@@ -560,7 +560,7 @@ type MzSQL(path) =
             MzSQL.RaiseTransactionState(cn, &tr)
             new MzSQLTransactionScope() :> ITransactionScope
 
-        /// Creates model based on model in MzSQL or default model when no model was in the db.
+        /// Creates MzIOModel based on global metadata in MzSQL or default model when no model was in the db.
         member this.CreateDefaultModel() =
             this.RaiseDisposed()
             new MzIOModel(Path.GetFileNameWithoutExtension(sqlitePath))
