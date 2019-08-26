@@ -21,19 +21,19 @@ open MzIO.Commons.Arrays
 //regular expression to check for repeated occurrences of words in a string
 //retrieves sample, experiment and scan ID
 //put in an extra module for improved performance
-module Regex =
+//module Regex =
 
-    let regexID =
-        new Regex(@"sample=(\d+) experiment=(\d+) scan=(\d+)", RegexOptions.Compiled ||| RegexOptions.ECMAScript)
+    //let regexID =
+    //    new Regex(@"sample=(\d+) experiment=(\d+) scan=(\d+)", RegexOptions.Compiled ||| RegexOptions.ECMAScript)
 
-    let regexSampleIndex =
-        new Regex(@"sample=(\d+)", RegexOptions.Compiled ||| RegexOptions.ECMAScript)
+    //let regexSampleIndex =
+    //    new Regex(@"sample=(\d+)", RegexOptions.Compiled ||| RegexOptions.ECMAScript)
 
     //let mutable sampleIndex     = 0
     //let mutable experimentIndex = 0
     //let mutable scanIndex       = 0
 
-open Regex
+//open Regex
 
 type WiffPeaksArray(wiffSpectrum:Clearcore2.Data.MassSpectrum) =
 
@@ -125,15 +125,15 @@ type WiffFileReader(dataProvider:AnalystWiffDataProvider, disposed:Boolean, wiff
 
     let mutable disposed        = disposed
 
-    let wiffFileCheck =
-
+    //let wiffFileCheck =
+    do
         if not (File.Exists(wiffFilePath)) then
             raise (FileNotFoundException("Wiff file does not exist."))
         if (wiffFilePath.Trim() = "") then
             raise (ArgumentNullException("wiffFilePath"))
 
-    let licenseFileCheck =
-        
+    //let licenseFileCheck =
+    do
         if (licenseFilePath.Trim() = "") then
             raise (ArgumentNullException("licenseFilePath"))
         else 
@@ -176,6 +176,12 @@ type WiffFileReader(dataProvider:AnalystWiffDataProvider, disposed:Boolean, wiff
     //changed sampleIndex to byref from mutable variable
     static member private ParseByRunID(runID:string, sampleIndex:byref<int>) =
 
+        let regexID =
+            new Regex(@"sample=(\d+) experiment=(\d+) scan=(\d+)", RegexOptions.Compiled ||| RegexOptions.ECMAScript)
+
+        let regexSampleIndex =
+            new Regex(@"sample=(\d+)", RegexOptions.Compiled ||| RegexOptions.ECMAScript)
+
         let match' = regexSampleIndex.Match(runID)
         if match'.Success=true then
 
@@ -190,6 +196,12 @@ type WiffFileReader(dataProvider:AnalystWiffDataProvider, disposed:Boolean, wiff
             raise (new FormatException("Not a valid wiff sample index format: " + runID))
 
     static member private ParseBySpectrumID(spectrumID:string, sampleIndex:byref<int>, experimentIndex:byref<int>, scanIndex:byref<int>) =
+
+        let regexID =
+            new Regex(@"sample=(\d+) experiment=(\d+) scan=(\d+)", RegexOptions.Compiled ||| RegexOptions.ECMAScript)
+
+        let regexSampleIndex =
+            new Regex(@"sample=(\d+)", RegexOptions.Compiled ||| RegexOptions.ECMAScript)
 
         let match' = regexID.Match(spectrumID)
 
@@ -552,6 +564,12 @@ type WiffFileReader(dataProvider:AnalystWiffDataProvider, disposed:Boolean, wiff
         sprintf "%s%s" wiffFilePath ".MzIOmodel"
 
     static member private getSampleIndex(spectrumID:string) =
+
+        let regexID =
+            new Regex(@"sample=(\d+) experiment=(\d+) scan=(\d+)", RegexOptions.Compiled ||| RegexOptions.ECMAScript)
+
+        let regexSampleIndex =
+            new Regex(@"sample=(\d+)", RegexOptions.Compiled ||| RegexOptions.ECMAScript)
 
         let match' = regexID.Match(spectrumID)
 
