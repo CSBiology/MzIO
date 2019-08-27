@@ -107,10 +107,10 @@ type MzMLReader(filePath: string) =
     static member private getArrayTypeOfP1D (peakArray:Peak1DArray) (arrayType:BinaryDataType) (keys:seq<string>) =
         for key in keys do
             match key with
-            //M/Z Array
+            // M/Z Array
             | "MS:1000514" ->   peakArray.RemoveItem(key)
                                 peakArray.MzDataType <- arrayType
-            //IntensityArray
+            // IntensityArray
             | "MS:1000515" ->   peakArray.RemoveItem(key)
                                 peakArray.IntensityDataType <- arrayType
             | _            -> ()
@@ -119,16 +119,16 @@ type MzMLReader(filePath: string) =
     static member private getBinaryDataTypeOfP1D (peakArray:Peak1DArray) (keys:seq<string>) =
         for key in keys do
             match key with
-            //Float32
+            // Float32
             | "MS:1000521"  ->  peakArray.RemoveItem(key)
                                 MzMLReader.getArrayTypeOfP1D peakArray BinaryDataType.Float32 keys
-            //Float64
+            // Float64
             | "MS:1000523"  ->  peakArray.RemoveItem(key)
                                 MzMLReader.getArrayTypeOfP1D peakArray BinaryDataType.Float64 keys
-            //Int32
+            // Int32
             | "MS:1000519"  ->  peakArray.RemoveItem(key)
                                 MzMLReader.getArrayTypeOfP1D peakArray BinaryDataType.Int32 keys
-            //Int64
+            // Int64
             | "MS:1000522"  ->  peakArray.RemoveItem(key)
                                 MzMLReader.getArrayTypeOfP1D peakArray BinaryDataType.Int64 keys
             | _             ->  ()
@@ -137,15 +137,27 @@ type MzMLReader(filePath: string) =
     static member private getCompressionTypeOfP1D (peakArray:Peak1DArray) (keys:seq<string>) =
         for key in keys do
             match key with
-            //NoCompression
+            // NoCompression
             | "MS:1000576"  ->  peakArray.RemoveItem(key)
                                 peakArray.CompressionType <- BinaryDataCompressionType.NoCompression
                                 MzMLReader.getBinaryDataTypeOfP1D peakArray keys
-            //ZlibCompression
+            // ZlibCompression
             | "MS:1000574"  ->  peakArray.RemoveItem(key)
                                 peakArray.CompressionType <- BinaryDataCompressionType.ZLib
                                 MzMLReader.getBinaryDataTypeOfP1D peakArray keys
             | _             -> ()
+
+    /// Gets compression type of binary array elements based on cvParam elements.
+    static member private getCompressionTypeOfP1D' (peakArray:Peak1DArray) (keys:seq<string>) =
+        if Seq.contains "MS:1000576" keys then
+            peakArray.RemoveItem("MS:1000576")
+            peakArray.CompressionType <- BinaryDataCompressionType.NoCompression
+            MzMLReader.getBinaryDataTypeOfP1D peakArray keys
+        else
+            if Seq.contains "MS:1000574" keys then
+                peakArray.RemoveItem("MS:1000574")
+                peakArray.CompressionType <- BinaryDataCompressionType.ZLib
+                MzMLReader.getBinaryDataTypeOfP1D peakArray keys
 
     /// Adds compression type to Peak1DArray.
     static member private addCompressionTypeToPeak1DArray (peakArray:Peak1DArray) =
@@ -173,16 +185,16 @@ type MzMLReader(filePath: string) =
     static member private getBinaryDataTypeOfP2D (peakArray:Peak2DArray) (keys:string []) =
         for key in keys do
             match key with
-            //Float32
+            // Float32
             | "MS:1000521"  ->  peakArray.RemoveItem(key)
                                 MzMLReader.getArrayTypeOfP2D peakArray BinaryDataType.Float32 keys
-            //Float64
+            // Float64
             | "MS:1000523"  ->  peakArray.RemoveItem(key)
                                 MzMLReader.getArrayTypeOfP2D peakArray BinaryDataType.Float64 keys
-            //Int32
+            // Int32
             | "MS:1000519"  ->  peakArray.RemoveItem(key)
                                 MzMLReader.getArrayTypeOfP2D peakArray BinaryDataType.Int32 keys
-            //Int64
+            // Int64
             | "MS:1000522"  ->  peakArray.RemoveItem(key)
                                 MzMLReader.getArrayTypeOfP2D peakArray BinaryDataType.Int64 keys
             | _             ->  ()
@@ -191,11 +203,11 @@ type MzMLReader(filePath: string) =
     static member private getCompressionTypeOfP2D (peakArray:Peak2DArray) (keys:string []) =
         for key in keys do
             match key with
-            //NoCompression
+            // NoCompression
             | "MS:1000576"  ->  peakArray.RemoveItem(key)
                                 peakArray.CompressionType <- BinaryDataCompressionType.NoCompression
                                 MzMLReader.getBinaryDataTypeOfP2D peakArray keys
-            //ZlibCompression
+            // ZlibCompression
             | "MS:1000574"  ->  peakArray.RemoveItem(key)
                                 peakArray.CompressionType <- BinaryDataCompressionType.ZLib
                                 MzMLReader.getBinaryDataTypeOfP2D peakArray keys
