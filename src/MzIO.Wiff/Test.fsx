@@ -252,25 +252,24 @@ let getSpectras (reader:#IMzIODataReader) =
     |> Seq.collect (fun run -> reader.ReadMassSpectra (run.Value :?> Run).ID)
 
 //let rtIndexEntry = wiffReader.BuildRtIndex("sample=0")
-
 //let rtProfile = wiffReader.RtProfile (rtIndexEntry, (new MzIO.Processing.RangeQuery(1., 300., 600.)), (new MzIO.Processing.RangeQuery(1., 300., 600.)))
 
-let mzSQLNoCompression    = new MzSQL(wiffTestUni + "NoCompression.mzIO")
-let mzSQLZLib             = new MzSQL(wiffTestUni + "ZLib.mzIO")
-let mzSQLNumPress         = new MzSQL(wiffTestUni + "NumPress.mzIO")
-let mzSQLNumPressZLib     = new MzSQL(wiffTestUni + "NumPressZLib.mzIO")
+let mzSQLNoCompression  = new MzSQL(wiffTestUni + "NoCompression.mzIO")
+let mzSQLZLib           = new MzSQL(wiffTestUni + "ZLib.mzIO")
+let mzSQLNumPress       = new MzSQL(wiffTestUni + "NumPress.mzIO")
+let mzSQLNumPressZLib   = new MzSQL(wiffTestUni + "NumPressZLib.mzIO")
 
-//let mzMLNoCompression    = new MzMLWriter(wiffTestHome + "NoCompression.mzml")
-//let mzMLZLib             = new MzMLWriter(wiffTestHome + "ZLib.mzml")
-//let mzMLNumPress         = new MzMLWriter(wiffTestHome + "NumPress.mzml")
-//let mzMLNumPressZLib     = new MzMLWriter(wiffTestHome + "NumPressZLib.mzml")
+let mzMLNoCompression   = new MzMLWriter(wiffTestUni + "NoCompression.mzml")
+let mzMLZLib            = new MzMLWriter(wiffTestUni + "ZLib.mzml")
+let mzMLNumPress        = new MzMLWriter(wiffTestUni + "NumPress.mzml")
+let mzMLNumPressZLib    = new MzMLWriter(wiffTestUni + "NumPressZLib.mzml")
 
 let spectra =
     wiffReader.Model.Runs.GetProperties false
     |> Seq.map (fun item -> item.Value :?> Run)
     |> Seq.head
     |> (fun run -> wiffReader.ReadMassSpectra run.ID)
-    //|> Seq.take 10
+    |> Seq.take 10
 
 wiffReader.Model.Instruments.GetProperties false
 |> Seq.map (fun item -> item.Value :?> Instrument)
@@ -279,10 +278,10 @@ spectra
 |> Seq.map (fun spectrum -> wiffReader.ReadSpectrumPeaks spectrum.ID)
 |> Seq.length
 
-//mzSQLNoCompression.insertMSSpectraBy  (mzSQLNoCompression.insertMSSpectrum) "run_1" wiffReader BinaryDataCompressionType.NoCompression spectra
-//mzMLZLib.insertMSSpectraBy           (mzMLZLib.insertMSSpectrum)          wiffReader.Model "run_1" wiffReader BinaryDataCompressionType.ZLib          spectra
-//mzMLNumPress.insertMSSpectraBy       (mzMLNumPress.insertMSSpectrum)      wiffReader.Model "run_1" wiffReader BinaryDataCompressionType.NumPress      spectra
-//mzMLNumPressZLib.insertMSSpectraBy   (mzMLNumPressZLib.insertMSSpectrum)  wiffReader.Model "run_1" wiffReader BinaryDataCompressionType.NumPressZLib  spectra
+mzMLNoCompression.insertMSSpectraBy   (mzMLNoCompression.insertMSSpectrum)  "run_1" wiffReader BinaryDataCompressionType.NoCompression spectra
+mzMLZLib.insertMSSpectraBy            (mzMLZLib.insertMSSpectrum)           "run_1" wiffReader BinaryDataCompressionType.ZLib          spectra
+mzMLNumPress.insertMSSpectraBy        (mzMLNumPress.insertMSSpectrum)       "run_1" wiffReader BinaryDataCompressionType.NumPress      spectra
+mzMLNumPressZLib.insertMSSpectraBy    (mzMLNumPressZLib.insertMSSpectrum)   "run_1" wiffReader BinaryDataCompressionType.NumPressZLib  spectra
 
  
 //mzIOSQLNoCompression.ReadMassSpectra "run_1"

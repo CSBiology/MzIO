@@ -14,6 +14,7 @@ open MzIO.Model.CvParam
 open MzIO.MetaData
 open MzIO.MetaData.ParamEditExtension
 open MzIO.MetaData.PSIMSExtension
+open NumpressHelper
 open MzIO.Binary
 open MzIO.IO
 open MzIO.Model.CvParam
@@ -85,17 +86,69 @@ type private MzMLCompression(?initialBufferSize:int) =
         writer.Write(byteDeflate.Length)
         writer.Write(byteDeflate)
 
+    /// Compress double array based on numpress pic compression method.
+    static member private NumpressPicCompression(memoryStream:Stream, values:double[]) =
+        let encData = NumpressEncodingHelpers.encodePIC values
+        let writer = new BinaryWriter(memoryStream, System.Text.Encoding.UTF8, true)
+        writer.Write(encData.NumberEncodedBytes)
+        writer.Write(encData.OriginalDataLength)
+        writer.Write(encData.Bytes)
+
+    /// Compress double array based on numpress lin compression method.
+    static member private NumpressLinCompression(memoryStream:Stream, values:double[]) =
+        let encData = NumpressEncodingHelpers.encodeLin values
+        let writer = new BinaryWriter(memoryStream, System.Text.Encoding.UTF8, true)
+        writer.Write(encData.NumberEncodedBytes)
+        writer.Write(encData.OriginalDataLength)
+        writer.Write(encData.Bytes)
+
+    /// Compress double array based on numpress pic and zlib compression method.
+    static member private NumpressPicAndDeflateCompression(memoryStream:Stream, values:double[]) =
+        let encData = NumpressEncodingHelpers.encodePIC values
+        let deflateEncData = MzMLCompression.DeflateStreamCompress encData.Bytes
+        let writer = new BinaryWriter(memoryStream, System.Text.Encoding.UTF8, true)
+        writer.Write(encData.NumberEncodedBytes)
+        writer.Write(encData.OriginalDataLength)
+        writer.Write(deflateEncData.Length)
+        writer.Write(MzMLCompression.DeflateStreamCompress encData.Bytes)
+
+    /// Compress double array based on numpress lin and zlib compression method.
+    static member private NumpressLinAndDeflateCompression(memoryStream:Stream, values:double[]) =
+        let encData = NumpressEncodingHelpers.encodeLin values
+        let deflateEncData = MzMLCompression.DeflateStreamCompress encData.Bytes
+        let writer = new BinaryWriter(memoryStream, System.Text.Encoding.UTF8, true)
+        writer.Write(encData.NumberEncodedBytes)
+        writer.Write(encData.OriginalDataLength)
+        writer.Write(deflateEncData.Length)
+        writer.Write(deflateEncData)
+
+    /// Compress intensity values with numpress pic and m/z values with numpress lin and afterwards both with zlib compression method.
+    static member private NumpressDeflate(compressionType:BinaryDataCompressionType, memoryStream:Stream, peaks:float[]) =
+        
+        match compressionType with
+        | BinaryDataCompressionType.NumPressPic -> MzMLCompression.NumpressPicAndDeflateCompression(memoryStream, peaks)
+        | BinaryDataCompressionType.NumPressLin -> MzMLCompression.NumpressLinAndDeflateCompression(memoryStream, peaks)
+        |   _                                   -> failwith (sprintf "NumPressZLibCompression type not supported: %s" (compressionType.ToString()))
+        
+    /// Compress intensity values with numpress pic and m/z values with numpress lin compression method.
+    static member private Numpress(compressionType:BinaryDataCompressionType, memoryStream:Stream, peaks:float[]) =
+        
+        match compressionType with
+        | BinaryDataCompressionType.NumPressPic -> MzMLCompression.NumpressPicCompression(memoryStream, peaks)
+        | BinaryDataCompressionType.NumPressLin -> MzMLCompression.NumpressLinCompression(memoryStream, peaks)
+        |   _                                   -> failwith (sprintf "NumPressCompression type not supported: %s" (compressionType.ToString()))
+
     /// Convert array of floats to array of bytes which are compressed, based on the chosen method.
-    member this.Encode(compressionType:BinaryDataCompressionType, dataType:BinaryDataType, floats:float[]) =
+    member this.Encode(compressionType:BinaryDataCompressionType, dataType:BinaryDataType, peaks:float[], numPressCompressionType:BinaryDataCompressionType) =
        
         this.memoryStream.Seek(int64 0, SeekOrigin.Begin) |> ignore
 
         match compressionType with
-        | BinaryDataCompressionType.NoCompression   -> MzMLCompression.NoCompression(this.memoryStream, dataType, floats)
-        | BinaryDataCompressionType.ZLib            -> MzMLCompression.ZLib(this.memoryStream, floats)
-        //| BinaryDataCompressionType.NumPress        -> MzMLCompression.Numpress(this.memoryStream, peakArray)
-        //| BinaryDataCompressionType.NumPressZLib    -> MzMLCompression.NumpressDeflate(this.memoryStream, peakArray)
-        | _ -> failwith (sprintf "Compression type not supported: %s" (compressionType.ToString()))
+        | BinaryDataCompressionType.NoCompression   -> MzMLCompression.NoCompression(this.memoryStream, dataType, peaks)
+        | BinaryDataCompressionType.ZLib            -> MzMLCompression.ZLib(this.memoryStream, peaks)
+        | BinaryDataCompressionType.NumPress        -> MzMLCompression.Numpress(numPressCompressionType, this.memoryStream, peaks)
+        | BinaryDataCompressionType.NumPressZLib    -> MzMLCompression.NumpressDeflate(numPressCompressionType, this.memoryStream, peaks)
+        |   _                                       -> failwith (sprintf "Compression type not supported: %s" (compressionType.ToString()))
         
         this.memoryStream.ToArray()
 
@@ -394,8 +447,7 @@ type MzMLWriter(path:string) =
         match item with
         | BinaryDataCompressionType.NoCompression   -> this.WriteCvParamCompression("MS:1000576", "NoCompression")
         | BinaryDataCompressionType.ZLib            -> this.WriteCvParamCompression("MS:1000574", "ZLib")
-        | BinaryDataCompressionType.NumPress        -> this.WriteUserParamCompression("NumPress")
-        | BinaryDataCompressionType.NumPressZLib    -> this.WriteUserParamCompression("NumPressZLib")
+        //| BinaryDataCompressionType.NumPressZLib    -> this.WriteUserParamCompression("NumPressZLib")
         | BinaryDataCompressionType.NumPressPic     -> this.WriteCvParamCompression("MS:1002313", "NumPressPic")
         | BinaryDataCompressionType.NumPressLin     -> this.WriteCvParamCompression("MS:1002314", "NumPressLin")
         | _ -> failwith "BinaryDataCompressionType is unknown"    
@@ -408,13 +460,14 @@ type MzMLWriter(path:string) =
         writer.WriteAttributeString("name", item.MzDataType.ToString())
         writer.WriteAttributeString("value", "")
         writer.WriteEndElement()
-        this.writeCompressionParam item.CompressionType
-        //writer.WriteStartElement("cvParam")
-        //writer.WriteAttributeString("accession", (MzMLWriter.assignCompressionType item.CompressionType).ToString())
-        //writer.WriteAttributeString("cvRef", "MS")
-        //writer.WriteAttributeString("name", item.CompressionType.ToString())
-        //writer.WriteAttributeString("value", "")
-        //writer.WriteEndElement()
+
+        match item.CompressionType with
+        | BinaryDataCompressionType.NumPress        -> this.writeCompressionParam BinaryDataCompressionType.NumPressLin
+        | BinaryDataCompressionType.NumPressZLib    -> 
+            this.writeCompressionParam BinaryDataCompressionType.NumPressLin
+            this.writeCompressionParam BinaryDataCompressionType.ZLib
+        | _                                         -> this.writeCompressionParam item.CompressionType
+
         writer.WriteStartElement("cvParam")
         writer.WriteAttributeString("cvRef", "MS")
         writer.WriteAttributeString("accession", "MS:1000514")      
@@ -433,13 +486,14 @@ type MzMLWriter(path:string) =
         writer.WriteAttributeString("name", "not saved yet")
         writer.WriteAttributeString("value", "")
         writer.WriteEndElement()
-        this.writeCompressionParam item.CompressionType
-        //writer.WriteStartElement("cvParam")
-        //writer.WriteAttributeString("accession", (MzMLWriter.assignCompressionType item.CompressionType).ToString())
-        //writer.WriteAttributeString("cvRef", "MS")
-        //writer.WriteAttributeString("name", "not saved yet")
-        //writer.WriteAttributeString("value", "")
-        //writer.WriteEndElement()
+
+        match item.CompressionType with
+        | BinaryDataCompressionType.NumPress        -> this.writeCompressionParam BinaryDataCompressionType.NumPressPic
+        | BinaryDataCompressionType.NumPressZLib    -> 
+            this.writeCompressionParam BinaryDataCompressionType.NumPressPic
+            this.writeCompressionParam BinaryDataCompressionType.ZLib
+        | _                                         -> this.writeCompressionParam item.CompressionType
+
         writer.WriteStartElement("cvParam")
         writer.WriteAttributeString("cvRef", "MS")
         writer.WriteAttributeString("accession", "MS:1000515")      
@@ -457,21 +511,21 @@ type MzMLWriter(path:string) =
             peaks.Peaks
             |> Seq.map (fun peak -> peak.Mz)
             |> Array.ofSeq
-        let encodedQs = Convert.ToBase64String(encoder.Encode(peaks.CompressionType, peaks.MzDataType, qs))
+        let encodedMzs = Convert.ToBase64String(encoder.Encode(peaks.CompressionType, peaks.MzDataType, qs, BinaryDataCompressionType.NumPressLin))
         writer.WriteStartElement("binaryDataArray")
         writer.WriteAttributeString("arrayLength", qs.Length.ToString())
         if not (String.IsNullOrWhiteSpace spectrum.DataProcessingReference) then 
             writer.WriteAttributeString("dataProcessingRef", spectrum.DataProcessingReference)
-        writer.WriteAttributeString("encodedLength", encodedQs.Length.ToString())        
+        writer.WriteAttributeString("encodedLength", encodedMzs.Length.ToString())        
         this.WriteQParams(peaks)
-        this.WriteBinary(encodedQs)
+        this.WriteBinary(encodedMzs)
         writer.WriteFullEndElement()
 
         let intensities = 
             peaks.Peaks
             |> Seq.map (fun peak -> peak.Intensity)
             |> Array.ofSeq
-        let encodedIntensities = Convert.ToBase64String(encoder.Encode(peaks.CompressionType, peaks.IntensityDataType, intensities))
+        let encodedIntensities = Convert.ToBase64String(encoder.Encode(peaks.CompressionType, peaks.IntensityDataType, intensities, BinaryDataCompressionType.NumPressPic))
         writer.WriteStartElement("binaryDataArray")
         writer.WriteAttributeString("arrayLength", intensities.Length.ToString())
         if not (String.IsNullOrWhiteSpace spectrum.DataProcessingReference) then 

@@ -55,8 +55,8 @@ type BinaryDataCompressionType =
     |ZLib            = 1 //MS:1000574
     |NumPress        = 2
     |NumPressZLib    = 3
-    |NumPressPic     = 4
-    |NumPressLin     = 5
+    |NumPressPic     = 4 //MS:1002313
+    |NumPressLin     = 5 //MS:1002312
 
 /// An abstract base class of a expansible description peak array that contains intensity data type, compression data type and peaks.
 [<AbstractClass>]
