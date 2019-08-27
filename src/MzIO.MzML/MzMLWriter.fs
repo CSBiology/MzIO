@@ -60,31 +60,51 @@ type private MzMLCompression(?initialBufferSize:int) =
             MzMLCompression.WriteValue(writer, dataType, item)
 
     /// Compress bytes using zlib compression method.
-    static member private DeflateStreamCompress (data: byte[]) =
-        use mStream = new MemoryStream(data)
+    static member private DeflateStreamCompress (input: Stream) =
+        //use mStream = new MemoryStream(data)
+        //(
+        // use outStream = new MemoryStream()
+        // use compress = new DeflateStream (outStream, CompressionMode.Compress, true)      
+        // mStream.CopyTo(compress)
+        // compress.Close() 
+        // let byteArray = outStream.ToArray()
+        // byteArray
+        //)
+        //use input           = new MemoryStream(data)
+        use compressStream  = new MemoryStream()
+        use compressor      = new DeflateStream(compressStream, CompressionMode.Compress, true)
         (
-         use outStream = new MemoryStream()
-         use compress = new DeflateStream (outStream, CompressionMode.Compress, true)      
-         mStream.CopyTo(compress)
-         compress.Close() 
-         let byteArray = outStream.ToArray()
-         byteArray
+            input.CopyTo(compressor)
+            compressor.Close()
+            compressStream.ToArray()
         )
 
     /// Convert array of doubles to array of bytes.
     static member private FloatToByteArray (floatArray: float[]) =
-        let byteArray = Array.init (floatArray.Length*8) (fun x -> byte(0))
+        let byteArray = Array.init (floatArray.Length*4) (fun x -> byte(0))
+        printfn "FloatToByteArray byteArray %i" byteArray.Length
         Buffer.BlockCopy (floatArray, 0, byteArray, 0, byteArray.Length)
         byteArray
 
     /// Compress bytes using zlib compression method.
-    static member private ZLib(memoryStream:Stream, floats:float[]) =
-        let bytes       = MzMLCompression.FloatToByteArray(floats |> Array.ofSeq)
-        let byteDeflate = MzMLCompression.DeflateStreamCompress bytes
-
-        let writer = new BinaryWriter(memoryStream, System.Text.Encoding.UTF8, true)
+    static member private ZLib(memoryStream:Stream, dataType:BinaryDataType, peaks:float[]) =
+        //printfn "ZLib peaks %i" peaks.Length
+        //let bytes       = MzMLCompression.FloatToByteArray(peaks |> Array.ofSeq)
+        //printfn "ZLib bytes %i" bytes.Length
+        //let byteDeflate = MzMLCompression.DeflateStreamCompress bytes
+        //let writer      = new BinaryWriter(memoryStream, System.Text.Encoding.UTF8, true)
+        //writer.Write(byteDeflate.Length)
+        //writer.Write(byteDeflate)
+        //printfn "ZLib byteDeflate.Length %i" byteDeflate.Length
+        printfn "ZLib peaks %i" peaks.Length
+        MzMLCompression.NoCompression(memoryStream, dataType, peaks)
+        printfn "ZLib %i" memoryStream.Length
+        //let bytes       = MzMLCompression.FloatToByteArray(peaks |> Array.ofSeq)
+        let byteDeflate = MzMLCompression.DeflateStreamCompress memoryStream
+        let writer      = new BinaryWriter(memoryStream, System.Text.Encoding.UTF8, true)
         writer.Write(byteDeflate.Length)
         writer.Write(byteDeflate)
+        printfn "ZLib byteDeflate.Length %i" byteDeflate.Length
 
     /// Compress double array based on numpress pic compression method.
     static member private NumpressPicCompression(memoryStream:Stream, values:double[]) =
@@ -102,41 +122,41 @@ type private MzMLCompression(?initialBufferSize:int) =
         writer.Write(encData.OriginalDataLength)
         writer.Write(encData.Bytes)
 
-    /// Compress double array based on numpress pic and zlib compression method.
-    static member private NumpressPicAndDeflateCompression(memoryStream:Stream, values:double[]) =
-        let encData = NumpressEncodingHelpers.encodePIC values
-        let deflateEncData = MzMLCompression.DeflateStreamCompress encData.Bytes
-        let writer = new BinaryWriter(memoryStream, System.Text.Encoding.UTF8, true)
-        writer.Write(encData.NumberEncodedBytes)
-        writer.Write(encData.OriginalDataLength)
-        writer.Write(deflateEncData.Length)
-        writer.Write(MzMLCompression.DeflateStreamCompress encData.Bytes)
+    ///// Compress double array based on numpress pic and zlib compression method.
+    //static member private NumpressPicAndDeflateCompression(memoryStream:Stream, values:double[]) =
+    //    let encData = NumpressEncodingHelpers.encodePIC values
+    //    let deflateEncData = MzMLCompression.DeflateStreamCompress encData.Bytes
+    //    let writer = new BinaryWriter(memoryStream, System.Text.Encoding.UTF8, true)
+    //    writer.Write(encData.NumberEncodedBytes)
+    //    writer.Write(encData.OriginalDataLength)
+    //    writer.Write(deflateEncData.Length)
+    //    writer.Write(MzMLCompression.DeflateStreamCompress encData.Bytes)
 
-    /// Compress double array based on numpress lin and zlib compression method.
-    static member private NumpressLinAndDeflateCompression(memoryStream:Stream, values:double[]) =
-        let encData = NumpressEncodingHelpers.encodeLin values
-        let deflateEncData = MzMLCompression.DeflateStreamCompress encData.Bytes
-        let writer = new BinaryWriter(memoryStream, System.Text.Encoding.UTF8, true)
-        writer.Write(encData.NumberEncodedBytes)
-        writer.Write(encData.OriginalDataLength)
-        writer.Write(deflateEncData.Length)
-        writer.Write(deflateEncData)
+    ///// Compress double array based on numpress lin and zlib compression method.
+    //static member private NumpressLinAndDeflateCompression(memoryStream:Stream, values:double[]) =
+    //    let encData = NumpressEncodingHelpers.encodeLin values
+    //    let deflateEncData = MzMLCompression.DeflateStreamCompress encData.Bytes
+    //    let writer = new BinaryWriter(memoryStream, System.Text.Encoding.UTF8, true)
+    //    writer.Write(encData.NumberEncodedBytes)
+    //    writer.Write(encData.OriginalDataLength)
+    //    writer.Write(deflateEncData.Length)
+    //    writer.Write(deflateEncData)
 
-    /// Compress intensity values with numpress pic and m/z values with numpress lin and afterwards both with zlib compression method.
-    static member private NumpressDeflate(compressionType:BinaryDataCompressionType, memoryStream:Stream, peaks:float[]) =
+    ///// Compress intensity values with numpress pic and m/z values with numpress lin and afterwards both with zlib compression method.
+    //static member private NumpressDeflate(compressionType:BinaryDataCompressionType, memoryStream:Stream, peaks:float[]) =
         
-        match compressionType with
-        | BinaryDataCompressionType.NumPressPic -> MzMLCompression.NumpressPicAndDeflateCompression(memoryStream, peaks)
-        | BinaryDataCompressionType.NumPressLin -> MzMLCompression.NumpressLinAndDeflateCompression(memoryStream, peaks)
-        |   _                                   -> failwith (sprintf "NumPressZLibCompression type not supported: %s" (compressionType.ToString()))
+    //    match compressionType with
+    //    | BinaryDataCompressionType.NumPressPic -> MzMLCompression.NumpressPicAndDeflateCompression(memoryStream, peaks)
+    //    | BinaryDataCompressionType.NumPressLin -> MzMLCompression.NumpressLinAndDeflateCompression(memoryStream, peaks)
+    //    |   _                                   -> failwith (sprintf "NumPressZLibCompression type not supported: %s" (compressionType.ToString()))
         
-    /// Compress intensity values with numpress pic and m/z values with numpress lin compression method.
-    static member private Numpress(compressionType:BinaryDataCompressionType, memoryStream:Stream, peaks:float[]) =
+    ///// Compress intensity values with numpress pic and m/z values with numpress lin compression method.
+    //static member private Numpress(compressionType:BinaryDataCompressionType, memoryStream:Stream, peaks:float[]) =
         
-        match compressionType with
-        | BinaryDataCompressionType.NumPressPic -> MzMLCompression.NumpressPicCompression(memoryStream, peaks)
-        | BinaryDataCompressionType.NumPressLin -> MzMLCompression.NumpressLinCompression(memoryStream, peaks)
-        |   _                                   -> failwith (sprintf "NumPressCompression type not supported: %s" (compressionType.ToString()))
+    //    match compressionType with
+    //    | BinaryDataCompressionType.NumPressPic -> MzMLCompression.NumpressPicCompression(memoryStream, peaks)
+    //    | BinaryDataCompressionType.NumPressLin -> MzMLCompression.NumpressLinCompression(memoryStream, peaks)
+    //    |   _                                   -> failwith (sprintf "NumPressCompression type not supported: %s" (compressionType.ToString()))
 
     /// Convert array of floats to array of bytes which are compressed, based on the chosen method.
     member this.Encode(compressionType:BinaryDataCompressionType, dataType:BinaryDataType, peaks:float[], numPressCompressionType:BinaryDataCompressionType) =
@@ -145,9 +165,9 @@ type private MzMLCompression(?initialBufferSize:int) =
 
         match compressionType with
         | BinaryDataCompressionType.NoCompression   -> MzMLCompression.NoCompression(this.memoryStream, dataType, peaks)
-        | BinaryDataCompressionType.ZLib            -> MzMLCompression.ZLib(this.memoryStream, peaks)
-        | BinaryDataCompressionType.NumPress        -> MzMLCompression.Numpress(numPressCompressionType, this.memoryStream, peaks)
-        | BinaryDataCompressionType.NumPressZLib    -> MzMLCompression.NumpressDeflate(numPressCompressionType, this.memoryStream, peaks)
+        | BinaryDataCompressionType.ZLib            -> MzMLCompression.ZLib(this.memoryStream, dataType, peaks)
+        //| BinaryDataCompressionType.NumPress        -> MzMLCompression.Numpress(numPressCompressionType, this.memoryStream, peaks)
+        //| BinaryDataCompressionType.NumPressZLib    -> MzMLCompression.NumpressDeflate(numPressCompressionType, this.memoryStream, peaks)
         |   _                                       -> failwith (sprintf "Compression type not supported: %s" (compressionType.ToString()))
         
         this.memoryStream.ToArray()
@@ -506,14 +526,16 @@ type MzMLWriter(path:string) =
 
     /// Creates a binaryDataArray element and inserts it into the MzML file.
     member private this.WriteBinaryDataArray(spectrum:MassSpectrum, peaks:Peak1DArray) =
+        printfn "WriteBinaryDataArray peaks %i" peaks.Peaks.Length
         let encoder = new MzMLCompression()
-        let qs = 
+        let mzs = 
             peaks.Peaks
             |> Seq.map (fun peak -> peak.Mz)
             |> Array.ofSeq
-        let encodedMzs = Convert.ToBase64String(encoder.Encode(peaks.CompressionType, peaks.MzDataType, qs, BinaryDataCompressionType.NumPressLin))
+        let encodedMzs = Convert.ToBase64String(encoder.Encode(peaks.CompressionType, peaks.MzDataType, mzs, BinaryDataCompressionType.NumPressLin))
+        printfn "encodedMzs %i" encodedMzs.Length
         writer.WriteStartElement("binaryDataArray")
-        writer.WriteAttributeString("arrayLength", qs.Length.ToString())
+        writer.WriteAttributeString("arrayLength", mzs.Length.ToString())
         if not (String.IsNullOrWhiteSpace spectrum.DataProcessingReference) then 
             writer.WriteAttributeString("dataProcessingRef", spectrum.DataProcessingReference)
         writer.WriteAttributeString("encodedLength", encodedMzs.Length.ToString())        
