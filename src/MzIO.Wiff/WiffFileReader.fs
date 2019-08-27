@@ -178,13 +178,7 @@ type WiffFileReader(dataProvider:AnalystWiffDataProvider, disposed:Boolean, wiff
     //    new Regex(@"sample=(\d+)", RegexOptions.Compiled ||| RegexOptions.ECMAScript)
 
     /// Get sampleIndex based on runID, which is a whole run in a wiff file.
-    static member private ParseByRunID(runID:string, sampleIndex:byref<int>) =
-
-        let regexID =
-            new Regex(@"sample=(\d+) experiment=(\d+) scan=(\d+)", RegexOptions.Compiled ||| RegexOptions.ECMAScript)
-
-        let regexSampleIndex =
-            new Regex(@"sample=(\d+)", RegexOptions.Compiled ||| RegexOptions.ECMAScript)
+    member private this.ParseByRunID(runID:string, sampleIndex:byref<int>) =
 
         let match' = regexSampleIndex.Match(runID)
         if match'.Success=true then
@@ -221,9 +215,7 @@ type WiffFileReader(dataProvider:AnalystWiffDataProvider, disposed:Boolean, wiff
     /// Gets isolationWindow, target M/Z and offset.
     static member GetIsolationWindow(exp:MSExperiment, isoWidth:byref<double>, targetMz:byref<double>) =
 
-        let mutable mri = null
-
-        let mutable mr  = exp.Details.MassRangeInfo
+        let mr  = exp.Details.MassRangeInfo
 
         isoWidth <- double 0.
 
@@ -231,7 +223,7 @@ type WiffFileReader(dataProvider:AnalystWiffDataProvider, disposed:Boolean, wiff
 
         if mr.Length>0 then
 
-            mri <- mr.[0] :?> FragmentBasedScanMassRange
+            let mri = mr.[0] :?> FragmentBasedScanMassRange
 
             isoWidth <- mri.IsolationWindow * (double 0.5)
 
@@ -248,8 +240,8 @@ type WiffFileReader(dataProvider:AnalystWiffDataProvider, disposed:Boolean, wiff
 
     static member private GetSpectrum(batch:Batch, sample:MassSpectrometerSample, msExp:MSExperiment, sampleIndex:int, experimentIndex:int, scanIndex:int) =
 
-        let mutable wiffSpectrum    = msExp.GetMassSpectrumInfo(scanIndex)
-        let mutable MzIOSpectrum    = new MassSpectrum(WiffFileReader.ToSpectrumID(sampleIndex, experimentIndex, scanIndex))
+        let wiffSpectrum    = msExp.GetMassSpectrumInfo(scanIndex)
+        let MzIOSpectrum    = new MassSpectrum(WiffFileReader.ToSpectrumID(sampleIndex, experimentIndex, scanIndex))
 
         // spectrum
 
@@ -428,7 +420,7 @@ type WiffFileReader(dataProvider:AnalystWiffDataProvider, disposed:Boolean, wiff
         member this.ReadMassSpectra(runID:string) =
             this.RaiseDisposed()
             let mutable sampleIndex = 0
-            WiffFileReader.ParseByRunID(runID, & sampleIndex)
+            this.ParseByRunID(runID, & sampleIndex)
             WiffFileReader.Yield(batch, sampleIndex)
 
         /// Read mass spectrum of wiff file.
@@ -450,10 +442,10 @@ type WiffFileReader(dataProvider:AnalystWiffDataProvider, disposed:Boolean, wiff
             let mutable scanIndex       = 0
 
             this.ParseBySpectrumID(spectrumID, & sampleIndex, & experimentIndex, & scanIndex)
-            use sample      = batch.GetSample(sampleIndex).MassSpectrometerSample
-            use msExp       = sample.GetMSExperiment(experimentIndex)
-            let ms          = msExp.GetMassSpectrum(scanIndex)
-            let mutable pa = new Peak1DArray(BinaryDataCompressionType.NoCompression, BinaryDataType.Float64, BinaryDataType.Float64)
+            use sample  = batch.GetSample(sampleIndex).MassSpectrometerSample
+            use msExp   = sample.GetMSExperiment(experimentIndex)
+            let ms      = msExp.GetMassSpectrum(scanIndex)
+            let pa      = new Peak1DArray(BinaryDataCompressionType.NoCompression, BinaryDataType.Float64, BinaryDataType.Float64)
 
             pa.Peaks <- new WiffPeaksArray(ms)
             pa
