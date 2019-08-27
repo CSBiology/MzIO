@@ -18,8 +18,7 @@ open MzIO.MetaData.PSIMSExtension
 open MzIO.Commons.Arrays
 
 
-//regular expression to check for repeated occurrences of words in a string
-//retrieves sample, experiment and scan ID
+
 //put in an extra module for improved performance
 //module Regex =
 
@@ -125,6 +124,11 @@ type WiffFileReader(dataProvider:AnalystWiffDataProvider, disposed:Boolean, wiff
 
     let mutable disposed        = disposed
 
+    //regular expression to check for repeated occurrences of words in a string
+    //retrieves sample, experiment and scan ID
+    let regexID = new Regex(@"sample=(\d+) experiment=(\d+) scan=(\d+)", RegexOptions.Compiled ||| RegexOptions.ECMAScript)
+    let regexSampleIndex = new Regex(@"sample=(\d+)", RegexOptions.Compiled ||| RegexOptions.ECMAScript)
+
     //let wiffFileCheck =
     do
         if not (File.Exists(wiffFilePath)) then
@@ -196,13 +200,7 @@ type WiffFileReader(dataProvider:AnalystWiffDataProvider, disposed:Boolean, wiff
             raise (new FormatException("Not a valid wiff sample index format: " + runID))
 
     /// Get wiff file specific sampleIndex, sampleIndex and experimentIndex in order to generate runID.
-    static member private ParseBySpectrumID(spectrumID:string, sampleIndex:byref<int>, experimentIndex:byref<int>, scanIndex:byref<int>) =
-
-        let regexID =
-            new Regex(@"sample=(\d+) experiment=(\d+) scan=(\d+)", RegexOptions.Compiled ||| RegexOptions.ECMAScript)
-
-        let regexSampleIndex =
-            new Regex(@"sample=(\d+)", RegexOptions.Compiled ||| RegexOptions.ECMAScript)
+    member private this.ParseBySpectrumID(spectrumID:string, sampleIndex:byref<int>, experimentIndex:byref<int>, scanIndex:byref<int>) =
 
         let match' = regexID.Match(spectrumID)
 
@@ -439,7 +437,7 @@ type WiffFileReader(dataProvider:AnalystWiffDataProvider, disposed:Boolean, wiff
             let mutable sampleIndex     = 0
             let mutable experimentIndex = 0
             let mutable scanIndex       = 0
-            WiffFileReader.ParseBySpectrumID(spectrumID, & sampleIndex, & experimentIndex, & scanIndex)
+            this.ParseBySpectrumID(spectrumID, & sampleIndex, & experimentIndex, & scanIndex)
             use sample      = batch.GetSample(sampleIndex).MassSpectrometerSample
             use msExp       = sample.GetMSExperiment(experimentIndex)
             (WiffFileReader.GetSpectrum(batch, sample, msExp, sampleIndex, experimentIndex, scanIndex))
@@ -451,7 +449,7 @@ type WiffFileReader(dataProvider:AnalystWiffDataProvider, disposed:Boolean, wiff
             let mutable experimentIndex = 0
             let mutable scanIndex       = 0
 
-            WiffFileReader.ParseBySpectrumID(spectrumID, & sampleIndex, & experimentIndex, & scanIndex)
+            this.ParseBySpectrumID(spectrumID, & sampleIndex, & experimentIndex, & scanIndex)
             use sample      = batch.GetSample(sampleIndex).MassSpectrometerSample
             use msExp       = sample.GetMSExperiment(experimentIndex)
             let ms          = msExp.GetMassSpectrum(scanIndex)
@@ -563,13 +561,7 @@ type WiffFileReader(dataProvider:AnalystWiffDataProvider, disposed:Boolean, wiff
         sprintf "%s%s" wiffFilePath ".MzIOmodel"
 
     /// Gets sample, experiment and scanIndex based on spectrumID.
-    static member private getSampleIndex(spectrumID:string) =
-
-        let regexID =
-            new Regex(@"sample=(\d+) experiment=(\d+) scan=(\d+)", RegexOptions.Compiled ||| RegexOptions.ECMAScript)
-
-        let regexSampleIndex =
-            new Regex(@"sample=(\d+)", RegexOptions.Compiled ||| RegexOptions.ECMAScript)
+    member private this.getSampleIndex(spectrumID:string) =
 
         let match' = regexID.Match(spectrumID)
 
@@ -581,7 +573,7 @@ type WiffFileReader(dataProvider:AnalystWiffDataProvider, disposed:Boolean, wiff
 
     /// Returns TIC of spectrum.
     member this.GetTIC(spectrumID:string) =
-        let sampleIndex = WiffFileReader.getSampleIndex(spectrumID)
+        let sampleIndex = this.getSampleIndex(spectrumID)
         let msExperiment = batch.GetSample(sampleIndex).MassSpectrometerSample
         msExperiment.GetTotalIonChromatogram().NumDataPoints
 
@@ -592,7 +584,7 @@ type WiffFileReader(dataProvider:AnalystWiffDataProvider, disposed:Boolean, wiff
 
     /// Returns dwell time of spectrum.
     member this.GetDwellTime(spectrumID:string) =
-        let sampleIndex = WiffFileReader.getSampleIndex(spectrumID)
+        let sampleIndex = this.getSampleIndex(spectrumID)
         use sample = batch.GetSample(sampleIndex).MassSpectrometerSample
         seq
             {
@@ -606,7 +598,7 @@ type WiffFileReader(dataProvider:AnalystWiffDataProvider, disposed:Boolean, wiff
     
     /// Returns dilution factor of spectrum.
     member this.GetDilutionFactor(spectrumID:string) =
-        let sampleIndex = WiffFileReader.getSampleIndex(spectrumID)
+        let sampleIndex = this.getSampleIndex(spectrumID)
         use sample = batch.GetSample(sampleIndex).MassSpectrometerSample
         seq
             {
@@ -616,7 +608,7 @@ type WiffFileReader(dataProvider:AnalystWiffDataProvider, disposed:Boolean, wiff
 
     /// Returns mass range of spectrum.
     member this.GetMassRange(spectrumID:string) =
-        let sampleIndex = WiffFileReader.getSampleIndex(spectrumID)
+        let sampleIndex = this.getSampleIndex(spectrumID)
         use sample = batch.GetSample(sampleIndex).MassSpectrometerSample
         seq
             {
@@ -628,7 +620,7 @@ type WiffFileReader(dataProvider:AnalystWiffDataProvider, disposed:Boolean, wiff
 
     /// Returns isolation window of spectrum.
     member this.GetIsolationWindow(spectrumID:string) =
-        let sampleIndex = WiffFileReader.getSampleIndex(spectrumID)
+        let sampleIndex = this.getSampleIndex(spectrumID)
         use sample = batch.GetSample(sampleIndex).MassSpectrometerSample
         seq
             {
@@ -640,7 +632,7 @@ type WiffFileReader(dataProvider:AnalystWiffDataProvider, disposed:Boolean, wiff
 
     /// Returns collision energy of spectrum.
     member this.GetCollisionEnergy(spectrumID:string) =
-        let sampleIndex = WiffFileReader.getSampleIndex(spectrumID)
+        let sampleIndex = this.getSampleIndex(spectrumID)
         use sample = batch.GetSample(sampleIndex).MassSpectrometerSample
         seq
             {
@@ -658,7 +650,7 @@ type WiffFileReader(dataProvider:AnalystWiffDataProvider, disposed:Boolean, wiff
 
     /// Returns scan time of spectrum.
     member this.GetScanTime(spectrumID:string) =
-        let sampleIndex = WiffFileReader.getSampleIndex(spectrumID)
+        let sampleIndex = this.getSampleIndex(spectrumID)
         use sample = batch.GetSample(sampleIndex).MassSpectrometerSample
         seq
             {

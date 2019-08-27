@@ -270,17 +270,21 @@ let spectra =
     |> Seq.map (fun item -> item.Value :?> Run)
     |> Seq.head
     |> (fun run -> wiffReader.ReadMassSpectra run.ID)
-    |> Seq.take 10
+    //|> Seq.take 10
 
 wiffReader.Model.Instruments.GetProperties false
 |> Seq.map (fun item -> item.Value :?> Instrument)
 
-mzSQLNoCompression.insertMSSpectraBy  (mzSQLNoCompression.insertMSSpectrum) "run_1" wiffReader BinaryDataCompressionType.NoCompression spectra
+spectra
+|> Seq.map (fun spectrum -> wiffReader.ReadSpectrumPeaks spectrum.ID)
+|> Seq.length
+
+//mzSQLNoCompression.insertMSSpectraBy  (mzSQLNoCompression.insertMSSpectrum) "run_1" wiffReader BinaryDataCompressionType.NoCompression spectra
 //mzMLZLib.insertMSSpectraBy           (mzMLZLib.insertMSSpectrum)          wiffReader.Model "run_1" wiffReader BinaryDataCompressionType.ZLib          spectra
 //mzMLNumPress.insertMSSpectraBy       (mzMLNumPress.insertMSSpectrum)      wiffReader.Model "run_1" wiffReader BinaryDataCompressionType.NumPress      spectra
 //mzMLNumPressZLib.insertMSSpectraBy   (mzMLNumPressZLib.insertMSSpectrum)  wiffReader.Model "run_1" wiffReader BinaryDataCompressionType.NumPressZLib  spectra
 
-
+ 
 //mzIOSQLNoCompression.ReadMassSpectra "run_1"
 //|> Seq.length
 //mzIOSQLNoCompression.ReadMassSpectra "run_1"
