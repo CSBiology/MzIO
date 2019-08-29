@@ -234,9 +234,10 @@ let bafMzMLFile     = @"C:\Users\Student\source\repos\wiffTestFiles\Bruker\17092
 let thermoUni       = @"C:\Users\Student\source\repos\wiffTestFiles\Thermo\data02.RAW"
 let termoMzML       = @"C:\Users\Student\source\repos\wiffTestFiles\Thermo\data02.mzML"
 
-let mzMLHome        = @"D:\Users\Patrick\Desktop\BioInformatik\MzLiteTestFiles\MzMLTestFiles\tiny.pwiz.1.1.txt"
+//let mzMLHome        = @"D:\Users\Patrick\Desktop\BioInformatik\MzLiteTestFiles\MzMLTestFiles\tiny.pwiz.1.1.txt"
+let mzMLHome    = @"D:\Users\Patrick\Desktop\BioInformatik\MzLiteTestFiles\MzMLTestFiles\small_miape.pwiz.1.1.txt"
 
-let wiffReader          = new WiffFileReader(wiffTestUni, licensePath)
+//let wiffReader          = new WiffFileReader(wiffTestUni, licensePath)
 //let wiffMzML            = new MzMLReader(mzMLOfWiffUni)
 
 //let bafReader           = new BafFileReader(bafTestUni)
@@ -245,7 +246,7 @@ let wiffReader          = new WiffFileReader(wiffTestUni, licensePath)
 //let thermoReader        = new ThermoRawFileReader(thermoUni)
 //let thermoMzMLReader    = new MzMLReader(termoMzML)
 
-//let mzMLReader          = new MzMLReader(mzMLHome)
+let mzMLReader          = new MzMLReader(mzMLHome)
 
 let getSpectras (reader:#IMzIODataReader) =
     reader.Model.Runs.GetProperties false
@@ -254,97 +255,152 @@ let getSpectras (reader:#IMzIODataReader) =
 //let rtIndexEntry = wiffReader.BuildRtIndex("sample=0")
 //let rtProfile = wiffReader.RtProfile (rtIndexEntry, (new MzIO.Processing.RangeQuery(1., 300., 600.)), (new MzIO.Processing.RangeQuery(1., 300., 600.)))
 
-//let mzSQLNoCompression  = new MzSQL(wiffTestUni + "NoCompression.mzIO")
-//let mzSQLZLib           = new MzSQL(wiffTestUni + "ZLib.mzIO")
-//let mzSQLNumPress       = new MzSQL(wiffTestUni + "NumPress.mzIO")
-//let mzSQLNumPressZLib   = new MzSQL(wiffTestUni + "NumPressZLib.mzIO")
+//let mzSQLNoCompression  = new MzSQL(mzMLHome + "NoCompression.mzIO")
+//let mzSQLZLib           = new MzSQL(mzMLHome + "ZLib.mzIO")
+//let mzSQLNumPress       = new MzSQL(mzMLHome + "NumPress.mzIO")
+//let mzSQLNumPressZLib   = new MzSQL(mzMLHome + "NumPressZLib.mzIO")
 
-//let mzMLNoCompression   = new MzMLWriter(wiffTestUni + "NoCompression.mzml")
-//let mzMLZLib            = new MzMLWriter(wiffTestUni + "ZLib.mzml")
-//let mzMLNumPress        = new MzMLWriter(wiffTestUni + "NumPress.mzml")
-//let mzMLNumPressZLib    = new MzMLWriter(wiffTestUni + "NumPressZLib.mzml")
+//let mzMLNoCompression   = new MzMLWriter(mzMLHome + "NoCompression.mzml")
+//let mzMLZLib            = new MzMLWriter(mzMLHome + "ZLib.mzml")
+//let mzMLNumPress        = new MzMLWriter(mzMLHome + "NumPress.mzml")
+//let mzMLNumPressZLib    = new MzMLWriter(mzMLHome + "NumPressZLib.mzml")
 
-let mzMLReaderNoCompression = new MzMLReader(wiffTestUni + "NoCompression.mzml")
-let mzMLReaderZLib          = new MzMLReader(wiffTestUni + "ZLib.mzml")
-let mzMLReaderNumPress      = new MzMLReader(wiffTestUni + "NumPress.mzml")
-let mzMLReaderNumPressZLib  = new MzMLReader(wiffTestUni + "NumPressZLib.mzml")
+let mzMLReaderNoCompression = new MzMLReader(mzMLHome + "NoCompression.mzml")
+let mzMLReaderZLib          = new MzMLReader(mzMLHome + "ZLib.mzml")
+let mzMLReaderNumPress      = new MzMLReader(mzMLHome + "NumPress.mzml")
+let mzMLReaderNumPressZLib  = new MzMLReader(mzMLHome + "NumPressZLib.mzml")
 
 let spectra =
-    wiffReader.Model.Runs.GetProperties false
+    mzMLReader.Model.Runs.GetProperties false
     |> Seq.map (fun item -> item.Value :?> Run)
     |> Seq.head
-    |> (fun run -> wiffReader.ReadMassSpectra run.ID)
+    |> (fun run -> mzMLReader.ReadMassSpectra run.ID)
     |> Seq.take 10
+    |> List.ofSeq
+    //|> (fun run -> mzMLReader.ReadMassSpectra run.ID)
+    //|> Seq.map (fun spectrum -> mzMLReader.ReadSpectrumPeaks spectrum.ID)
+    
 
 spectra
-|> Seq.map (fun spectrum -> wiffReader.ReadSpectrumPeaks spectrum.ID)
+|> Seq.map (fun spectrum -> mzMLReader.ReadSpectrumPeaks spectrum.ID)
 |> Seq.length
 
-//mzMLNoCompression.insertMSSpectraBy   (mzMLNoCompression.insertMSSpectrum)  "run_1" wiffReader BinaryDataCompressionType.NoCompression spectra
-//mzMLZLib.insertMSSpectraBy            (mzMLZLib.insertMSSpectrum)           "run_1" wiffReader BinaryDataCompressionType.ZLib          spectra
-//mzMLNumPress.insertMSSpectraBy        (mzMLNumPress.insertMSSpectrum)       "run_1" wiffReader BinaryDataCompressionType.NumPress      spectra
-//mzMLNumPressZLib.insertMSSpectraBy    (mzMLNumPressZLib.insertMSSpectrum)   "run_1" wiffReader BinaryDataCompressionType.NumPressZLib  spectra
+//mzSQLNoCompression.insertMSSpectraBy (mzSQLNoCompression.insertMSSpectrum)  "run_1" mzMLReader BinaryDataCompressionType.NoCompression spectra
+//mzSQLZLib.insertMSSpectraBy          (mzSQLZLib.insertMSSpectrum)           "run_1" mzMLReader BinaryDataCompressionType.ZLib          spectra
+//mzSQLNumPress.insertMSSpectraBy      (mzSQLNumPress.insertMSSpectrum)       "run_1" mzMLReader BinaryDataCompressionType.NumPress      spectra
+//mzSQLNumPressZLib.insertMSSpectraBy  (mzSQLNumPressZLib.insertMSSpectrum)   "run_1" mzMLReader BinaryDataCompressionType.NumPressZLib  spectra
+
+//mzSQLNoCompression.ReadMassSpectra "run_1"
+//|> Seq.length
+//mzSQLNoCompression.ReadMassSpectra "run_1"
+//|> Seq.map (fun spectrum -> mzSQLNoCompression.ReadMassSpectrum spectrum.ID)
+//|> Seq.length
+//mzSQLNoCompression.ReadMassSpectra "run_1"
+//|> Seq.map (fun spectrum -> mzSQLNoCompression.ReadSpectrumPeaks spectrum.ID)
+//|> Seq.length
+
+//mzSQLZLib.ReadMassSpectra "run_1"
+//|> Seq.length
+//mzSQLZLib.ReadMassSpectra "run_1"
+//|> Seq.map (fun spectrum -> mzSQLZLib.ReadMassSpectrum spectrum.ID)
+//|> Seq.length
+//mzSQLZLib.ReadMassSpectra "run_1"
+//|> Seq.map (fun spectrum -> mzSQLZLib.ReadSpectrumPeaks spectrum.ID)
+//|> Seq.length
+
+//mzSQLNumPress.ReadMassSpectra "run_1"
+//|> Seq.length
+//mzSQLNumPress.ReadMassSpectra "run_1"
+//|> Seq.map (fun spectrum -> mzSQLNumPress.ReadMassSpectrum spectrum.ID)
+//|> Seq.length
+//mzSQLNumPress.ReadMassSpectra "run_1"
+//|> Seq.map (fun spectrum -> mzSQLNumPress.ReadSpectrumPeaks spectrum.ID)
+//|> Seq.length
+
+//mzSQLNumPressZLib.ReadMassSpectra "run_1"
+//|> Seq.length
+//mzSQLNumPressZLib.ReadMassSpectra "run_1"
+//|> Seq.map (fun spectrum -> mzSQLNumPressZLib.ReadMassSpectrum spectrum.ID)
+//|> Seq.length
+//mzSQLNumPressZLib.ReadMassSpectra "run_1"
+//|> Seq.map (fun spectrum -> mzSQLNumPressZLib.ReadSpectrumPeaks spectrum.ID)
+//|> Seq.length
+
+//mzMLNoCompression.insertMSSpectraBy   (mzMLNoCompression.insertMSSpectrum)  "run_1" mzMLReader BinaryDataCompressionType.NoCompression spectra
+//mzMLZLib.insertMSSpectraBy            (mzMLZLib.insertMSSpectrum)           "run_1" mzMLReader BinaryDataCompressionType.ZLib          spectra
+//mzMLNumPress.insertMSSpectraBy        (mzMLNumPress.insertMSSpectrum)       "run_1" mzMLReader BinaryDataCompressionType.NumPress      spectra
+//mzMLNumPressZLib.insertMSSpectraBy    (mzMLNumPressZLib.insertMSSpectrum)   "run_1" mzMLReader BinaryDataCompressionType.NumPressZLib  spectra
 
  
-//mzMLReaderNoCompression.ReadMassSpectra "run_1"
-//|> Seq.length
-//mzMLReaderNoCompression.ReadMassSpectra "run_1"
-//|> Seq.map (fun spectrum -> mzMLReaderNoCompression.ReadMassSpectrum spectrum.ID)
-//|> Seq.length
-//mzMLReaderNoCompression.ReadMassSpectra "run_1"
-//|> Seq.map (fun spectrum -> mzMLReaderNoCompression.ReadSpectrumPeaks spectrum.ID)
-//|> Seq.length
+mzMLReaderNoCompression.ReadMassSpectra "run_1"
+|> Seq.length
+mzMLReaderNoCompression.ReadMassSpectra "run_1"
+|> Seq.map (fun spectrum -> mzMLReaderNoCompression.ReadMassSpectrum spectrum.ID)
+|> Seq.length
+mzMLReaderNoCompression.ReadMassSpectra "run_1"
+|> Seq.map (fun spectrum -> mzMLReaderNoCompression.ReadSpectrumPeaks spectrum.ID)
+|> Seq.length
 
-//mzMLReaderZLib.ReadMassSpectra "run_1"
-//|> Seq.length
-//mzMLReaderZLib.ReadMassSpectra "run_1"
-//|> Seq.map (fun spectrum -> mzMLReaderZLib.ReadMassSpectrum spectrum.ID)
-//|> Seq.length
-//mzMLReaderZLib.ReadMassSpectra "run_1"
-//|> Seq.map (fun spectrum -> mzMLReaderZLib.ReadSpectrumPeaks spectrum.ID)
-//|> Seq.length
+mzMLReaderZLib.ReadMassSpectra "run_1"
+|> Seq.length
+mzMLReaderZLib.ReadMassSpectra "run_1"
+|> Seq.map (fun spectrum -> mzMLReaderZLib.ReadMassSpectrum spectrum.ID)
+|> Seq.length
+mzMLReaderZLib.ReadMassSpectra "run_1"
+|> Seq.map (fun spectrum -> mzMLReaderZLib.ReadSpectrumPeaks spectrum.ID)
+|> Seq.length
 
-//mzMLReaderNumPress.ReadMassSpectra "run_1"
-//|> Seq.length
-//mzMLReaderNumPress.ReadMassSpectra "run_1"
-//|> Seq.map (fun spectrum -> mzMLReaderNumPress.ReadMassSpectrum spectrum.ID)
-//|> Seq.length
-//mzMLReaderNumPress.ReadMassSpectra "run_1"
-//|> Seq.map (fun spectrum -> mzMLReaderNumPress.ReadSpectrumPeaks spectrum.ID)
-//|> Seq.length
+mzMLReaderNumPress.ReadMassSpectra "run_1"
+|> Seq.length
+mzMLReaderNumPress.ReadMassSpectra "run_1"
+|> Seq.map (fun spectrum -> mzMLReaderNumPress.ReadMassSpectrum spectrum.ID)
+|> Seq.length
+mzMLReaderNumPress.ReadMassSpectra "run_1"
+|> Seq.map (fun spectrum -> mzMLReaderNumPress.ReadSpectrumPeaks spectrum.ID)
+|> Seq.length
 
-//mzMLReaderNumPressZLib.ReadMassSpectra "run_1"
-//|> Seq.length
-//mzMLReaderNumPressZLib.ReadMassSpectra "run_1"
-//|> Seq.map (fun spectrum -> mzMLReaderNumPressZLib.ReadMassSpectrum spectrum.ID)
-//|> Seq.length
-//mzMLReaderNumPressZLib.ReadMassSpectra "run_1"
-//|> Seq.map (fun spectrum -> mzMLReaderNumPressZLib.ReadSpectrumPeaks spectrum.ID)
-//|> Seq.length
-
-let mzMLZLIBTest        = new MzMLReader(@"C:\Users\Student\source\repos\wiffTestFiles\MzML\small_zlib.pwiz.1.1.mzML")
-let mzMLWriterZLIBTest  = new MzMLWriter(@"C:\Users\Student\source\repos\wiffTestFiles\MzML\small_zlib.pwiz.1.1.mzML.ZLIB.mzML")
-
-
-let spectra' =
-    mzMLZLIBTest.Model.Runs.GetProperties false
-    |> Seq.map (fun item -> item.Value :?> Run)
-    |> Seq.head
-    |> (fun run -> mzMLZLIBTest.ReadMassSpectra run.ID)
-    |> Seq.take 1
-    |> List.ofSeq
-
-mzMLWriterZLIBTest.insertMSSpectraBy (mzMLWriterZLIBTest.insertMSSpectrum) "run_1" mzMLZLIBTest BinaryDataCompressionType.ZLib spectra'
-
-let mzMLZLIBTestII = new MzMLReader(@"C:\Users\Student\source\repos\wiffTestFiles\MzML\small_zlib.pwiz.1.1.mzML.ZLIB.mzML")
-
-mzMLZLIBTestII.Model.Runs.GetProperties false
-|> Seq.map (fun item -> item.Value :?> Run)
-|> Seq.head
-|> (fun run -> mzMLZLIBTestII.ReadMassSpectra run.ID)
-|> Seq.map (fun spectrum -> mzMLZLIBTestII.ReadSpectrumPeaks spectrum.ID)
+mzMLReaderNumPressZLib.ReadMassSpectra "run_1"
+|> Seq.length
+mzMLReaderNumPressZLib.ReadMassSpectra "run_1"
+|> Seq.map (fun spectrum -> mzMLReaderNumPressZLib.ReadMassSpectrum spectrum.ID)
+|> Seq.length
+mzMLReaderNumPressZLib.ReadMassSpectra "run_1"
+|> Seq.map (fun spectrum -> mzMLReaderNumPressZLib.ReadSpectrumPeaks spectrum.ID)
 |> Seq.length
 
 
+//let mzMLZLIBTest        = new MzMLReader(@"D:\Users\Patrick\Desktop\BioInformatik\MzLiteTestFiles\MzMLTestFiles\small_miape.pwiz.1.1.txt")
+//let mzMLWriterZLIBTest  = new MzMLWriter(@"D:\Users\Patrick\Desktop\BioInformatik\MzLiteTestFiles\MzMLTestFiles\small_miape.pwiz.1.1.txt.ZLIB.mzML")
 
-1+1
+//let spectra' =
+//    mzMLZLIBTest.Model.Runs.GetProperties false
+//    |> Seq.map (fun item -> item.Value :?> Run)
+//    |> Seq.head
+//    |> (fun run -> mzMLZLIBTest.ReadMassSpectra run.ID)
+//    //|> Seq.map (fun spectrum -> mzMLZLIBTest.ReadSpectrumPeaks spectrum.ID)
+//    //|> Seq.take 1
+//    |> List.ofSeq
+
+//mzMLWriterZLIBTest.insertMSSpectraBy (mzMLWriterZLIBTest.insertMSSpectrum) "run_1" mzMLZLIBTest BinaryDataCompressionType.ZLib spectra'
+
+//let mzMLZLIBTestII = new MzMLReader(@"D:\Users\Patrick\Desktop\BioInformatik\MzLiteTestFiles\MzMLTestFiles\small_miape.pwiz.1.1.txt.ZLIB.mzML")
+
+//mzMLZLIBTestII.Model.Runs.GetProperties false
+//|> Seq.map (fun item -> item.Value :?> Run)
+//|> Seq.head
+//|> (fun run -> mzMLZLIBTestII.ReadMassSpectra run.ID)
+//|> Seq.map (fun spectrum -> mzMLZLIBTestII.ReadSpectrumPeaks spectrum.ID)
+//|> Seq.length
+
+
+//120uy; 156uy // beginning
+
+//244uy; 179uy; 186uy; 141uy; 74uy; 127uy; 38uy; 229uy; 244uy; 58uy // end + extra
+
+//74uy; 127uy; 38uy; 229uy; 244uy; 58uy //end
+
+//244uy; 179uy; 186uy; 141uy; 74uy; 127uy //without end
+
+//[|117uy; 27uy; 165uy; 254uy|]
+
+//1+1
