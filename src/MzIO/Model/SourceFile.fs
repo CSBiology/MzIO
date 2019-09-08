@@ -36,8 +36,6 @@ type SourceFile [<JsonConstructor>] ( [<JsonProperty("ID")>] id:string, [<JsonPr
 /// The model item container for all source files of this experiment.
 [<Sealed>]
 [<JsonObject(MemberSerialization.OptIn)>]
-type SourceFileList [<JsonConstructor>] internal (dict:Dictionary<string, obj>) =
+type SourceFileList [<JsonConstructor>] () =
 
-    inherit ObservableModelItemCollection<SourceFile>(dict)
-
-    new() = new SourceFileList(new Dictionary<string, obj>())
+    inherit ObservableModelItemCollection<SourceFile>()

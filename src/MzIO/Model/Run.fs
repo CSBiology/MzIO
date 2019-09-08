@@ -116,18 +116,15 @@ type ProjectRun [<JsonConstructor>] ( [<JsonProperty("ID")>] id:string, sampleID
 
 /// The model item container for all ms runs of this experiment.
 [<Sealed>]
-type RunList [<JsonConstructor>] internal (dict:Dictionary<string, obj>) =
+type RunList [<JsonConstructor>] () =
 
     inherit ObservableModelItemCollection<Run>()
 
-    new() = new RunList(new Dictionary<string, obj>())
 
 
 /// The project item container for ms runs.
 /// Not implemented fully yet.
 [<Sealed>]
-type ProjectRunList [<JsonConstructor>] internal (dict:Dictionary<string, obj>) =
+type ProjectRunList [<JsonConstructor>] () =
 
-    inherit ObservableModelItemCollection<ProjectRun>(dict)
-
-    new() = new ProjectRunList(new Dictionary<string, obj>())
+    inherit ObservableModelItemCollection<ProjectRun>()

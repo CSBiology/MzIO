@@ -52,8 +52,6 @@ type Sample (id:string, name:string, treatments:SampleTreatmentList, preperation
 
 /// The model item container for samples of this experiment.
 [<Sealed>]
-type SampleList [<JsonConstructor>] internal (dict:Dictionary<string, obj>) =
+type SampleList [<JsonConstructor>] () =
 
-    inherit ObservableModelItemCollection<Sample>(dict)
-
-    new() = new SampleList(new Dictionary<string, obj>())
+    inherit ObservableModelItemCollection<Sample>()

@@ -215,14 +215,37 @@ type MzIOJson =
                     )
         products
 
+    /// Deserialize JSON string to scan.
+    static member private deSerializeScanWindowList(scanWindows:ScanWindowList) =
+        scanWindows.GetProperties false
+        |> Seq.iter (fun item -> 
+            let tmp         = item.Value :?> JObject            
+            let scanWindow  = JsonConvert.DeserializeObject<ScanWindow>(tmp.ToString())
+            MzIOJson.deSerializeParams(scanWindow)
+            scanWindows.SetValue(item.Key, scanWindow)
+            )
+
+    /// Deserialize JSON string to scan.
+    static member private deSerializeScan(item:string) =
+        let scan = JsonConvert.DeserializeObject<Scan>(item)
+        MzIOJson.deSerializeParams(scan)
+        MzIOJson.deSerializeScanWindowList(scan.ScanWindows)
+        scan
+
     /// Deserializes JSON string to scan list.
     static member deSerializeScans(scans:ScanList) =
         scans.GetProperties false
         |> Seq.iter (fun item -> 
-            let tmp = item.Value :?> JObject
-            let scan = JsonConvert.DeserializeObject<Scan>(tmp.ToString())
-            MzIOJson.deSerializeParams(scan)
-            scans.SetValue(item.Key, scan)
+            let tmp = item.Value :?> JObject            
+            if tmp.["Name"] = null then
+                if tmp.["CvAccession"] = null then
+                    let scan = MzIOJson.deSerializeScan(tmp.ToString())
+                    
+                    scans.SetValue(item.Key, scan)
+                else
+                    scans.SetValue(item.Key, JsonConvert.DeserializeObject<CvParam<IConvertible>>(tmp.ToString()))
+            else
+               scans.SetValue(item.Key, JsonConvert.DeserializeObject<UserParam<IConvertible>>(tmp.ToString()))
                     )
         scans
 
@@ -259,5 +282,8 @@ type MzIOJson =
                 let tmp = jsonObj.["Products"] :?> JObject
                 MzIOJson.deSerializeProducts(JsonConvert.DeserializeObject<ProductList>(tmp.ToString()))
         let spectrum = JsonConvert.DeserializeObject<MassSpectrum>(jsonObj.ToString())
-        new MassSpectrum(spectrum.ID, spectrum.DataProcessingReference, precursors, scans, products, spectrum.SourceFileReference)
-
+        let ms = new MassSpectrum(spectrum.ID, spectrum.DataProcessingReference, precursors, scans, products, spectrum.SourceFileReference)
+        MzIOJson.deSerializeParams(spectrum)
+        spectrum.GetProperties false
+        |> Seq.iter (fun param -> ms.Add(param.Key, param.Value))
+        ms

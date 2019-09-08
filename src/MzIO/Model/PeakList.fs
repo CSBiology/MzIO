@@ -158,9 +158,9 @@ type ProductList [<JsonConstructor>] () =
 /// and references the source files.
 [<Sealed>]
 [<JsonObject(MemberSerialization.OptIn)>]
-type MassSpectrum [<JsonConstructor>] (id:string, dataPRocessingReference:string, precursors:PrecursorList, scans:ScanList, products:ProductList,  sourceFileReference:string) =
+type MassSpectrum [<JsonConstructor>] (id:string, dataProcessingReference:string, precursors:PrecursorList, scans:ScanList, products:ProductList,  sourceFileReference:string) =
 
-    inherit PeakList(id, dataPRocessingReference)
+    inherit PeakList(id, dataProcessingReference)
 
     let mutable sourceFileReference = sourceFileReference
 

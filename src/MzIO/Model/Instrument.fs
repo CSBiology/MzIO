@@ -72,8 +72,6 @@ type Instrument([<JsonProperty("ID")>] id:string, software, components) =
 
 /// The model item container for all instrument configurations of this experiment.
 [<Sealed>]
-type InstrumentList [<JsonConstructor>] internal (dict:Dictionary<string, obj>) =
+type InstrumentList [<JsonConstructor>] () =
 
-    inherit MzIO.Model.ObservableModelItemCollection<Instrument>(dict)
-
-    new() = new InstrumentList(new Dictionary<string, obj>())
+    inherit MzIO.Model.ObservableModelItemCollection<Instrument>()

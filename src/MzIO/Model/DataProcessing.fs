@@ -52,8 +52,6 @@ type DataProcessing ([<JsonProperty("ID")>]id: string, processingSteps:DataProce
 
 /// The model item container for all data processings of this experiment.
 [<Sealed>]
-type DataProcessingList [<JsonConstructor>] internal (dict:Dictionary<string, obj>) =
+type DataProcessingList [<JsonConstructor>] () =
     
-    inherit ObservableModelItemCollection<DataProcessing>(dict)
-
-    new() = new DataProcessingList(new Dictionary<string, obj>())
+    inherit ObservableModelItemCollection<DataProcessing>()

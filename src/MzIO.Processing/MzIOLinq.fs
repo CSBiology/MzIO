@@ -70,19 +70,28 @@ module MzIOLinq =
         override this.ToString() =
             String.Format("[rt={0}, spectrumID='{1}']", rt, spectrumID)
 
+        static member private trygetScan(item:Object) =
+            match item:?Scan with
+            | true  -> Some(item :?> Scan)
+            | false -> None
+
         /// Tries to create a RtIndexEntry based on mass spectrum and ms level.
         static member TryCreateEntry(ms: MassSpectrum, msLevel: int, entry: byref<RtIndexEntry>) =
             let mutable msLevel' = 0
-            if   ms.TryGetMsLevel(& msLevel') = false || msLevel' <> msLevel then false
+            if   ms.TryGetMsLevel(& msLevel') = false || msLevel' <> msLevel then false            
             elif ms.Scans.Count() < 1 then false
             else
-                 let scan = (ms.Scans.GetProperties false |> Seq.item 0).Value :?> Scan
-                 let mutable rt = 0.
-                 if scan.TryGetScanStartTime(& rt) then
-                     entry <- new RtIndexEntry(rt, ms.ID)
-                     true
-                 else
-                     false
+                let scan = 
+                    ms.Scans.GetProperties false
+                    |> Seq.map (fun item -> RtIndexEntry.trygetScan(item.Value))
+                    |> Seq.choose(fun item -> item)
+                    |> Seq.head
+                let mutable rt = 0.
+                if scan.TryGetScanStartTime(& rt) then
+                    entry <- new RtIndexEntry(rt, ms.ID)
+                    true
+                else
+                    false
 
         /// Checks whether retention time lies within range of the query.
         static member RtSearchCompare1<'T when 'T :> RtIndexEntry>(entry: RtIndexEntry, rtRange: RangeQuery) =
@@ -151,20 +160,23 @@ module MzIOLinq =
 
         /// Builds an in memory retention time index of mass spectra ids.
         member this.BuildRtIndex(runID:string, ?msLevel: int) =
-
             let msLevel = defaultArg msLevel 1
             let runID =
                 if String.IsNullOrWhiteSpace(runID) then
                     raise (ArgumentNullException("runID"))
                 else
                     runID
-
             let massSpectra   = this.ReadMassSpectra(runID)
             let entries       = new List<RtIndexEntry>()
             let mutable entry = new RtIndexEntry()
-            for ms in massSpectra do
-                if RtIndexEntry.TryCreateEntry(ms, msLevel, & entry) then
-                    entries.Add(entry)
+            //for ms in massSpectra do
+            //    if RtIndexEntry.TryCreateEntry(ms, msLevel, & entry) then
+            //        entries.Add(entry)
+            massSpectra
+            |> Seq.iter (fun ms -> 
+                            RtIndexEntry.TryCreateEntry(ms, msLevel, & entry) |> ignore
+                            entries.Add(entry)
+                        )
             entries.Sort(new RtIndexEntrySorting())
             MzIOArray.ToMzIOArray(entries)
 

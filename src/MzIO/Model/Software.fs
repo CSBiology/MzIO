@@ -16,9 +16,7 @@ type Software [<JsonConstructor>] (id:string) =
 
 /// The model item container for processing software.
 [<Sealed>]
-type SoftwareList [<JsonConstructor>] internal (dict:Dictionary<string, obj>) =
+type SoftwareList [<JsonConstructor>] () =
 
-    inherit MzIO.Model.ObservableModelItemCollection<Software>(dict)
-
-    new() = new SoftwareList(new Dictionary<string, obj>())
+    inherit MzIO.Model.ObservableModelItemCollection<Software>()
 
