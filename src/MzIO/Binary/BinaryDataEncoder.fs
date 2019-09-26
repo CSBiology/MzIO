@@ -72,14 +72,13 @@ type BinaryDataEncoder(?initialBufferSize: int) =
 
     /// Compress byte array based on zlib compression method.
     static member private DeflateStreamCompress (data: byte[]) =
-        use mStream = new MemoryStream(data)
-        (
-         use outStream = new MemoryStream()
-         use compress = new System.IO.Compression.DeflateStream (outStream, CompressionMode.Compress, true)      
-         mStream.CopyTo(compress)
+        use inputStream = new MemoryStream(data)
+        use outStream   = new MemoryStream()
+        use compress    = new System.IO.Compression.DeflateStream (outStream, CompressionMode.Compress, true) 
+        (              
+         inputStream.CopyTo(compress)
          compress.Close() 
-         let byteArray = outStream.ToArray()
-         byteArray
+         outStream.ToArray()
         )
         
     /// Compress stream based on zlib compression method.
@@ -222,7 +221,9 @@ type BinaryDataEncoder(?initialBufferSize: int) =
 
     /// Compress and encode Peak1DArray based on the encoded methods.
     member this.Encode(peakArray:Peak1DArray) =       
+        this.memoryStream <- new MemoryStream(bufferSize)
         this.memoryStream.Seek(int64 0, SeekOrigin.Begin) |> ignore
+
         match peakArray.CompressionType with
         | BinaryDataCompressionType.NoCompression   -> BinaryDataEncoder.NoCompression(this.memoryStream, peakArray)
         | BinaryDataCompressionType.ZLib            -> BinaryDataEncoder.ZLib2(this.memoryStream, peakArray)
