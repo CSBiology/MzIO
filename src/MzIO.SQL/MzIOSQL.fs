@@ -268,11 +268,12 @@ type MzSQL(path) =
         cmd.Parameters.Add("@peakArray"     ,Data.DbType.String)    |> ignore
         cmd.Parameters.Add("@peakData"      ,Data.DbType.Binary)    |> ignore
         (fun (encoder:BinaryDataEncoder) (runID:string) (spectrum:MassSpectrum) (peaks:Peak1DArray) ->
+            let encodedValues = encoder.Encode(peaks)
             cmd.Parameters.["@runID"].Value         <- runID
             cmd.Parameters.["@spectrumID"].Value    <- spectrum.ID
-            cmd.Parameters.["@description"].Value   <- MzIOJson.ToJson(spectrum)
+            cmd.Parameters.["@description"].Value   <- MzIOJson.MassSpectrumToJson(spectrum)
             cmd.Parameters.["@peakArray"].Value     <- MzIOJson.ToJson(peaks)
-            cmd.Parameters.["@peakData"].Value      <- encoder.Encode(peaks)
+            cmd.Parameters.["@peakData"].Value      <- encodedValues
             cmd.ExecuteNonQuery() |> ignore
         )        
 
@@ -358,7 +359,7 @@ type MzSQL(path) =
                     @peakData)"
         let cmd = new SQLiteCommand(queryString, cn, tr)
         cmd.Parameters.Add("@runID"         ,Data.DbType.String)    |> ignore
-        cmd.Parameters.Add("@chromatogramID"  ,Data.DbType.String)    |> ignore
+        cmd.Parameters.Add("@chromatogramID"  ,Data.DbType.String)  |> ignore
         cmd.Parameters.Add("@description"   ,Data.DbType.String)    |> ignore
         cmd.Parameters.Add("@peakArray"     ,Data.DbType.String)    |> ignore
         cmd.Parameters.Add("@peakData"      ,Data.DbType.Binary)    |> ignore

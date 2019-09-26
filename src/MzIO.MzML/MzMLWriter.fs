@@ -74,7 +74,6 @@ type private MzMLCompression(?initialBufferSize:int) =
         use outStream           = new MemoryStream()
         use compressorStream    = new DeflateStream(outStream, CompressionMode.Compress, true)
         (
-            
             input.CopyTo(compressorStream)
             compressorStream.Close()
             outStream.ToArray()

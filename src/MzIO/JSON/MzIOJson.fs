@@ -42,6 +42,24 @@ type MzIOJson =
             serializer.Serialize(jsonWriter, obj)
         )
 
+    /// Creates or overwrites existing JSON file at location.
+    static member SaveMzIOModel(obj:MzIOModel, path:string) =
+        if File.Exists(path) then
+            File.Delete(path)
+
+        if obj.DataProcessings.Count()  = 0 then obj.DataProcessings    <- null
+        if obj.Instruments.Count()      = 0 then obj.Instruments        <- null
+        if obj.Samples.Count()          = 0 then obj.Samples            <- null
+        if obj.Softwares.Count()        = 0 then obj.Softwares          <- null
+
+        use writer      = File.CreateText(path)
+        use jsonWriter  = new JsonTextWriter(writer)
+        (
+            let serializer = JsonSerializer.Create(MzIOJson.jsonSettings)
+            serializer.Formatting <- Formatting.Indented
+            serializer.Serialize(jsonWriter, obj)
+        )
+
     /// Deserializes JSON string at location to type 'T.
     static member ReadJsonFile<'T>(path:string) =
         if File.Exists(path) = false then 
@@ -69,7 +87,7 @@ type MzIOJson =
 
         if not (File.Exists(path)) then
             let model = io.CreateDefaultModel()
-            MzIOJson.SaveJsonFile(model, path)
+            MzIOJson.SaveMzIOModel(model, path)
             model
         
         else
@@ -92,7 +110,7 @@ type MzIOJson =
 
                             //model <- io.CreateDefaultModel()
                             let model = io.CreateDefaultModel()
-                            MzIOJson.SaveJsonFile(model, path)
+                            MzIOJson.SaveMzIOModel(model, path)
 
                             let msg = System.Text.StringBuilder()
                             msg.AppendFormat
@@ -119,6 +137,15 @@ type MzIOJson =
 
     /// Serializes object to JSON string.
     static member ToJson(obj:Object) =
+        JsonConvert.SerializeObject(obj, MzIOJson.jsonSettings)
+
+    /// Serializes object to JSON string.
+    static member MassSpectrumToJson(obj:MassSpectrum) =
+        
+        if obj.Precursors.Count()   = 0 then obj.Precursors <- null
+        if obj.Products.Count()     = 0 then obj.Products   <- null
+        if obj.Scans.Count()        = 0 then obj.Scans      <- null
+
         JsonConvert.SerializeObject(obj, MzIOJson.jsonSettings)
 
     /// Deserializes JSON string to fileDescription.
@@ -166,29 +193,30 @@ type MzIOJson =
 
     /// Deserializes JSON string to mzio model.
     static member deSerializeMzIOModel(model:string) =
-
         let mzIOModel = JsonConvert.DeserializeObject<MzIOModel>(model)
-
         //let fileDescription = 
         //    MzIOJson.deSerializeFileDescription mzIOModel.FileDescription
         //mzIOModel.FileDescription <- fileDescription
-
         let samples = 
-            MzIOJson.deSerializeSamples mzIOModel.Samples
+            match mzIOModel.Samples with
+            | null  -> new SampleList()
+            |_      -> MzIOJson.deSerializeSamples mzIOModel.Samples
         mzIOModel.Samples <- samples
-
         let softwares =
-            MzIOJson.deSerializeSoftwares mzIOModel.Softwares
+            match mzIOModel.Softwares with
+            | null  -> new SoftwareList()
+            |_      -> MzIOJson.deSerializeSoftwares mzIOModel.Softwares
         mzIOModel.Softwares <- softwares
-
         let dataProcessings = 
-            MzIOJson.deSerializeDataProcessings mzIOModel.DataProcessings
+            match mzIOModel.DataProcessings with
+            | null  -> new DataProcessingList()
+            |_      -> MzIOJson.deSerializeDataProcessings mzIOModel.DataProcessings
         mzIOModel.DataProcessings <- dataProcessings
-
         let instruments = 
-            MzIOJson.deSerializeInstruments mzIOModel.Instruments
+            match mzIOModel.Instruments with
+            | null  -> new InstrumentList()
+            |_      -> MzIOJson.deSerializeInstruments mzIOModel.Instruments
         mzIOModel.Instruments <- instruments
-
         let runs = 
             MzIOJson.deSerializeRuns mzIOModel.Runs
         mzIOModel.Runs <- runs
@@ -265,19 +293,19 @@ type MzIOJson =
         let jsonObj = JsonConvert.DeserializeObject<JObject>(jsonString)
         let precursors =
             match jsonObj.["Precursors"] with
-            | null  -> failwith "Nope"
+            | null  -> new PrecursorList()
             | _     ->
                 let tmp = jsonObj.["Precursors"] :?> JObject
                 MzIOJson.deSerializePrecursors(JsonConvert.DeserializeObject<PrecursorList>(tmp.ToString()))
         let scans =
             match jsonObj.["Scans"] with
-            | null  -> failwith "Nope"
+            | null  -> new ScanList()
             | _     ->
                 let tmp = jsonObj.["Scans"] :?> JObject
                 MzIOJson.deSerializeScans(JsonConvert.DeserializeObject<ScanList>(tmp.ToString()))
         let products =
             match jsonObj.["Products"] with
-            | null  -> failwith "Nope"
+            | null  -> new ProductList()
             | _     ->
                 let tmp = jsonObj.["Products"] :?> JObject
                 MzIOJson.deSerializeProducts(JsonConvert.DeserializeObject<ProductList>(tmp.ToString()))

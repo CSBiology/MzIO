@@ -105,7 +105,7 @@ type ThermoRawFileReader(rawFilePath:string) =
     member private this.model = MzIOJson.HandleExternalModelFile(this, ThermoRawFileReader.GetModelFilePath(rawFilePath))
 
     // #region ThermoRawFileReader Members
-    static member private GetModelFilePath(rawFilePath) = sprintf "%s%s" rawFilePath ".mzlitemodel"
+    static member private GetModelFilePath(rawFilePath) = sprintf "%s%s" rawFilePath ".MzIOModel"
 
     static member private GetFirstSpectrumNumber(rawFile:IRawDataPlus) =
         rawFile.RunHeaderEx.FirstSpectrum
