@@ -352,7 +352,7 @@ type BafFileReader(bafFilePath:string) =
 
             this.RaiseDisposed()
 
-            cn.Open()
+            if not (cn.State = ConnectionState.Open) then cn.Open()
 
             try
                 let id = UInt64.Parse(spectrumID)
