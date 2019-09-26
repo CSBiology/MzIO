@@ -51,7 +51,7 @@ type private MzMLCompression(?initialBufferSize:int) =
         | BinaryDataType.Int64      ->  writer.Write(int64 value)
         | BinaryDataType.Float32    ->  writer.Write(single value)
         | BinaryDataType.Float64    ->  writer.Write(double value)
-        | _     -> failwith (sprintf "%s%s" "BinaryDataType not supported: " (binaryDataType.ToString()))    
+        | _     -> failwith (sprintf "%s%s" "BinaryDataType not supported: " (binaryDataType.ToString(new CultureInfo("en-US"))))    
 
     /// Write bytes directly becasue they musn't be compressed.
     static member private NoCompression(memoryStream:Stream, dataType:BinaryDataType, floats:double[]) =        
@@ -90,7 +90,7 @@ type private MzMLCompression(?initialBufferSize:int) =
     /// Convert array of int64s to array of bytes.
     static member private int64sToBytes (peaks: float[]) =
         let data        =  peaks |> Array.map (fun item -> int64 item)
-        let byteArray   = Array.zeroCreate<byte> (data.Length*4)
+        let byteArray   = Array.zeroCreate<byte> (data.Length*8)
         Buffer.BlockCopy (data, 0, byteArray, 0, byteArray.Length)
         byteArray
 
@@ -104,7 +104,7 @@ type private MzMLCompression(?initialBufferSize:int) =
     /// Convert array of doubles to array of bytes.
     static member private floatsToBytes (peaks: float[]) =
         let data        =  peaks |> Array.map (fun item -> item)
-        let byteArray   = Array.zeroCreate<byte> (data.Length*4)
+        let byteArray   = Array.zeroCreate<byte> (data.Length*8)
         Buffer.BlockCopy (data, 0, byteArray, 0, byteArray.Length)
         byteArray
 
@@ -173,7 +173,7 @@ type private MzMLCompression(?initialBufferSize:int) =
         match compressionType with
         | BinaryDataCompressionType.NumPressPic -> MzMLCompression.NumpressPicAndDeflateCompression(memoryStream, peaks)
         | BinaryDataCompressionType.NumPressLin -> MzMLCompression.NumpressLinAndDeflateCompression(memoryStream, peaks)
-        |   _                                   -> failwith (sprintf "NumPressZLibCompression type not supported: %s" (compressionType.ToString()))
+        |   _                                   -> failwith (sprintf "NumPressZLibCompression type not supported: %s" (compressionType.ToString(new CultureInfo("en-US"))))
         
     /// Compress intensity values with numpress pic and m/z values with numpress lin compression method.
     static member private Numpress(compressionType:BinaryDataCompressionType, memoryStream:Stream, peaks:float[]) =
@@ -181,7 +181,7 @@ type private MzMLCompression(?initialBufferSize:int) =
         match compressionType with
         | BinaryDataCompressionType.NumPressPic -> MzMLCompression.NumpressPicCompression(memoryStream, peaks)
         | BinaryDataCompressionType.NumPressLin -> MzMLCompression.NumpressLinCompression(memoryStream, peaks)
-        |   _                                   -> failwith (sprintf "NumPressCompression type not supported: %s" (compressionType.ToString()))
+        |   _                                   -> failwith (sprintf "NumPressCompression type not supported: %s" (compressionType.ToString(new CultureInfo("en-US"))))
 
     /// Convert array of floats to array of bytes which are compressed, based on the chosen method.
     member this.Encode(compressionType:BinaryDataCompressionType, dataType:BinaryDataType, peaks:float[], numPressCompressionType:BinaryDataCompressionType) =
@@ -192,7 +192,7 @@ type private MzMLCompression(?initialBufferSize:int) =
         | BinaryDataCompressionType.ZLib            -> MzMLCompression.ZLib(this.memoryStream, dataType, peaks)
         | BinaryDataCompressionType.NumPress        -> MzMLCompression.Numpress(numPressCompressionType, this.memoryStream, peaks)
         | BinaryDataCompressionType.NumPressZLib    -> MzMLCompression.NumpressDeflate(numPressCompressionType, this.memoryStream, peaks)
-        |   _                                       -> failwith (sprintf "Compression type not supported: %s" (compressionType.ToString()))        
+        |   _                                       -> failwith (sprintf "Compression type not supported: %s" (compressionType.ToString(new CultureInfo("en-US"))))        
         this.memoryStream.ToArray()
 
 [<Sealed>]
@@ -292,7 +292,7 @@ type MzMLWriter(path:string) =
         let potValue = tryGetValue (param :> IParamBase<#IConvertible>)
         let value =
             match potValue with
-            | Some value -> if value = null then "" else value.ToString()
+            | Some value -> if value = null then "" else value.ToString(new CultureInfo("en-US"))
             | None       -> ""
         writer.WriteStartElement("cvParam")
         writer.WriteAttributeString("cvRef", "MS")
@@ -301,7 +301,7 @@ type MzMLWriter(path:string) =
         writer.WriteAttributeString("value", value)
         if (tryGetCvUnitAccession (param :> IParamBase<#IConvertible>)).IsSome then
             writer.WriteAttributeString("unitCvRef", "UO")
-            writer.WriteAttributeString("unitAccession", (tryGetCvUnitAccession (param :> IParamBase<#IConvertible>)).Value.ToString())
+            writer.WriteAttributeString("unitAccession", (tryGetCvUnitAccession (param :> IParamBase<#IConvertible>)).Value.ToString(new CultureInfo("en-US")))
             writer.WriteAttributeString("unitName", "not saved yet")        
         writer.WriteEndElement()
 
@@ -311,10 +311,10 @@ type MzMLWriter(path:string) =
         writer.WriteAttributeString("name", param.Name)
         //writer.WriteAttributeString("type", "not saved yet")
         writer.WriteAttributeString("value", if (tryGetValue (param :> IParamBase<#IConvertible>)).IsSome then 
-                                                (tryGetValue (param :> IParamBase<#IConvertible>)).Value.ToString() else "")
+                                                (tryGetValue (param :> IParamBase<#IConvertible>)).Value.ToString(new CultureInfo("en-US")) else "")
         if (tryGetCvUnitAccession (param :> IParamBase<#IConvertible>)).IsSome then
             writer.WriteAttributeString("unitCvRef", "UO")
-            writer.WriteAttributeString("unitAccession", (tryGetCvUnitAccession (param :> IParamBase<#IConvertible>)).Value.ToString())
+            writer.WriteAttributeString("unitAccession", (tryGetCvUnitAccession (param :> IParamBase<#IConvertible>)).Value.ToString(new CultureInfo("en-US")))
             writer.WriteAttributeString("unitName", "not saved yet")        
         writer.WriteEndElement()
 
@@ -393,7 +393,7 @@ type MzMLWriter(path:string) =
     /// Creates a componentList element and inserts it into the MzML file.
     member private this.WriteComponentList(item:ComponentList) =
         writer.WriteStartElement("componentList")
-        writer.WriteAttributeString("count", item.Count().ToString())
+        writer.WriteAttributeString("count", item.Count().ToString(new CultureInfo("en-US")))
         item.GetProperties false
         |> Seq.iter (fun component' -> this.assignComponent(component'.Value))
         writer.WriteEndElement()
@@ -437,7 +437,7 @@ type MzMLWriter(path:string) =
     member private this.WriteSelectedIonList(item:SelectedIonList) =
         if item.Count() > 0 then
             writer.WriteStartElement("selectedIonList")
-            writer.WriteAttributeString("count", item.Count().ToString())
+            writer.WriteAttributeString("count", item.Count().ToString(new CultureInfo("en-US")))
             item.GetProperties false
             |> Seq.iter (fun selectedIon -> this.WriteSelectedIon(selectedIon.Value :?> SelectedIon))
             writer.WriteEndElement()
@@ -455,7 +455,7 @@ type MzMLWriter(path:string) =
     member private this.WriteScanWindowList(item:ScanWindowList) =
         if item.Count() > 0 then
             writer.WriteStartElement("scanWindowList")
-            writer.WriteAttributeString("count", item.Count().ToString())
+            writer.WriteAttributeString("count", item.Count().ToString(new CultureInfo("en-US")))
             item.GetProperties false
             |> Seq.iter (fun scanWindow -> this.WriteScanWindow(scanWindow.Value :?> ScanWindow))
             writer.WriteEndElement()    
@@ -499,8 +499,8 @@ type MzMLWriter(path:string) =
     member private this.WriteQParams(item:Peak1DArray) =
         writer.WriteStartElement("cvParam")
         writer.WriteAttributeString("cvRef", "MS")
-        writer.WriteAttributeString("accession", (MzMLWriter.assignBinaryDataType item.MzDataType).ToString())
-        writer.WriteAttributeString("name", item.MzDataType.ToString())
+        writer.WriteAttributeString("accession", (MzMLWriter.assignBinaryDataType item.MzDataType).ToString(new CultureInfo("en-US")))
+        writer.WriteAttributeString("name", item.MzDataType.ToString(new CultureInfo("en-US")))
         writer.WriteAttributeString("value", "")
         writer.WriteEndElement()
 
@@ -525,7 +525,7 @@ type MzMLWriter(path:string) =
     member private this.WriteIntensityParams(item:Peak1DArray) =
         writer.WriteStartElement("cvParam")
         writer.WriteAttributeString("cvRef", "MS")
-        writer.WriteAttributeString("accession", (MzMLWriter.assignBinaryDataType item.MzDataType).ToString())
+        writer.WriteAttributeString("accession", (MzMLWriter.assignBinaryDataType item.MzDataType).ToString(new CultureInfo("en-US")))
         writer.WriteAttributeString("name", "not saved yet")
         writer.WriteAttributeString("value", "")
         writer.WriteEndElement()
@@ -558,10 +558,10 @@ type MzMLWriter(path:string) =
         let encodedMzs = Convert.ToBase64String(encoder.Encode(peaks.CompressionType, peaks.MzDataType, mzs, BinaryDataCompressionType.NumPressLin))
         //printfn "encodedMzs %i" encodedMzs.Length
         writer.WriteStartElement("binaryDataArray")
-        writer.WriteAttributeString("arrayLength", mzs.Length.ToString())
+        writer.WriteAttributeString("arrayLength", mzs.Length.ToString(new CultureInfo("en-US")))
         if not (String.IsNullOrWhiteSpace spectrum.DataProcessingReference) then 
             writer.WriteAttributeString("dataProcessingRef", spectrum.DataProcessingReference)
-        writer.WriteAttributeString("encodedLength", encodedMzs.Length.ToString())        
+        writer.WriteAttributeString("encodedLength", encodedMzs.Length.ToString(new CultureInfo("en-US")))        
         this.WriteQParams(peaks)
         this.WriteBinary(encodedMzs)
         writer.WriteFullEndElement()
@@ -572,10 +572,10 @@ type MzMLWriter(path:string) =
             |> Array.ofSeq
         let encodedIntensities = Convert.ToBase64String(encoder.Encode(peaks.CompressionType, peaks.IntensityDataType, intensities, BinaryDataCompressionType.NumPressPic))
         writer.WriteStartElement("binaryDataArray")
-        writer.WriteAttributeString("arrayLength", intensities.Length.ToString())
+        writer.WriteAttributeString("arrayLength", intensities.Length.ToString(new CultureInfo("en-US")))
         if not (String.IsNullOrWhiteSpace spectrum.DataProcessingReference) then 
             writer.WriteAttributeString("dataProcessingRef", spectrum.DataProcessingReference)
-        writer.WriteAttributeString("encodedLength", encodedIntensities.Length.ToString())
+        writer.WriteAttributeString("encodedLength", encodedIntensities.Length.ToString(new CultureInfo("en-US")))
         this.WriteIntensityParams(peaks)
         this.WriteBinary(encodedIntensities)
         writer.WriteFullEndElement()  
@@ -624,7 +624,7 @@ type MzMLWriter(path:string) =
     /// Creates a productList element and inserts it into the MzML file.
     member private this.WriteProductList(item:ProductList) =
         writer.WriteStartElement("productList")
-        writer.WriteAttributeString("count", item.Count().ToString())
+        writer.WriteAttributeString("count", item.Count().ToString(new CultureInfo("en-US")))
         item.GetProperties false
         |> Seq.iter (fun product -> this.WriteProduct(product.Value :?> Product))
         writer.WriteEndElement()
@@ -632,7 +632,7 @@ type MzMLWriter(path:string) =
     /// Creates a precursorList element and inserts it into the MzML file.
     member private this.WritePrecursorList(item:PrecursorList) =
         writer.WriteStartElement("precursorList")
-        writer.WriteAttributeString("count", item.Count().ToString())
+        writer.WriteAttributeString("count", item.Count().ToString(new CultureInfo("en-US")))
         item.GetProperties false
         |> Seq.iter (fun precursor -> this.WritePrecursor(precursor.Value :?> Precursor))
         writer.WriteEndElement()
@@ -641,7 +641,7 @@ type MzMLWriter(path:string) =
     member private this.WriteScanList<'T when 'T :> IConvertible>(item:ScanList) =
         let scans = (item.GetProperties false) |> Seq.filter (fun value -> value.Value :? Scan)
         writer.WriteStartElement("scanList")
-        writer.WriteAttributeString("count", scans.Count().ToString())
+        writer.WriteAttributeString("count", scans.Count().ToString(new CultureInfo("en-US")))
         item.GetProperties false
         |> Seq.iter (fun param -> 
             match param.Value with
@@ -670,7 +670,7 @@ type MzMLWriter(path:string) =
         writer.WriteStartElement("spectrum")
         if not (String.IsNullOrWhiteSpace spectrum.DataProcessingReference) then 
             writer.WriteAttributeString("dataProcessingRef", spectrum.DataProcessingReference)
-        writer.WriteAttributeString("defaultArrayLength", peaks.Peaks.Count().ToString())
+        writer.WriteAttributeString("defaultArrayLength", peaks.Peaks.Count().ToString(new CultureInfo("en-US")))
         writer.WriteAttributeString("id", spectrum.ID)
         writer.WriteAttributeString("index", sprintf "%i" index)
         if not (String.IsNullOrWhiteSpace spectrum.SourceFileReference) then 
@@ -692,7 +692,7 @@ type MzMLWriter(path:string) =
     member private this.WriteChromatogramList(item:Run, chromatogramListCount:int) =
         this.EnsureWriteState(MzMLWriteState.CHROMATOGRAM_LIST)
         writer.WriteStartElement("chromatogramList") 
-        writer.WriteAttributeString("count", chromatogramListCount.ToString())
+        writer.WriteAttributeString("count", chromatogramListCount.ToString(new CultureInfo("en-US")))
         writer.WriteAttributeString("defaultDataProcessingRef", item.DefaultChromatogramProcessing.ID)
         this.EnterWriteState(MzMLWriteState.CHROMATOGRAM_LIST, MzMLWriteState.CHROMATOGRAM)
         //this.WriteChromatogram()
@@ -702,7 +702,7 @@ type MzMLWriter(path:string) =
     member private this.WriteSpectrumList(item:Run, spectra:seq<MassSpectrum>, peaks:seq<Peak1DArray>) =
         this.EnsureWriteState(MzMLWriteState.SPECTRUM_LIST)
         writer.WriteStartElement("spectrumList") 
-        writer.WriteAttributeString("count", (Seq.length spectra).ToString())
+        writer.WriteAttributeString("count", (Seq.length spectra).ToString(new CultureInfo("en-US")))
         writer.WriteAttributeString("defaultDataProcessingRef", item.DefaultSpectrumProcessing.ID)
         this.EnterWriteState(MzMLWriteState.SPECTRUM_LIST, MzMLWriteState.SPECTRUM)
         Seq.fold2 (fun start spectrum peak -> this.WriteSpectrum(spectrum, start + 1, peak)) 0 spectra peaks |> ignore
@@ -754,7 +754,7 @@ type MzMLWriter(path:string) =
     /// Creates a sourceFileList element and inserts it into the MzML file.
     member private this.WriteSourceFileList(item:SourceFileList) =
         writer.WriteStartElement("sourceFileList")
-        writer.WriteAttributeString("count", item.Count().ToString())
+        writer.WriteAttributeString("count", item.Count().ToString(new CultureInfo("en-US")))
         item.GetProperties false
         |> Seq.iter (fun source -> this.WriteSourceFile (source.Value :?> SourceFile))
         writer.WriteEndElement()
@@ -790,7 +790,7 @@ type MzMLWriter(path:string) =
     /// Creates a dataProcessingList element and inserts it into the MzML file.
     member private this.WriteDataProcessingList(item:DataProcessingList) =
         writer.WriteStartElement("dataProcessingList")
-        writer.WriteAttributeString("count", item.Count().ToString())
+        writer.WriteAttributeString("count", item.Count().ToString(new CultureInfo("en-US")))
         item.GetProperties false
         |> Seq.iter (fun dataProc -> this.WriteDataProcessing (dataProc.Value :?> DataProcessing))
         writer.WriteEndElement()
@@ -798,7 +798,7 @@ type MzMLWriter(path:string) =
     /// Creates a instrumentConfigurationList element and inserts it into the MzML file.
     member private this.WriteInstrumentConfigurationList(item:InstrumentList) =
         writer.WriteStartElement("instrumentConfigurationList")
-        writer.WriteAttributeString("count", item.Count().ToString())
+        writer.WriteAttributeString("count", item.Count().ToString(new CultureInfo("en-US")))
         item.GetProperties false
         |> Seq.iter (fun instConf -> this.WriteInstrumentConfiguration (instConf.Value :?> Instrument))
         writer.WriteEndElement()
@@ -819,7 +819,7 @@ type MzMLWriter(path:string) =
     /// Creates a targetList element and inserts it into the MzML file.
     member private this.WriteTargetList(item:SourceFileList) =
         writer.WriteStartElement("targetList")
-        writer.WriteAttributeString("count", item.Count().ToString())
+        writer.WriteAttributeString("count", item.Count().ToString(new CultureInfo("en-US")))
         item.GetProperties false
         |> Seq.iter (fun sourceFile -> this.WriteSourceFileRef((sourceFile.Value :?> SourceFile).ID))
         writer.WriteEndElement()
@@ -827,7 +827,7 @@ type MzMLWriter(path:string) =
     /// Creates a sourceFileRefList element and inserts it into the MzML file.
     member private this.WriteSourceFileRefList(item:SourceFileList) =
         writer.WriteStartElement("sourceFileRefList")
-        writer.WriteAttributeString("count", item.Count().ToString())
+        writer.WriteAttributeString("count", item.Count().ToString(new CultureInfo("en-US")))
         item.GetProperties false
         |> Seq.iter (fun sourceFile -> this.WriteSourceFileRef((sourceFile.Value :?> SourceFile).ID))
         writer.WriteEndElement()
@@ -846,7 +846,7 @@ type MzMLWriter(path:string) =
     /// Creates a scanSettingsList element and inserts it into the MzML file.
     member private this.WriteScanSettingsList(item:MzIOModel) =
         writer.WriteStartElement("scanSettingsList")
-        writer.WriteAttributeString("count", item.FileDescription.SourceFiles.Count().ToString())
+        writer.WriteAttributeString("count", item.FileDescription.SourceFiles.Count().ToString(new CultureInfo("en-US")))
         this.WriteScanSettings(item)
         writer.WriteEndElement()
 
@@ -854,7 +854,7 @@ type MzMLWriter(path:string) =
     member private this.WriteSoftwareList(item:SoftwareList) =
         this.EnsureWriteState(MzMLWriteState.MzIOModel)
         writer.WriteStartElement("softwareList")
-        writer.WriteAttributeString("count", item.Count().ToString())
+        writer.WriteAttributeString("count", item.Count().ToString(new CultureInfo("en-US")))
         item.GetProperties false
         |> Seq.iter (fun software -> this.WriteSoftware(software.Value :?> Software))
         writer.WriteEndElement()
@@ -863,7 +863,7 @@ type MzMLWriter(path:string) =
     member private this.WriteSampleList(item:SampleList) =
         this.EnsureWriteState(MzMLWriteState.MzIOModel)
         writer.WriteStartElement("sampleList")
-        writer.WriteAttributeString("count", item.Count().ToString())
+        writer.WriteAttributeString("count", item.Count().ToString(new CultureInfo("en-US")))
         item.GetProperties false
         |> Seq.iter (fun sample -> this.WriteSample (sample.Value :?> Sample))
         writer.WriteEndElement()
@@ -1105,7 +1105,7 @@ type MzMLWriter(path:string) =
         let instrumentRef           = ((Seq.head(reader.Model.Runs.GetProperties false)).Value :?> Run).DefaultInstrumentID
         let sampleRef               = ((Seq.head(reader.Model.Runs.GetProperties false)).Value :?> Run).SampleID
         let spectrumProcessingRef   = ((Seq.head(reader.Model.Runs.GetProperties false)).Value :?> Run).DefaultSpectrumProcessing.ID
-        let count                   = spectra.Count().ToString()
+        let count                   = spectra.Count().ToString(new CultureInfo("en-US"))
         this.WriteSingleRun(runID, instrumentRef, potDefaultSourceFileRef, sampleRef, count, spectrumProcessingRef)
         
         let realRun = 

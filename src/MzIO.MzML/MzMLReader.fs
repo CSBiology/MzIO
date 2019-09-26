@@ -240,8 +240,7 @@ type MzMLReader(filePath: string) =
     /// Converts bytes to singles.
     static member byteToSingles (littleEndian:Boolean) (byteArray: byte[]) =
         match littleEndian with
-        | false ->  let floatArray = Array.init (byteArray.Length/4) (fun x -> 0. |> float32)
-                    
+        | false ->  let floatArray = Array.init (byteArray.Length/4) (fun x -> 0. |> float32)                    
                     Buffer.BlockCopy  (byteArray, 0, floatArray, 0, byteArray.Length)
                     floatArray
         | true  ->  let floatArray = Array.init (byteArray.Length/4) (fun x -> 0. |> float32)
