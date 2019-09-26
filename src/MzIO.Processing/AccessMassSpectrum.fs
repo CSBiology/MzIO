@@ -57,7 +57,14 @@ module AccessMassSpectrum =
 
     /// Returns the ScanTime (formerly: RetentionTime) of the MassSpectrum
     let getScanTime (massSpectrum: MassSpectrum) =  
-        let tmp =  massSpectrum.TryGetValue(PSIMS_Scan.ScanStartTime)
+        let scans =  massSpectrum.Scans.GetProperties false |> Seq.map (fun scan -> scan.Value :?> Scan)
+        let tmp =
+            let tmp2 =
+                scans
+                |> Seq.map (fun scan -> scan.TryGetValue(PSIMS_Scan.ScanStartTime))
+                |> Seq.choose (fun param -> param)
+            if Seq.isEmpty tmp2 then None
+            else Seq.head tmp2 |> fun item -> Some item
 
         if tmp.IsSome then
             let cvParam = tmp.Value :?> IParamBase<IConvertible>
