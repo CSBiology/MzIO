@@ -185,19 +185,30 @@ module CvParam =
 
         inherit JsonConverter()
 
+        static member jsonSettings = 
+            let tmp = new JsonSerializerSettings()
+            //new method to preserve paramcontainer fields when serealizing type
+            tmp.ReferenceLoopHandling       <- Newtonsoft.Json.ReferenceLoopHandling.Serialize
+            tmp.PreserveReferencesHandling  <- Newtonsoft.Json.PreserveReferencesHandling.Objects
+            //end of new method
+            //tmp.ReferenceLoopHandling       <- Newtonsoft.Json.ReferenceLoopHandling.Ignore
+            tmp.ContractResolver            <- new DefaultContractResolver()
+            tmp.Culture <- new CultureInfo("en-US")    
+            tmp
+
         /// Serializes value of either cv or user param to json string.
         static member private createJsonValue(item:string) =
             if item.StartsWith("WithCvUnitAccession") then
                 let tmp = item.Substring(0, 19), item.Substring(20)
                 let tmpID = sprintf "\"Type\":\"%s\"" (fst tmp)
-                let values = if (snd tmp) :> Object :? UInt64 then decimal(Convert.ToUInt64 (snd tmp)).ToString() else snd tmp
+                let values = if (snd tmp) :> Object :? UInt64 then decimal(Convert.ToUInt64 (snd tmp)).ToString(new CultureInfo("en-US")) else snd tmp
                 let tmpValues = sprintf ",\"Values\":[%s]" (((values).Remove(0, 1)).Remove((values).Length-2))
                 sprintf "%s}" (sprintf "%s%s" tmpID tmpValues)
             else
                 if item.StartsWith("CvValue") then
                     let tmp = item.Substring(0, 7), item.Substring(8)
                     let tmpID = sprintf "\"Type\":\"%s\"" (fst tmp)
-                    let values = if (snd tmp) :> Object :? UInt64 then int64(Convert.ToUInt64 (snd tmp)).ToString() else snd tmp
+                    let values = if (snd tmp) :> Object :? UInt64 then int64(Convert.ToUInt64 (snd tmp)).ToString(new CultureInfo("en-US")) else snd tmp
                     let tmpValues = sprintf ",\"Values\":[%s]" (values)
                     sprintf "%s}" (sprintf "%s%s" tmpID tmpValues)
                 else

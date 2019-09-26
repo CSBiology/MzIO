@@ -114,6 +114,27 @@ type MzSQL(path) =
             tr <- cn.BeginTransaction()
             tmp
 
+    /// Initialization of all prePareFunctions for the current connection.
+    member this.InsertModel         = insertModel
+
+    member this.SelectModel         = selectModel
+
+    member this.InsertMassSpectrum  = insertMassSpectrum
+
+    member this.SelectMassSpectrum  = selectMassSpectrum
+
+    member this.SelectMassSpectra   = selectMassSpectra
+
+    member this.SelectPeak1DArray   = selectPeak1DArray
+
+    member this.InsertChromatogram  = insertChromatogram
+
+    member this.SelectChromatogram  = selectChromatogram
+
+    member this.SelectChromatograms = selectChromatograms
+
+    member this.SelectPeak2DArray   = selectPeak2DArray
+
     member this.Commit() = 
         MzSQL.RaiseConnectionState(cn)
         MzSQL.RaiseTransactionState(cn, &tr)
@@ -413,17 +434,17 @@ type MzSQL(path) =
         /// Read all mass spectra of one run of MzSQL.
         member this.ReadMassSpectra(runID: string) =
             this.RaiseDisposed()
-            selectMassSpectra(runID)
+            this.SelectMassSpectra(runID)
 
         /// Read mass spectrum of MzSQL.
         member this.ReadMassSpectrum(spectrumID: string) =
             this.RaiseDisposed()
-            selectMassSpectrum(spectrumID)
+            this.SelectMassSpectrum(spectrumID)
 
         /// Read peaks of mass spectrum of MzSQL.
         member this.ReadSpectrumPeaks(spectrumID: string) =
             this.RaiseDisposed()
-            selectPeak1DArray(spectrumID)
+            this.SelectPeak1DArray(spectrumID)
 
         /// Read mass spectrum of MzSQL asynchronously.
         member this.ReadMassSpectrumAsync(spectrumID:string) =    
@@ -446,25 +467,25 @@ type MzSQL(path) =
         /// Read all chromatograms of one run of MzSQL.
         member this.ReadChromatograms(runID: string) =
             this.RaiseDisposed()
-            selectChromatograms(runID)
+            this.SelectChromatograms(runID)
 
         /// Read chromatogram of MzSQL.
         member this.ReadChromatogram(chromatogramID: string) =
             this.RaiseDisposed()
-            selectChromatogram(chromatogramID)
+            this.SelectChromatogram(chromatogramID)
 
         /// Read peaks of chromatogram of MzSQL.
         member this.ReadChromatogramPeaks(chromatogramID: string) =
             this.RaiseDisposed()
-            selectPeak2DArray(chromatogramID)
+            this.SelectPeak2DArray(chromatogramID)
 
         /// Read chromatogram of MzSQL asynchronously.
         member this.ReadChromatogramAsync(chromatogramID:string) =
-           async {return selectChromatogram(chromatogramID)}
+           async {return this.SelectChromatogram(chromatogramID)}
         
         /// Read peaks of chromatogram of MzSQL asynchronously.
         member this.ReadChromatogramPeaksAsync(chromatogramID:string) =
-           async {return selectPeak2DArray(chromatogramID)}
+           async {return this.SelectPeak2DArray(chromatogramID)}
 
     /// Read all mass spectra of one run of MzSQL.
     member this.ReadMassSpectra(runID: string) =
@@ -510,11 +531,11 @@ type MzSQL(path) =
 
         member this.InsertMass(runID: string, spectrum: MassSpectrum, peaks: Peak1DArray) =
             this.RaiseDisposed()
-            insertMassSpectrum encoder runID spectrum peaks
+            this.InsertMassSpectrum encoder runID spectrum peaks
 
         member this.InsertChrom(runID: string, chromatogram: Chromatogram, peaks: Peak2DArray) =
             this.RaiseDisposed()
-            insertChromatogram runID chromatogram peaks
+            this.InsertChromatogram runID chromatogram peaks
 
         member this.InsertAsyncMass(runID: string, spectrum: MassSpectrum, peaks: Peak1DArray) =
             async {return (this.InsertMass(runID, spectrum, peaks))}
@@ -568,7 +589,7 @@ type MzSQL(path) =
         /// Saves in memory MzIOModel into the MzSQL data base.
         member this.SaveModel() =
             this.RaiseDisposed()
-            insertModel this.Model
+            this.InsertModel this.Model
             tr.Commit()
 
         /// Access MzIOModel in memory.
