@@ -94,6 +94,7 @@ type Precursor (spectrumReference:SpectrumReference, isolationWindow:IsolationWi
 
 /// The dynamic object container for all precursor ion isolations in the current spectrum.
 [<Sealed>]
+[<AllowNullLiteral>]
 type PrecursorList [<JsonConstructor>] () =
 
     inherit MzIO.Model.ObservableCollection<Precursor>()
@@ -131,6 +132,7 @@ type Scan [<JsonConstructor>] (spectrumReference: SpectrumReference, scanWindows
 
 /// The dynamic object container for descriptions of all scans of the current spectrum.
 [<Sealed>]
+[<AllowNullLiteral>]
 type ScanList [<JsonConstructor>] () =
 
     inherit MzIO.Model.ObservableCollection<Scan>()
@@ -149,6 +151,7 @@ type Product(isolationWindow) =
 
 /// The dynamic object container for all product ion isolations in the current spectrum.
 [<Sealed>]
+[<AllowNullLiteral>]
 type ProductList [<JsonConstructor>] () =
 
     inherit MzIO.Model.ObservableCollection<Product>()
@@ -163,24 +166,33 @@ type MassSpectrum [<JsonConstructor>] (id:string, dataProcessingReference:string
     inherit PeakList(id, dataProcessingReference)
 
     let mutable sourceFileReference = sourceFileReference
+    let mutable precursors = precursors
+    let mutable scans = scans
+    let mutable products = products
 
     new(id:string) = MassSpectrum(id, null, new PrecursorList(), new ScanList(), new ProductList(), null)
 
     new() = MassSpectrum("id")
 
-    [<JsonProperty>]
-    member this.Precursors = precursors
+    [<JsonProperty(NullValueHandling = NullValueHandling.Ignore)>]
+    member this.Precursors
+        with get() = precursors
+        and set(value) = precursors <- value 
 
-    [<JsonProperty>]
-    member this.Scans = scans
+    [<JsonProperty(NullValueHandling = NullValueHandling.Ignore)>]
+    member this.Scans
+        with get() = scans
+        and set(value) = scans <- value 
 
-    [<JsonProperty>]
-    member this.Products = products
+    [<JsonProperty(NullValueHandling = NullValueHandling.Ignore)>]
+    member this.Products
+        with get() = products
+        and set(value) = products <- value 
 
     [<JsonProperty(NullValueHandling = NullValueHandling.Ignore)>]
     member this.SourceFileReference
         with get() = sourceFileReference
-        and private set(value) = sourceFileReference <- value            
+        and set(value) = sourceFileReference <- value            
 
 /// Not implemented fully yet.
 [<Sealed>]

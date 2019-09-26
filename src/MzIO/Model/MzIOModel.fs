@@ -44,27 +44,32 @@ type MzIOModel
     new() = MzIOModel("name", new FileDescription(), new SampleList(),  new SoftwareList(), new DataProcessingList(), 
                         new InstrumentList(), new RunList())
 
-    [<JsonProperty(Required = Required.Always, ObjectCreationHandling = ObjectCreationHandling.Reuse)>]
+    //[<JsonProperty(Required = Required.Always, ObjectCreationHandling = ObjectCreationHandling.Reuse)>]
+    [<JsonProperty(NullValueHandling = NullValueHandling.Ignore)>]
     member this.FileDescription
         with get() = fileDescription'
         and set(value) = fileDescription' <- value
 
-    [<JsonProperty>]
+    //[<JsonProperty(Required = Required.AllowNull, ObjectCreationHandling = ObjectCreationHandling.Auto)>]
+    [<JsonProperty(NullValueHandling = NullValueHandling.Ignore)>]
     member this.Samples
         with get() = samples'
         and set(value) = samples' <- value
 
-    [<JsonProperty>]
+    //[<JsonProperty(Required = Required.AllowNull, ObjectCreationHandling = ObjectCreationHandling.Auto)>]
+    [<JsonProperty(NullValueHandling = NullValueHandling.Ignore)>]
     member this.Softwares
         with get() = softwares'
         and set(value) = softwares' <- value
 
-    [<JsonProperty>]
+    //[<JsonProperty(Required = Required.AllowNull, ObjectCreationHandling = ObjectCreationHandling.Auto)>]
+    [<JsonProperty(NullValueHandling = NullValueHandling.Ignore)>]
     member this.DataProcessings
         with get() = dataProcessings'
         and set(value) = dataProcessings' <- value
 
-    [<JsonProperty>]
+    //[<JsonProperty(Required = Required.AllowNull, ObjectCreationHandling = ObjectCreationHandling.Auto)>]
+    [<JsonProperty(NullValueHandling = NullValueHandling.Ignore)>]
     member this.Instruments
         with get() = instruments'
         and set(value) = instruments' <- value

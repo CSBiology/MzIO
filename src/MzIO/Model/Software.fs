@@ -16,6 +16,7 @@ type Software [<JsonConstructor>] (id:string) =
 
 /// The model item container for processing software.
 [<Sealed>]
+[<AllowNullLiteral>]
 type SoftwareList [<JsonConstructor>] () =
 
     inherit MzIO.Model.ObservableModelItemCollection<Software>()

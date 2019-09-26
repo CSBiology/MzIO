@@ -52,6 +52,7 @@ type Sample (id:string, name:string, treatments:SampleTreatmentList, preperation
 
 /// The model item container for samples of this experiment.
 [<Sealed>]
+[<AllowNullLiteral>]
 type SampleList [<JsonConstructor>] () =
 
     inherit ObservableModelItemCollection<Sample>()

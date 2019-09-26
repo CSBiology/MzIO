@@ -88,6 +88,7 @@ type NamedModelItem(id:string, name:string) =
                     this.NotifyPropertyChanged("Name")
     
 /// A class of an observable collection of model items that can be accessed by their embedded ids and which inherits the dynamic object class.     
+[<AllowNullLiteral>]
 type ObservableModelItemCollection<'T when 'T :> ModelItem> [<JsonConstructor>] () =
 
     inherit DynamicObj()
@@ -101,6 +102,7 @@ type ObservableModelItemCollection<'T when 'T :> ModelItem> [<JsonConstructor>] 
         |> Seq.length
 
 /// A class of an observable collection of dynamic objects that can be accessed by their embedded ids and which inherits the dynamic object class. 
+[<AllowNullLiteral>]
 type ObservableCollection<'T when 'T :> DynamicObj> [<JsonConstructor>] () =
 
     inherit DynamicObj()

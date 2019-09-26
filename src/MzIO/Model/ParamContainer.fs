@@ -333,6 +333,7 @@ module CvParam =
     /// Access specific item with its property name.
     /// Mainly used to save cv and user param.
     [<JsonObject(MemberSerialization.OptIn)>]
+    [<AllowNullLiteral>]
     type DynamicObj [<JsonConstructor>] internal (dict:Dictionary<string, obj>) = 
     
         inherit DynamicObject () 

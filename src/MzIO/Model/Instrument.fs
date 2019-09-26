@@ -72,6 +72,7 @@ type Instrument([<JsonProperty("ID")>] id:string, software, components) =
 
 /// The model item container for all instrument configurations of this experiment.
 [<Sealed>]
+[<AllowNullLiteral>]
 type InstrumentList [<JsonConstructor>] () =
 
     inherit MzIO.Model.ObservableModelItemCollection<Instrument>()
