@@ -44,7 +44,7 @@ open MzIO.IO.MzML
 open MzIO.IO.MzML
 open MzIO.IO
 open MzIO.Thermo
-open MzIO.Processing
+open MzIO.Processing.Indexer
 
 
 let fileDir             = __SOURCE_DIRECTORY__
@@ -94,122 +94,6 @@ let createMzIOHelper (runID:string) (path:string) (spectrum:seq<MzIO.Model.MassS
 //        @"C:\Users\Student\source\repos\wiffTestFiles\20171129 FW LWagg011.wiff"
 //        //@"C:\Users\Student\source\repos\wiffTestFiles\20171129 FW LWagg012.wiff"
 //    ]
-
-let getWiffFileReader (path:string) =
-    new WiffFileReader(path, licensePath)
-
-let getMassSpectra (wiffFileReader:WiffFileReader) =
-    wiffFileReader.Model.Runs.GetProperties false
-    |> Seq.collect (fun (run:KeyValuePair<string, obj>) -> wiffFileReader.ReadMassSpectra run.Key)
-
-let getPeak1DArrays (wiffFileReader:WiffFileReader) =
-    getMassSpectra wiffFileReader
-    |> Seq.map (fun spectrum -> wiffFileReader.ReadSpectrumPeaks spectrum.ID)
-
-let getMzIOHelper (path:string) (compressionType:BinaryDataCompressionType) =
-    let wiffFileReader = new WiffFileReader(path, licensePath)
-    let runIDMassSpectra =
-        wiffFileReader.Model.Runs.GetProperties false
-        |> Seq.map (fun (run:KeyValuePair<string, obj>) -> run.Key, wiffFileReader.ReadMassSpectra run.Key)
-    let tmp =
-        runIDMassSpectra
-        |> Seq.map (fun (runID, massSpectra) ->
-            massSpectra
-            |> Seq.map (fun spectrum -> (wiffFileReader.ReadSpectrumPeaks spectrum.ID))
-            |> Seq.map (fun peak -> peak.CompressionType <- compressionType
-                                    peak)
-            |> createMzIOHelper runID path massSpectra
-            )
-        |> Seq.head
-    tmp
-    
-let insertWholeFileIntoDB (helper:MzIOHelper) =
-    let mzIOSQL = new MzSQL(helper.Path + ".mzIO")
-    let bn = mzIOSQL.BeginTransaction()
-    Seq.map2 (fun (spectrum:MzIO.Model.MassSpectrum) (peak:Peak1DArray) -> mzIOSQL.InsertMass(helper.RunID, spectrum, peak)) helper.MassSpectrum helper.Peaks
-    |> Seq.length |> ignore
-    bn.Commit()
-    bn.Dispose()
-  
-let insertIntoDB (amount:int) (helper:MzIOHelper) =
-    let mzIOSQL = new MzSQL(helper.Path + ".mzIO")
-    let bn = mzIOSQL.BeginTransaction()
-    Seq.map2 (fun (spectrum:MzIO.Model.MassSpectrum) (peak:Peak1DArray) -> mzIOSQL.InsertMass(helper.RunID, spectrum, peak)) ((*Seq.take amount*) helper.MassSpectrum) ((*Seq.take amount*) helper.Peaks)
-    |> Seq.length |> ignore
-    bn.Commit()
-    bn.Dispose()
-
-let getSpectrum (path:string) (spectrumID:string) =
-    let mzIOSQL = new MzSQL(path)
-    let bn = mzIOSQL.BeginTransaction()
-    mzIOSQL.ReadMassSpectrum spectrumID
-
-let getSpectra (path:string) (helper:MzIOHelper) =
-    let mzIOSQL = new MzSQL(path)
-    let bn = mzIOSQL.BeginTransaction()
-    let tmp = 
-        mzIOSQL.ReadMassSpectra helper.RunID
-        |> List.ofSeq
-    bn.Commit()
-    bn.Dispose()
-    tmp
-
-let getSpectrumPeaks (path:string) (spectrumID:string) =
-
-    let mzIOSQL = new MzSQL(path)
-
-    let bn = mzIOSQL.BeginTransaction()
-
-    mzIOSQL.ReadSpectrumPeaks spectrumID
-
-/// Create a new file instance of the DB schema. DELETES already existing instance
-let initDB filePath =
-    let _ = System.IO.File.Delete filePath  
-    let db = new MzSQL(filePath)
-    db
-
-/// Returns the conncetion string to a existing MzLiteSQL DB
-let getConnection filePath =
-    match System.IO.File.Exists filePath with
-    | true  -> let db = new MzSQL(filePath)
-               db 
-    | false -> initDB filePath
-
-/// copies MassSpectrum into DB schema
-let insertMSSpectrum (db: MzSQL) runID (reader:IMzIODataReader) (compress: string) (spectrum: MassSpectrum)= 
-    let peakArray = reader.ReadSpectrumPeaks(spectrum.ID)
-    match compress with 
-    | "NoCompression"  -> 
-        let clonedP = new Peak1DArray(BinaryDataCompressionType.NoCompression,peakArray.IntensityDataType,peakArray.MzDataType)
-        clonedP.Peaks <- peakArray.Peaks
-        db.InsertMass(runID, spectrum, clonedP)
-    | "ZLib" -> 
-        let clonedP = new Peak1DArray(BinaryDataCompressionType.ZLib,peakArray.IntensityDataType,peakArray.MzDataType)
-        clonedP.Peaks <- peakArray.Peaks
-        db.InsertMass(runID, spectrum, clonedP)
-    | "NumPress" ->
-        let clonedP = new Peak1DArray(BinaryDataCompressionType.NumPress,peakArray.IntensityDataType,peakArray.MzDataType)
-        clonedP.Peaks <- peakArray.Peaks
-        db.InsertMass(runID, spectrum, clonedP)
-    | "NumPressZLib" ->
-        let clonedP = new Peak1DArray(BinaryDataCompressionType.NumPressZLib,peakArray.IntensityDataType,peakArray.MzDataType)
-        clonedP.Peaks <- peakArray.Peaks
-        db.InsertMass(runID, spectrum, clonedP)
-    | _ ->
-        failwith "Not a valid compression Method"
-
-/// Starts bulkinsert of mass spectra into a MzLiteSQL database
-let insertMSSpectraBy insertSpectrumF outFilepath runID (reader:IMzIODataReader) (compress: string) (spectra: seq<MassSpectrum>) = 
-    let db = getConnection outFilepath
-    let bulkInsert spectra = 
-        spectra
-        |> Seq.iter (insertSpectrumF db runID reader compress)
-    let trans = db.BeginTransaction()
-    bulkInsert spectra
-    trans.Commit()
-    trans.Dispose() 
-    db.Dispose()
-
 
 #time
 let rand = new System.Random()
@@ -299,20 +183,20 @@ let spectra =
 //|> Seq.length
 
 //mzSQLNoCompression.insertMSSpectraBy (mzSQLNoCompression.insertMSSpectrum)  "run_1" wiffReader BinaryDataCompressionType.NoCompression spectra
-mzSQLZLib.insertMSSpectraBy          (mzSQLZLib.insertMSSpectrum)           "run_1" wiffReader BinaryDataCompressionType.ZLib          spectra
-mzSQLNumPress.insertMSSpectraBy      (mzSQLNumPress.insertMSSpectrum)       "run_1" wiffReader BinaryDataCompressionType.NumPress      spectra
-mzSQLNumPressZLib.insertMSSpectraBy  (mzSQLNumPressZLib.insertMSSpectrum)   "run_1" wiffReader BinaryDataCompressionType.NumPressZLib  spectra
+//mzSQLZLib.insertMSSpectraBy          (mzSQLZLib.insertMSSpectrum)           "run_1" wiffReader BinaryDataCompressionType.ZLib          spectra
+//mzSQLNumPress.insertMSSpectraBy      (mzSQLNumPress.insertMSSpectrum)       "run_1" wiffReader BinaryDataCompressionType.NumPress      spectra
+//mzSQLNumPressZLib.insertMSSpectraBy  (mzSQLNumPressZLib.insertMSSpectrum)   "run_1" wiffReader BinaryDataCompressionType.NumPressZLib  spectra
 
 //shuffle spectra
 
-mzSQLNoCompression.ReadMassSpectra "run_1"
-|> Seq.length
+//mzSQLNoCompression.ReadMassSpectra "run_1"
+//|> Seq.length
 //spectra
 //|> Seq.map (fun spectrum -> mzSQLNoCompression.ReadMassSpectrum spectrum.ID)
 //|> Seq.length
-spectra
-|> Seq.map (fun spectrum -> mzSQLNoCompression.ReadSpectrumPeaks spectrum.ID)
-|> Seq.length
+//spectra
+//|> Seq.map (fun spectrum -> mzSQLNoCompression.ReadSpectrumPeaks spectrum.ID)
+//|> Seq.length
 
 ////mzSQLZLib.ReadMassSpectra "run_1"
 ////|> Seq.length
@@ -459,60 +343,140 @@ spectra
 //    |> Array.take 70000
 
 //spectra100
-//|> Seq.map (fun spectrum -> mzSQLNumPressZLib.ReadSpectrumPeaks spectrum.ID)
+//|> Seq.map (fun spectrum -> mzSQLNoCompression.ReadSpectrumPeaks spectrum.ID)
 //|> Seq.length
 
 //spectra1000
-//|> Seq.map (fun spectrum -> mzSQLNumPressZLib.ReadSpectrumPeaks spectrum.ID)
+//|> Seq.map (fun spectrum -> mzSQLNoCompression.ReadSpectrumPeaks spectrum.ID)
 //|> Seq.length
 
 //spectra2000
-//|> Seq.map (fun spectrum -> mzSQLNumPressZLib.ReadSpectrumPeaks spectrum.ID)
+//|> Seq.map (fun spectrum -> mzSQLNoCompression.ReadSpectrumPeaks spectrum.ID)
 //|> Seq.length
 
 //spectra3000
-//|> Seq.map (fun spectrum -> mzSQLNumPressZLib.ReadSpectrumPeaks spectrum.ID)
+//|> Seq.map (fun spectrum -> mzSQLNoCompression.ReadSpectrumPeaks spectrum.ID)
 //|> Seq.length
 
 //spectra4000
-//|> Seq.map (fun spectrum -> mzSQLNumPressZLib.ReadSpectrumPeaks spectrum.ID)
+//|> Seq.map (fun spectrum -> mzSQLNoCompression.ReadSpectrumPeaks spectrum.ID)
 //|> Seq.length
 
 //spectra5000
-//|> Seq.map (fun spectrum -> mzSQLNumPressZLib.ReadSpectrumPeaks spectrum.ID)
+//|> Seq.map (fun spectrum -> mzSQLNoCompression.ReadSpectrumPeaks spectrum.ID)
 //|> Seq.length
 
 //spectra10000
-//|> Seq.map (fun spectrum -> mzSQLNumPressZLib.ReadSpectrumPeaks spectrum.ID)
+//|> Seq.map (fun spectrum -> mzSQLNoCompression.ReadSpectrumPeaks spectrum.ID)
 //|> Seq.length
 
 //spectra20000
-//|> Seq.map (fun spectrum -> mzSQLNumPressZLib.ReadSpectrumPeaks spectrum.ID)
+//|> Seq.map (fun spectrum -> mzSQLNoCompression.ReadSpectrumPeaks spectrum.ID)
 //|> Seq.length
 
 //spectra30000
-//|> Seq.map (fun spectrum -> mzSQLNumPressZLib.ReadSpectrumPeaks spectrum.ID)
+//|> Seq.map (fun spectrum -> mzSQLNoCompression.ReadSpectrumPeaks spectrum.ID)
 //|> Seq.length
 
 //spectra40000
-//|> Seq.map (fun spectrum -> mzSQLNumPressZLib.ReadSpectrumPeaks spectrum.ID)
+//|> Seq.map (fun spectrum -> mzSQLNoCompression.ReadSpectrumPeaks spectrum.ID)
 //|> Seq.length
 
 //spectra50000
-//|> Seq.map (fun spectrum -> mzSQLNumPressZLib.ReadSpectrumPeaks spectrum.ID)
+//|> Seq.map (fun spectrum -> mzSQLNoCompression.ReadSpectrumPeaks spectrum.ID)
 //|> Seq.length
 
 //spectra60000
-//|> Seq.map (fun spectrum -> mzSQLNumPressZLib.ReadSpectrumPeaks spectrum.ID)
+//|> Seq.map (fun spectrum -> mzSQLNoCompression.ReadSpectrumPeaks spectrum.ID)
 //|> Seq.length
 
 //spectra70000
-//|> Seq.map (fun spectrum -> mzSQLNumPressZLib.ReadSpectrumPeaks spectrum.ID)
+//|> Seq.map (fun spectrum -> mzSQLNoCompression.ReadSpectrumPeaks spectrum.ID)
 //|> Seq.length
-
 
 //spectra
 //|> Seq.map (fun spectrum -> mzSQLNoCompression.ReadSpectrumPeaks spectrum.ID)
 //|> Seq.length
 
+//let getPeakLengths (spectra:MassSpectrum[]) =
+//    spectra
+//    |> Seq.map (fun spectrum -> (mzSQLNumPressZLib.ReadSpectrumPeaks spectrum.ID).Peaks.Length)
+//    |> Seq.sum
 
+//[
+//    spectra100
+//    spectra1000
+//    spectra2000
+//    spectra3000
+//    spectra4000
+//    spectra5000
+//    spectra10000
+//    spectra20000
+//    spectra30000
+//    spectra40000
+//    spectra50000
+//    spectra60000
+//    spectra70000
+//]
+//|> List.map (fun item -> printfn "%i" (getPeakLengths item))
+
+//getPeakLengths spectra
+
+let getMzIOHelper (path:string) (compressionType:BinaryDataCompressionType) =
+    let wiffFileReader = new WiffFileReader(path, licensePath)
+    let runIDMassSpectra =
+        wiffFileReader.Model.Runs.GetProperties false
+        |> Seq.map (fun (run:KeyValuePair<string, obj>) -> run.Key, wiffFileReader.ReadMassSpectra run.Key)
+    let tmp =
+        runIDMassSpectra
+        |> Seq.map (fun (runID, massSpectra) ->
+            massSpectra
+            |> Seq.map (fun spectrum -> (wiffFileReader.ReadSpectrumPeaks spectrum.ID))
+            |> Seq.map (fun peak -> peak.CompressionType <- compressionType
+                                    peak)
+            |> createMzIOHelper runID path massSpectra
+            )
+        |> Seq.head
+    tmp
+    
+let insertWholeFileIntoDB (helper:MzIOHelper) =
+    let mzIOSQL = new MzSQL(helper.Path + ".mzIO")
+    let bn = mzIOSQL.BeginTransaction()
+    Seq.map2 (fun (spectrum:MzIO.Model.MassSpectrum) (peak:Peak1DArray) -> mzIOSQL.InsertMass(helper.RunID, spectrum, peak)) helper.MassSpectrum helper.Peaks
+    |> Seq.length |> ignore
+    bn.Commit()
+    bn.Dispose()
+  
+let insertIntoDB (amount:int) (helper:MzIOHelper) =
+    let mzIOSQL = new MzSQL(helper.Path + ".mzIO")
+    let bn = mzIOSQL.BeginTransaction()
+    Seq.map2 (fun (spectrum:MzIO.Model.MassSpectrum) (peak:Peak1DArray) -> mzIOSQL.InsertMass(helper.RunID, spectrum, peak)) ((*Seq.take amount*) helper.MassSpectrum) ((*Seq.take amount*) helper.Peaks)
+    |> Seq.length |> ignore
+    bn.Commit()
+    bn.Dispose()
+
+let getSpectrum (path:string) (spectrumID:string) =
+    let mzIOSQL = new MzSQL(path)
+    let bn = mzIOSQL.BeginTransaction()
+    mzIOSQL.ReadMassSpectrum spectrumID
+
+let getSpectra (path:string) (helper:MzIOHelper) =
+    let mzIOSQL = new MzSQL(path)
+    let bn = mzIOSQL.BeginTransaction()
+    let tmp = 
+        mzIOSQL.ReadMassSpectra helper.RunID
+        |> List.ofSeq
+    bn.Commit()
+    bn.Dispose()
+    tmp
+
+let getSpectrumPeaks (path:string) (spectrumID:string) =
+
+    let mzIOSQL = new MzSQL(path)
+
+    let bn = mzIOSQL.BeginTransaction()
+
+    mzIOSQL.ReadSpectrumPeaks spectrumID
+
+
+insertMSSpectraBy insertMSSpectrum mzSQLNoCompression "run_1" wiffReader (mzSQLNoCompression.BeginTransaction()) BinaryDataCompressionType.NoCompression (spectra |> Array.take 100)
