@@ -78,7 +78,19 @@ module MassSpectrum =
 
     /// Returns PrecursorMZ of MS2 spectrum
     let getPrecursorMZ (massSpectrum: MzIO.Model.MassSpectrum) =
-        let tmp =  massSpectrum.TryGetValue(PSIMS_Precursor.SelectedIonMz)
+        let precursors =  
+            massSpectrum.Precursors.GetProperties false 
+            |> Seq.map (fun precursor -> precursor.Value :?> Precursor)
+        let tmp =
+            let tmp2 =
+                precursors
+                |> Seq.collect (fun precursor -> 
+                    precursor.SelectedIons.GetProperties false
+                    |> Seq.map (fun selectedIon -> 
+                        (selectedIon.Value :?> SelectedIon).TryGetValue(PSIMS_Precursor.SelectedIonMz)))
+                |> Seq.choose (fun param -> param)
+            if Seq.isEmpty tmp2 then None
+            else Seq.head tmp2 |> fun item -> Some item
 
         if tmp.IsSome then
             let cvParam = tmp.Value :?> IParamBase<IConvertible>

@@ -123,7 +123,7 @@ let termoMzML       = @"C:\Users\Student\source\repos\wiffTestFiles\Thermo\data0
 //let mzMLHome        = @"D:\Users\Patrick\Desktop\BioInformatik\MzLiteTestFiles\MzMLTestFiles\tiny.pwiz.1.1.txt"
 //let mzMLHome    = @"D:\Users\Patrick\Desktop\BioInformatik\MzLiteTestFiles\MzMLTestFiles\small_miape.pwiz.1.1.txt"
 
-let wiffReader          = new WiffFileReader(wiffTestUni, licensePath)
+let wiffReader          = new WiffFileReader(wiffTestHome, licenseHome)
 //let wiffMzML            = new MzMLReader(mzMLOfWiffUni)
 
 //let bafReader           = new BafFileReader(bafTestHome)
@@ -141,7 +141,7 @@ let getSpectras (reader:#IMzIODataReader) =
 //let rtIndexEntry = wiffReader.BuildRtIndex("sample=0")
 //let rtProfile = wiffReader.RtProfile (rtIndexEntry, (new MzIO.Processing.RangeQuery(1., 300., 600.)), (new MzIO.Processing.RangeQuery(1., 300., 600.)))
 
-let mzSQLNoCompression  = new MzSQL(wiffTestUni + "NoCompression.mzIO")
+let mzSQLNoCompression  = new MzSQL(wiffTestHome + "NoCompression.mzIO")
 //let mzSQLZLib           = new MzSQL(wiffTestHome + "ZLib.mzIO")
 //let mzSQLNumPress       = new MzSQL(wiffTestHome + "NumPress.mzIO")
 //let mzSQLNumPressZLib   = new MzSQL(wiffTestHome + "NumPressZLib.mzIO")
@@ -416,4 +416,11 @@ getScanTime sqlSqpctrum
 let mutable msLevel = 0
 sqlSqpctrum.TryGetMsLevel(&msLevel)
 
+let precursor = new Precursor()
+let selectedIon = new SelectedIon()
+selectedIon.SetSelectedIonMz(4.0)
+precursor.SelectedIons.Add(selectedIon.ToString(), selectedIon)
+spectrum.Precursors.Add(precursor.ToString(), precursor)
+spectrum.Precursors.Count()
 
+getPrecursorMZ spectrum

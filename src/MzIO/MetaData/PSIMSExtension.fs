@@ -185,7 +185,7 @@ module PSIMSExtension =
         member this.SetSelectedIonMz(mz: double) =
             if mz < 0. then
                 raise (ArgumentOutOfRangeException("mz"))
-            this.SetCvParam(PSIMS_Precursor.SelectedIonMz).PSIMS_Mz() |> ignore
+            this.SetCvParam(PSIMS_Precursor.SelectedIonMz, mz).PSIMS_Mz() |> ignore
             this
 
         /// Mass-to-charge ratio of a precursor ion selected for fragmentation. [PSI:PI]
