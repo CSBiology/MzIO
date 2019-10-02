@@ -191,7 +191,7 @@ module MzIOLinq =
             for rtIdx = 0 to entries.Length-1 do
                 let entry = entries.[rtIdx]
                 let peaks = this.ReadSpectrumPeaks(entry).Peaks
-                for mzIdx = 0 to mzRanges.Length do
+                for mzIdx = 0 to mzRanges.Length-1 do
                     let mzRange = mzRanges.[mzIdx]
                     let p = (RtIndexEntry.MzSearch (peaks, mzRange)).DefaultIfEmpty(new Peak1D(0., mzRange.LockValue))
                             |> fun x -> RtIndexEntry.ClosestMz (x, mzRange.LockValue)
@@ -205,7 +205,7 @@ module MzIOLinq =
         member this.RtProfile(rtIndex: IMzIOArray<RtIndexEntry>, rtRange: RangeQuery, mzRange: RangeQuery) =
 
             let entries = RtIndexEntry.Search(rtIndex, rtRange).ToArray()
-
+            //printfn "RtProfile %i" entries.Length
             let profile = Array.zeroCreate<Peak2D> entries.Length
 
             for rtIdx = 0 to entries.Length-1 do

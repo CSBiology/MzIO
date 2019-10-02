@@ -1,6 +1,11 @@
+#### 0.0.8.2.1 - Tuesday, July 9, 2019
+* Fixed getXICs
+
+#### 0.0.8.2 - Tuesday, July 9, 2019
+* Try remove NetStandard 2.0 from MzIO project
+
 #### 0.0.8.1 - Tuesday, July 9, 2019
 * Put SQLite transaction handling outsied the MzSQL class
-
 
 #### 0.0.8 - Tuesday, July 9, 2019
 * Reduze file size of MzSQL

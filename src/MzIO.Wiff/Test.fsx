@@ -122,7 +122,7 @@ let termoMzML       = @"C:\Users\Student\source\repos\wiffTestFiles\Thermo\data0
 //let mzMLHome        = @"D:\Users\Patrick\Desktop\BioInformatik\MzLiteTestFiles\MzMLTestFiles\tiny.pwiz.1.1.txt"
 //let mzMLHome    = @"D:\Users\Patrick\Desktop\BioInformatik\MzLiteTestFiles\MzMLTestFiles\small_miape.pwiz.1.1.txt"
 
-//let wiffReader          = new WiffFileReader(wiffTestHome, licenseHome)
+let wiffReader          = new WiffFileReader(wiffTestUni, licensePath)
 //let wiffMzML            = new MzMLReader(mzMLOfWiffUni)
 
 //let bafReader           = new BafFileReader(bafTestHome)
@@ -131,7 +131,7 @@ let termoMzML       = @"C:\Users\Student\source\repos\wiffTestFiles\Thermo\data0
 //let thermoReader        = new ThermoRawFileReader(thermoUni)
 //let thermoMzMLReader    = new MzMLReader(termoMzML)
 
-let mzMLReader          = new MzMLReader(@"D:\Users\Patrick\Desktop\BioInformatik\MzLiteTestFiles\WiffTestFiles\20180301_MS_JT88mutID122.mzML")
+//let mzMLReader          = new MzMLReader(@"D:\Users\Patrick\Desktop\BioInformatik\MzLiteTestFiles\WiffTestFiles\20180301_MS_JT88mutID122.mzML")
 
 let getSpectras (reader:#IMzIODataReader) =
     reader.Model.Runs.GetProperties false
@@ -140,7 +140,7 @@ let getSpectras (reader:#IMzIODataReader) =
 //let rtIndexEntry = wiffReader.BuildRtIndex("sample=0")
 //let rtProfile = wiffReader.RtProfile (rtIndexEntry, (new MzIO.Processing.RangeQuery(1., 300., 600.)), (new MzIO.Processing.RangeQuery(1., 300., 600.)))
 
-//let mzSQLNoCompression  = new MzSQL(wiffTestHome + "NoCompression.mzIO")
+let mzSQLNoCompression  = new MzSQL(wiffTestUni + "NoCompression.mzIO")
 //let mzSQLZLib           = new MzSQL(wiffTestHome + "ZLib.mzIO")
 //let mzSQLNumPress       = new MzSQL(wiffTestHome + "NumPress.mzIO")
 //let mzSQLNumPressZLib   = new MzSQL(wiffTestHome + "NumPressZLib.mzIO")
@@ -156,15 +156,16 @@ let getSpectras (reader:#IMzIODataReader) =
 //let mzMLReaderNumPressZLib  = new MzMLReader(wiffTestHome + "NumPressZLib.mzml")
 
 let spectra =
-    mzMLReader.Model.Runs.GetProperties false
+    wiffReader.Model.Runs.GetProperties false
     |> Seq.map (fun item -> item.Value :?> Run)
     |> Seq.head
-    |> (fun run -> mzMLReader.ReadMassSpectra run.ID)
+    |> (fun run -> wiffReader.ReadMassSpectra run.ID)
     |> Array.ofSeq
+    |> Array.take 100
 
-let peaks =
-    mzMLReader.ReadAllSpectrumPeaks "run_1"
-    |> Seq.length
+//let peaks =
+//    wiffReader.ReadSpectrumPeaks "run_1"
+//    |> Seq.length
 
 //wiffReader.Model.Runs.GetProperties false
 //|> Seq.map (fun item -> item.Value :?> Run)
@@ -398,4 +399,18 @@ let peaks =
 //|> Seq.map (fun spectrum -> mzSQLNoCompression.ReadSpectrumPeaks spectrum.ID)
 //|> Seq.length
 
+//mzSQLNoCompression.BuildRtIndex ("run_1")
+//mzSQLNoCompression.RtProfile (mzSQLNoCompression.BuildRtIndex("run_1"), (new MzIO.Processing.RangeQuery(1., 0., 3000.)), (new MzIO.Processing.RangeQuery(1., 0., 3000.)))
 
+let spectrum = spectra.[0]
+
+let sqlSqpctrum = mzSQLNoCompression.SelectMassSpectrum "sample=0 experiment=0 scan=0"
+
+spectrum.GetProperties false
+sqlSqpctrum.GetProperties false
+
+getMsLevel spectrum
+getMsLevel sqlSqpctrum
+
+let mutable msLevel = 0
+sqlSqpctrum.TryGetMsLevel(&msLevel)

@@ -47,7 +47,7 @@ module MassSpectrum =
 
         if tmp.IsSome then
             let cvParam = tmp.Value :?> IParamBase<IConvertible>
-            (tryGetValue cvParam).Value :?> int
+            Convert.ToInt32((tryGetValue cvParam).Value)
         else 
             -1
 

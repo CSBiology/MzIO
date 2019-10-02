@@ -390,9 +390,9 @@ type MzSQL(path) =
         let cmd = new SQLiteCommand(queryString, cn)
         cmd.Parameters.Add("@chromatogramID", Data.DbType.String) |> ignore
         let rec loop (reader:SQLiteDataReader) acc =
-                    match reader.Read() with
-                    | true  -> loop reader (MzIOJson.FromJson<Chromatogram>(reader.GetString(0))::acc)
-                    | false -> acc 
+            match reader.Read() with
+            | true  -> loop reader (MzIOJson.FromJson<Chromatogram>(reader.GetString(0))::acc)
+            | false -> acc 
         fun (id:string) ->
         cmd.Parameters.["@chromatogramID"].Value <- id            
         use reader = cmd.ExecuteReader()            
