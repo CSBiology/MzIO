@@ -1,3 +1,9 @@
+#### 0.0.9.1 - Tuesday, October 9, 2019
+* Fixed bug with casting
+
+#### 0.0.9 - Tuesday, October 9, 2019
+* Changed namings
+
 #### 0.0.8.2.1 - Tuesday, July 9, 2019
 * Fixed getXICs
 

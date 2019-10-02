@@ -45,6 +45,7 @@ open MzIO.IO.MzML
 open MzIO.IO
 open MzIO.Thermo
 open MzIO.Processing.Indexer
+open MzIO.Processing.MassSpectrum
 
 
 let fileDir             = __SOURCE_DIRECTORY__
@@ -409,8 +410,10 @@ let sqlSqpctrum = mzSQLNoCompression.SelectMassSpectrum "sample=0 experiment=0 s
 spectrum.GetProperties false
 sqlSqpctrum.GetProperties false
 
-getMsLevel spectrum
-getMsLevel sqlSqpctrum
+getScanTime spectrum
+getScanTime sqlSqpctrum
 
 let mutable msLevel = 0
 sqlSqpctrum.TryGetMsLevel(&msLevel)
+
+
