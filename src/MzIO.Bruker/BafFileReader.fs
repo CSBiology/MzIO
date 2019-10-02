@@ -547,7 +547,7 @@ type BafFileReader(bafFilePath:string) =
                                 if ion.Mass.HasValue then
                                     let selectedIon = new SelectedIon()
                                     selectedIon.SetSelectedIonMz(ion.Mass.Value)                                |> ignore
-                                    selectedIon.SetValue("Number", int32 ion.Number.Value)                      |> ignore
+                                    selectedIon.SetUserParam("Number", int32 ion.Number.Value)                      |> ignore
                                     selectedIon.SetUserParam("IsolationType", int32 ion.IsolationType.Value)    |> ignore
                                     selectedIon.SetUserParam("ReactionType", int32 ion.ReactionType.Value)      |> ignore
                                     selectedIon.SetUserParam("MsLevel", int32 ion.MsLevel.Value)                |> ignore
