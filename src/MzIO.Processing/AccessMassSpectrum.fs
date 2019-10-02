@@ -10,7 +10,7 @@ open MzIO.Processing.Indexer
 open MzIO.Model.CvParam
 
 
-module AccessMassSpectrum = 
+module MassSpectrum = 
 
     type private PSIMS_Spectrum =
 
@@ -101,4 +101,3 @@ module AccessMassSpectrum =
     /// Returns function which can be used to determine the range between the scanTime of two MassSpectra. 
     let createScanTimeRange =
         initCreateRange getScanTime
-

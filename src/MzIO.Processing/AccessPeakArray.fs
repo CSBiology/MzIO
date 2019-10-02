@@ -1,6 +1,6 @@
 ﻿namespace MzIO.Processing
 
-module AccessPeakArray = 
+module PeakArray = 
 
     open MzIO.Binary
     open MzIO.Commons
@@ -32,31 +32,9 @@ module AccessPeakArray =
     
     /// Creates Peak1DArray of mzData array and intensityData Array
     let createPeak1DArray compression mzBinaryDataType intensityBinaryDataType (mzData:float []) (intensityData:float []) =
-        match compression with
-        | "NoCompression" -> 
-            let peak1DArray = new Peak1DArray(BinaryDataCompressionType.NoCompression,intensityBinaryDataType, mzBinaryDataType)
-            let zipedData = Array.map2 (fun mz intz -> Peak1D(intz,mz)) mzData intensityData 
-            let newPeakA = Arrays.MzIOArray.ToMzIOArray zipedData
-            peak1DArray.Peaks <- newPeakA
-            peak1DArray
-        | "ZLib" -> 
-            let peak1DArray = new Peak1DArray(BinaryDataCompressionType.ZLib,intensityBinaryDataType, mzBinaryDataType)
-            let zipedData = Array.map2 (fun mz intz -> Peak1D(intz,mz)) mzData intensityData 
-            let newPeakA = Arrays.MzIOArray.ToMzIOArray zipedData
-            peak1DArray.Peaks <- newPeakA
-            peak1DArray
-        | "Numpress" ->
-            let peak1DArray = new Peak1DArray(BinaryDataCompressionType.NumPress,intensityBinaryDataType, mzBinaryDataType)
-            let zipedData = Array.map2 (fun mz intz -> Peak1D(intz,mz)) mzData intensityData 
-            let newPeakA = Arrays.MzIOArray.ToMzIOArray zipedData
-            peak1DArray.Peaks <- newPeakA
-            peak1DArray
-        | "NumPressZLib" ->
-            let peak1DArray = new Peak1DArray(BinaryDataCompressionType.NumPressZLib,intensityBinaryDataType, mzBinaryDataType)
-            let zipedData = Array.map2 (fun mz intz -> Peak1D(intz,mz)) mzData intensityData 
-            let newPeakA = Arrays.MzIOArray.ToMzIOArray zipedData
-            peak1DArray.Peaks <- newPeakA
-            peak1DArray
-        | _ ->
-            failwith "Not a valid compression Method"
+        let peak1DArray = new Peak1DArray(compression,intensityBinaryDataType, mzBinaryDataType)
+        let zipedData = Array.map2 (fun mz intz -> Peak1D(intz,mz)) mzData intensityData 
+        let newPeakA = Arrays.MzIOArray.ToMzIOArray zipedData
+        peak1DArray.Peaks <- newPeakA
+        peak1DArray
 

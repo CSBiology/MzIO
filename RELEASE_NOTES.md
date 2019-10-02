@@ -1,3 +1,11 @@
+#### 0.0.8.1 - Tuesday, July 9, 2019
+* Put SQLite transaction handling outsied the MzSQL class
+
+
+#### 0.0.8 - Tuesday, July 9, 2019
+* Reduze file size of MzSQL
+* Improve speed of MzSQL accession and writing
+
 #### 0.0.7 - Tuesday, July 9, 2019
 * Add MzMLWriter
 * Improve speed of MzMLReader
