@@ -146,7 +146,7 @@ let mzSQLNoCompression  = new MzSQL(wiffTestHome + "NoCompression.mzIO")
 //let mzSQLNumPress       = new MzSQL(wiffTestHome + "NumPress.mzIO")
 //let mzSQLNumPressZLib   = new MzSQL(wiffTestHome + "NumPressZLib.mzIO")
 
-//let mzMLNoCompression   = new MzMLWriter(wiffTestHome + "NoCompression.mzml")
+let mzMLNoCompression   = new MzMLWriter(wiffTestHome + "NoCompression.mzml")
 //let mzMLZLib            = new MzMLWriter(wiffTestHome + "ZLib.mzml")
 //let mzMLNumPress        = new MzMLWriter(wiffTestHome + "NumPress.mzml")
 //let mzMLNumPressZLib    = new MzMLWriter(wiffTestHome + "NumPressZLib.mzml")
@@ -163,6 +163,14 @@ let spectra =
     |> (fun run -> wiffReader.ReadMassSpectra run.ID)
     |> Array.ofSeq
     |> Array.take 100
+
+//let precursor = new Precursor()
+//let selectedIon = new SelectedIon()
+//selectedIon.SetSelectedIonMz(4.0)
+//precursor.SelectedIons.Add(selectedIon.ToString(), selectedIon)
+//spectra
+//|> Array.map (fun spectrum -> 
+//    spectrum.Precursors.Add(precursor.ToString(), precursor))
 
 //let peaks =
 //    wiffReader.ReadSpectrumPeaks "run_1"
@@ -416,11 +424,16 @@ getScanTime sqlSqpctrum
 let mutable msLevel = 0
 sqlSqpctrum.TryGetMsLevel(&msLevel)
 
-let precursor = new Precursor()
-let selectedIon = new SelectedIon()
-selectedIon.SetSelectedIonMz(4.0)
-precursor.SelectedIons.Add(selectedIon.ToString(), selectedIon)
-spectrum.Precursors.Add(precursor.ToString(), precursor)
-spectrum.Precursors.Count()
-
 getPrecursorMZ spectrum
+getPrecursorMZ sqlSqpctrum
+
+spectrum.Precursors.Count()
+sqlSqpctrum.Precursors.Count()
+
+let tmp =
+    sqlSqpctrum.Precursors.GetProperties false
+    |> Seq.collect (fun item -> (item.Value :?> Precursor).SelectedIons.GetProperties false
+                                |> Seq.map (fun selectedIon -> 
+                                    selectedIon.Value :?> SelectedIon))
+
+(Seq.head tmp).GetProperties false

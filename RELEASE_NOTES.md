@@ -1,3 +1,6 @@
+#### 0.0.9.2 - Tuesday, October 9, 2019
+* Fixed get PrecursorMz function
+
 #### 0.0.9.1 - Tuesday, October 9, 2019
 * Fixed bug with casting
 

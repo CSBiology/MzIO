@@ -239,6 +239,7 @@ type MzIOJson =
             let tmp = item.Value :?> JObject
             let product = JsonConvert.DeserializeObject<Product>(tmp.ToString())
             MzIOJson.deSerializeParams(product)
+            MzIOJson.deSerializeParams(product.IsolationWindow)
             products.SetValue(item.Key, product)
                     )
         products
@@ -278,12 +279,25 @@ type MzIOJson =
         scans
 
     /// Deserializes JSON string to precursor list.
+    static member deSerializeSelectedIons(precursor:Precursor) =
+        precursor.SelectedIons.GetProperties false
+        |> Seq.iter (fun item -> 
+            let tmp = item.Value :?> JObject
+            let selectedIon = JsonConvert.DeserializeObject<SelectedIon>(tmp.ToString())
+            MzIOJson.deSerializeParams(selectedIon)
+            precursor.SelectedIons.SetValue(item.Key, selectedIon)
+                    )       
+
+    /// Deserializes JSON string to precursor list.
     static member deSerializePrecursors(precursors:PrecursorList) =
         precursors.GetProperties false
         |> Seq.iter (fun item -> 
             let tmp = item.Value :?> JObject
             let precursor = JsonConvert.DeserializeObject<Precursor>(tmp.ToString())
             MzIOJson.deSerializeParams(precursor)
+            MzIOJson.deSerializeSelectedIons(precursor)
+            MzIOJson.deSerializeParams(precursor.IsolationWindow)
+            MzIOJson.deSerializeParams(precursor.Activation)
             precursors.SetValue(item.Key, precursor)
                     )
         precursors
