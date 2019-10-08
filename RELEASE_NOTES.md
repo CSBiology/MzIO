@@ -1,3 +1,6 @@
+#### 0.0.9.3 - Tuesday, October 9, 2019
+* Fixed deserialize SelecteIon CvParams bug
+
 #### 0.0.9.2 - Tuesday, October 9, 2019
 * Fixed get PrecursorMz function
 
