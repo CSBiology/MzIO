@@ -14,6 +14,7 @@ open MzIO.Binary
 open MzIO.IO
 open Newtonsoft.Json
 open Newtonsoft.Json.Linq
+open System.Runtime.InteropServices
 
 
 type private MzSQLTransactionScope() =
@@ -60,80 +61,91 @@ type MzSQL(path) =
             else
                 path
 
-    let mutable cn = new SQLiteConnection(sprintf "Data Source=%s;Version=3" sqlitePath)
+    let mutable cn' = new SQLiteConnection(sprintf "Data Source=%s;Version=3" sqlitePath)
 
     do
         if File.Exists("sqlitePath") then 
             ()
         else
-            MzSQL.SqlInitSchema(cn)
+            cn'.Open()
+            MzSQL.SqlInitSchema(cn')
+            cn'.Close()
 
     //let mutable tr = 
     //    MzSQL.RaiseConnectionState(cn)
     //    cn.BeginTransaction()
 
     /// Initialization of all prePareFunctions for the current connection.
-    let insertModel =
-        MzSQL.prepareInsertModel(cn)
+    //let insertModel =
+    //    MzSQL.prepareInsertModel(cn)
 
-    let selectModel =
-        MzSQL.prepareSelectModel(cn)
+    //let selectModel =
+    //    MzSQL.prepareSelectModel(cn)
 
-    let insertMassSpectrum =
-        MzSQL.prepareInsertMassSpectrum(cn)
+    //let insertMassSpectrum =
+    //    MzSQL.prepareInsertMassSpectrum(cn)
 
-    let selectMassSpectrum =
-        MzSQL.prepareSelectMassSpectrum(cn)
+    //let selectMassSpectrum =
+    //    MzSQL.prepareSelectMassSpectrum(cn)
 
-    let selectMassSpectra =
-        MzSQL.prepareSelectMassSpectra(cn)
+    //let selectMassSpectra =
+    //    MzSQL.prepareSelectMassSpectra(cn)
 
-    let selectPeak1DArray =
-        MzSQL.prepareSelectPeak1DArray(cn)
+    //let selectPeak1DArray =
+    //    MzSQL.prepareSelectPeak1DArray(cn)
 
-    let insertChromatogram =
-        MzSQL.prepareInsertChromatogram(cn)
+    //let insertChromatogram =
+    //    MzSQL.prepareInsertChromatogram(cn)
 
-    let selectChromatogram =
-        MzSQL.prepareSelectChromatogram(cn)
+    //let selectChromatogram =
+    //    MzSQL.prepareSelectChromatogram(cn)
 
-    let selectChromatograms =
-        MzSQL.prepareSelectChromatograms(cn)
+    //let selectChromatograms =
+    //    MzSQL.prepareSelectChromatograms(cn)
 
-    let selectPeak2DArray =
-        MzSQL.prepareSelectPeak2DArray(cn)
+    //let selectPeak2DArray =
+    //    MzSQL.prepareSelectPeak2DArray(cn)
 
-    let model =
-        let potMdoel = MzSQL.trySelectModel(cn)
+    let mutable tmp = new SQLiteConnection(sprintf "Data Source=%s;Version=3" sqlitePath)
+
+    member this.model =
+        cn'.Open()
+        let tr = cn'.BeginTransaction()
+        let potMdoel = MzSQL.trySelectModel(this.cn)
         match potMdoel with
         | Some model    -> model
         | None          -> 
             let tmp = new MzIOModel(Path.GetFileNameWithoutExtension(sqlitePath))
-            insertModel tmp
-            //tr.Commit()
-            //tr <- cn.BeginTransaction()
+            this.InsertModel tmp
+            tr.Commit()
+            tr.Dispose()
+            cn'.Close()
             tmp
 
+    member this.cn = tmp
+
+    member this.Open() = this.cn.Open()
+
     /// Initialization of all prePareFunctions for the current connection.
-    member this.InsertModel         = insertModel
+    member this.InsertModel         = MzSQL.prepareInsertModel(this.cn)
 
-    member this.SelectModel         = selectModel
+    member this.SelectModel         = MzSQL.prepareSelectModel(this.cn)
 
-    member this.InsertMassSpectrum  = insertMassSpectrum
+    member this.InsertMassSpectrum  = MzSQL.prepareInsertMassSpectrum(this.cn)
 
-    member this.SelectMassSpectrum  = selectMassSpectrum
+    member this.SelectMassSpectrum  = MzSQL.prepareSelectMassSpectrum(this.cn)
 
-    member this.SelectMassSpectra   = selectMassSpectra
+    member this.SelectMassSpectra   = MzSQL.prepareSelectMassSpectra(this.cn)
 
-    member this.SelectPeak1DArray   = selectPeak1DArray
+    member this.SelectPeak1DArray   = MzSQL.prepareSelectPeak1DArray(this.cn)
 
-    member this.InsertChromatogram  = insertChromatogram
+    member this.InsertChromatogram  = MzSQL.prepareInsertChromatogram(this.cn)
 
-    member this.SelectChromatogram  = selectChromatogram
+    member this.SelectChromatogram  = MzSQL.prepareSelectChromatogram(this.cn)
 
-    member this.SelectChromatograms = selectChromatograms
+    member this.SelectChromatograms = MzSQL.prepareSelectChromatograms(this.cn)
 
-    member this.SelectPeak2DArray   = selectPeak2DArray
+    member this.SelectPeak2DArray   = MzSQL.prepareSelectPeak2DArray(this.cn)
 
     //member this.Commit() = 
     //    MzSQL.RaiseConnectionState(cn)
@@ -145,14 +157,14 @@ type MzSQL(path) =
         new SQLiteConnection(sprintf "Data Source=%s;Version=3" sqlitePath)
 
     /// Closes SQLiteConnection.
-    member this.Close() = cn.Close() 
+    member this.Close() = this.cn.Close() 
 
     /// Checks whether SQLiteConnection is open or not and reopens it, when is should be closed.
-    static member RaiseConnectionState(cn:SQLiteConnection) =
-        if (cn.State=ConnectionState.Open) then 
-            ()
-        else
-            cn.Open()
+    //static member RaiseConnectionState(cn:SQLiteConnection) =
+    //    if (cn.State=ConnectionState.Open) then 
+    //        ()
+    //    else
+    //        failwith "Connection state is not open"
 
     ///// Checks whether SQLiteConnection is open or not and reopens it, when is should be closed.
     //static member RaiseTransactionState(cn:SQLiteConnection, tr:byref<SQLiteTransaction>) =
@@ -171,7 +183,7 @@ type MzSQL(path) =
 
     /// Creates the tables in the connected dataBase.
     static member private SqlInitSchema(cn:SQLiteConnection) =
-        MzSQL.RaiseConnectionState(cn)
+        //MzSQL.RaiseConnectionState(cn)
         use cmd = new SQLiteCommand("CREATE TABLE IF NOT EXISTS Model (Lock INTEGER  NOT NULL PRIMARY KEY DEFAULT(0) CHECK (Lock=0), Content TEXT NOT NULL)", cn)
         cmd.ExecuteNonQuery() |> ignore
         use cmd = new SQLiteCommand("CREATE TABLE IF NOT EXISTS Spectrum (RunID TEXT NOT NULL, SpectrumID TEXT NOT NULL PRIMARY KEY, Description TEXT NOT NULL, PeakArray TEXT NOT NULL, PeakData BINARY NOT NULL)", cn)
@@ -182,7 +194,7 @@ type MzSQL(path) =
     /// Selects model from DB. It has always the same ID and only one Model should be saved per DB.
     static member private trySelectModel(cn:SQLiteConnection) =
         MzSQL.SqlInitSchema(cn)
-        MzSQL.RaiseConnectionState(cn)
+        //MzSQL.RaiseConnectionState(cn)
         //MzSQL.RaiseTransactionState(cn)
         let querySelect = "SELECT Content FROM Model WHERE Lock = 0"
         let cmdSelect = new SQLiteCommand(querySelect, cn)
@@ -195,7 +207,7 @@ type MzSQL(path) =
 
     /// Prepare function to insert MzIOModel-JSONString.
     static member private prepareInsertModel(cn:SQLiteConnection) =
-        MzSQL.RaiseConnectionState(cn)
+        //MzSQL.RaiseConnectionState(cn)
         //MzSQL.RaiseTransactionState(cn)
         let queryString = 
             "INSERT INTO Model (
@@ -246,7 +258,7 @@ type MzSQL(path) =
 
     ///Prepare function to insert MzQuantMLDocument-record.
     static member private prepareInsertMassSpectrum(cn:SQLiteConnection) =
-        MzSQL.RaiseConnectionState(cn)
+        //MzSQL.RaiseConnectionState(cn)
         //MzSQL.RaiseTransactionState(cn)
         let queryString = 
             "INSERT INTO Spectrum (
@@ -279,7 +291,7 @@ type MzSQL(path) =
 
     /// Prepare function to select element of Description table of MzSQL.
     static member private prepareSelectMassSpectrum(cn:SQLiteConnection) =
-        MzSQL.RaiseConnectionState(cn)
+        //MzSQL.RaiseConnectionState(cn)
         //MzSQL.RaiseTransactionState(cn)
         let queryString = "SELECT Description FROM Spectrum WHERE SpectrumID = @spectrumID"
         let cmd = new SQLiteCommand(queryString, cn)
@@ -297,7 +309,7 @@ type MzSQL(path) =
 
     /// Prepare function to select elements of Description table of MzSQL.
     static member private prepareSelectMassSpectra(cn:SQLiteConnection) =
-        MzSQL.RaiseConnectionState(cn)
+        //MzSQL.RaiseConnectionState(cn)
         //MzSQL.RaiseTransactionState(cn)
         let queryString = "SELECT Description FROM Spectrum WHERE RunID = @runID"
         let cmd = new SQLiteCommand(queryString, cn)
@@ -315,7 +327,7 @@ type MzSQL(path) =
 
     /// Prepare function to select elements of PeakArray and PeakData tables of MzSQL.
     static member private prepareSelectPeak1DArray(cn:SQLiteConnection) =
-        MzSQL.RaiseConnectionState(cn)
+        //MzSQL.RaiseConnectionState(cn)
         //MzSQL.RaiseTransactionState(cn)
         let decoder = new BinaryDataDecoder()
         let queryString = "SELECT PeakArray, PeakData FROM Spectrum WHERE SpectrumID = @spectrumID"
@@ -325,14 +337,14 @@ type MzSQL(path) =
             match reader.Read() with
             | true  -> loop reader (decoder.Decode(reader.GetStream(1), MzIOJson.FromJson<Peak1DArray>(reader.GetString(0))))
             | false -> peaks 
-        fun id ->
+        fun (id:string) ->
         cmd.Parameters.["@spectrumID"].Value <- id            
         use reader = cmd.ExecuteReader()            
         loop reader (new Peak1DArray())
 
     /// Prepare function to insert element into Chromatogram table of MzSQL.
     static member private prepareInsertChromatogram(cn:SQLiteConnection) =
-        MzSQL.RaiseConnectionState(cn)
+        //MzSQL.RaiseConnectionState(cn)
         //MzSQL.RaiseTransactionState(cn)
         let encoder = new BinaryDataEncoder()
         let selectModel = MzSQL.prepareSelectModel(cn)
@@ -368,7 +380,7 @@ type MzSQL(path) =
 
     /// Prepare function to select element of Description table of MzSQL.
     static member private prepareSelectChromatogram(cn:SQLiteConnection) =
-        MzSQL.RaiseConnectionState(cn)
+        //MzSQL.RaiseConnectionState(cn)
         //MzSQL.RaiseTransactionState(cn)
         let queryString = "SELECT Description FROM Chromatogram WHERE RunID = @runID"
         let cmd = new SQLiteCommand(queryString, cn)
@@ -384,7 +396,7 @@ type MzSQL(path) =
 
     /// Prepare function to select elements of Description table of MzSQL.
     static member private prepareSelectChromatograms(cn:SQLiteConnection) =
-        MzSQL.RaiseConnectionState(cn)
+        //MzSQL.RaiseConnectionState(cn)
         //MzSQL.RaiseTransactionState(cn)
         let queryString = "SELECT Description FROM Chromatogram WHERE ChromatogramID = @chromatogramID"
         let cmd = new SQLiteCommand(queryString, cn)
@@ -402,7 +414,7 @@ type MzSQL(path) =
 
     /// Prepare function to select elements of PeakArray and PeakData tables of MzSQL.
     static member private prepareSelectPeak2DArray(cn:SQLiteConnection) =
-        MzSQL.RaiseConnectionState(cn)
+        //MzSQL.RaiseConnectionState(cn)
         //MzSQL.RaiseTransactionState(cn)
         let decoder = new BinaryDataDecoder()
         let queryString = "SELECT PeakArray, PeakData FROM Chromatogram WHERE ChromatogramID = @chromatogramID"
@@ -552,7 +564,7 @@ type MzSQL(path) =
         /// Disposes everything and closes connection.
         member this.Dispose() =
             disposed <- true            
-            cn.Close()
+            this.cn.Close()
             //tr.Dispose()
 
     /// Disposes everything and closes connection.
@@ -565,7 +577,7 @@ type MzSQL(path) =
         /// Open connection to MzSQL data base.
         member this.BeginTransaction() =
             this.RaiseDisposed()
-            MzSQL.RaiseConnectionState(cn)
+            //MzSQL.RaiseConnectionState(this.cn)
             //MzSQL.RaiseTransactionState(cn)
             new MzSQLTransactionScope() :> ITransactionScope
 
@@ -583,11 +595,11 @@ type MzSQL(path) =
         /// Access MzIOModel in memory.
         member this.Model =
             this.RaiseDisposed()
-            model
+            this.model
 
     /// Open connection to MzSQL data base.
     member this.BeginTransaction() =
-        cn.BeginTransaction()
+        this.cn.BeginTransaction()
         //(this :> IMzIOIO).BeginTransaction()
 
     /// Creates model based on model in MzSQL or default model when no model was in the db.
@@ -649,8 +661,8 @@ type MzSQL(path) =
 
     /// Starts bulkinsert of mass spectra into a MzLiteSQL database
     member this.insertMSSpectraBy insertSpectrumF (runID:string) (reader:IMzIODataReader) (compress: BinaryDataCompressionType) (spectra: seq<MassSpectrum>) = 
-        let selectModel = MzSQL.prepareSelectModel(cn)
-        let updateRunID = MzSQL.prepareUpdateRunIDOfMzIOModel(cn)
+        let selectModel = MzSQL.prepareSelectModel(this.cn)
+        let updateRunID = MzSQL.prepareUpdateRunIDOfMzIOModel(this.cn)
         let model = MzSQL.updateModel(selectModel(), reader.Model)
         updateRunID runID model
         let bulkInsert spectra = 

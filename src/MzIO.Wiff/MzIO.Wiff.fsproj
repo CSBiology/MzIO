@@ -18,6 +18,8 @@
     <EmbeddedResource Remove="Scripts\**" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="InsertMzML.fsx" />
+    <None Include="InsertMzSQLTest.fsx" />
     <Content Include="License\Clearcore2License_Placeholder.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
