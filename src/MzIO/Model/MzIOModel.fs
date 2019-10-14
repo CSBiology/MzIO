@@ -9,7 +9,7 @@ open Newtonsoft.Json
 /// Captures the use of mass spectrometers, sample descriptions, the mz data generated 
 /// and the processing of that data at the level of peak lists.
 [<JsonObject(MemberSerialization.OptIn)>]
-type MzIOModel
+type MzIOModel [<JsonConstructor>]
     (name:string, fileDescription:FileDescription, samples:SampleList, softwares:SoftwareList, 
      dataProcessings:DataProcessingList, instruments:InstrumentList, runs:RunList
     ) =
@@ -36,7 +36,7 @@ type MzIOModel
         MzIOModel(name, fileDescription, new SampleList(),  new SoftwareList(), new DataProcessingList(), 
                     new InstrumentList(), new RunList())
 
-    [<JsonConstructor>]
+    
     new(name) = 
         MzIOModel(name, new FileDescription(), new SampleList(),  new SoftwareList(), new DataProcessingList(), 
                     new InstrumentList(), new RunList())

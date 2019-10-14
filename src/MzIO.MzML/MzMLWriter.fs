@@ -18,6 +18,7 @@ open NumpressHelper
 open MzIO.Binary
 open MzIO.IO
 open MzIO.Model.CvParam
+open Newtonsoft.Json
 
 
 /// Contains segment names of the MzML file to check the position and state of the writer.
@@ -306,11 +307,15 @@ type MzMLWriter(path:string) =
 
     /// Creates a userParam element and inserts it into the MzML file.
     member private this.WriteUserParam(param:UserParam<#IConvertible>) =
+        let potValue = tryGetValue (param :> IParamBase<#IConvertible>)
+        let value =
+            match potValue with
+            | Some value -> if value = null then "" else value.ToString(new CultureInfo("en-US"))
+            | None       -> ""
         writer.WriteStartElement("userParam")
         writer.WriteAttributeString("name", param.Name)
         //writer.WriteAttributeString("type", "not saved yet")
-        writer.WriteAttributeString("value", if (tryGetValue (param :> IParamBase<#IConvertible>)).IsSome then 
-                                                (tryGetValue (param :> IParamBase<#IConvertible>)).Value.ToString(new CultureInfo("en-US")) else "")
+        writer.WriteAttributeString("value", value)
         if (tryGetCvUnitAccession (param :> IParamBase<#IConvertible>)).IsSome then
             writer.WriteAttributeString("unitCvRef", "UO")
             writer.WriteAttributeString("unitAccession", (tryGetCvUnitAccession (param :> IParamBase<#IConvertible>)).Value.ToString(new CultureInfo("en-US")))
@@ -340,7 +345,11 @@ type MzMLWriter(path:string) =
         match item with
         | :? CvParam<'T>     -> this.WriteCvParam    (item :?> CvParam<'T>)
         | :? UserParam<'T>   -> this.WriteUserParam  (item :?> UserParam<'T>)
-        |   _ -> failwith "Not castable to Cv nor UserParam"
+        |   _ -> 
+            match item.ToString().Contains("\"Name\":") with
+            | true  -> this.WriteUserParam (JsonConvert.DeserializeObject<UserParam<IConvertible>>(item.ToString()))
+            | false -> this.WriteCvParam (JsonConvert.DeserializeObject<CvParam<IConvertible>>(item.ToString()))
+            |   _   -> failwith "Not castable to Cv nor UserParam"
 
     /// Creates a detector element and inserts it into the MzML file.
     member private this.WriteDetector(item:DetectorComponent) =
@@ -548,14 +557,12 @@ type MzMLWriter(path:string) =
 
     /// Creates a binaryDataArray element and inserts it into the MzML file.
     member private this.WriteBinaryDataArray(spectrum:MassSpectrum, peaks:Peak1DArray) =
-        //printfn "WriteBinaryDataArray spectrum %s" spectrum.ID
         let encoder = new MzMLCompression()
         let mzs = 
             peaks.Peaks
             |> Seq.map (fun peak -> peak.Mz)
             |> Array.ofSeq
         let encodedMzs = Convert.ToBase64String(encoder.Encode(peaks.CompressionType, peaks.MzDataType, mzs, BinaryDataCompressionType.NumPressLin))
-        //printfn "encodedMzs %i" encodedMzs.Length
         writer.WriteStartElement("binaryDataArray")
         writer.WriteAttributeString("arrayLength", mzs.Length.ToString(new CultureInfo("en-US")))
         if not (String.IsNullOrWhiteSpace spectrum.DataProcessingReference) then 
@@ -721,7 +728,8 @@ type MzMLWriter(path:string) =
         writer.WriteAttributeString("id", item.ID)
         item.GetProperties false
         |> Seq.iter (fun param -> this.assignParam param.Value)
-        this.WriteComponentList item.Components
+        if item.Components.Count() > 0 then
+            this.WriteComponentList item.Components
         this.WriteSoftwareRef item.Software
         writer.WriteEndElement()
 
@@ -786,12 +794,29 @@ type MzMLWriter(path:string) =
             this.EnterWriteState(MzMLWriteState.CHROMATOGRAM_LIST, MzMLWriteState.CHROMATOGRAM)
         writer.WriteEndElement()
 
+    member private this.writeMzIOProcessing() =
+        /// Creates a dataProcessing element for MzIO and inserts it into the MzML file.
+        writer.WriteStartElement("dataProcessing") 
+        writer.WriteAttributeString("id", "MzIO_processing")
+        writer.WriteStartElement("processingMethod")
+        writer.WriteAttributeString("order", "1")
+        writer.WriteAttributeString("softwareRef", "MzIO")
+        writer.WriteStartElement("userParam")
+        writer.WriteAttributeString("name", "MzIO")
+        //End UserParam
+        writer.WriteEndElement()
+        //End ProcessingMethod
+        writer.WriteEndElement()
+        //End DataProcessing
+        writer.WriteEndElement()
+
     /// Creates a dataProcessingList element and inserts it into the MzML file.
     member private this.WriteDataProcessingList(item:DataProcessingList) =
         writer.WriteStartElement("dataProcessingList")
-        writer.WriteAttributeString("count", item.Count().ToString(new CultureInfo("en-US")))
+        writer.WriteAttributeString("count", (item.Count() + 1).ToString(new CultureInfo("en-US")))
         item.GetProperties false
         |> Seq.iter (fun dataProc -> this.WriteDataProcessing (dataProc.Value :?> DataProcessing))
+        this.writeMzIOProcessing()
         writer.WriteEndElement()
 
     /// Creates a instrumentConfigurationList element and inserts it into the MzML file.
@@ -853,9 +878,15 @@ type MzMLWriter(path:string) =
     member private this.WriteSoftwareList(item:SoftwareList) =
         this.EnsureWriteState(MzMLWriteState.MzIOModel)
         writer.WriteStartElement("softwareList")
-        writer.WriteAttributeString("count", item.Count().ToString(new CultureInfo("en-US")))
+        writer.WriteAttributeString("count", (item.Count() + 1).ToString(new CultureInfo("en-US")))
         item.GetProperties false
         |> Seq.iter (fun software -> this.WriteSoftware(software.Value :?> Software))
+        writer.WriteStartElement("software")
+        writer.WriteAttributeString("id", "MzIO")
+        writer.WriteAttributeString("version", "0.95")
+        //End Software
+        writer.WriteEndElement()
+        //End SoftwareList
         writer.WriteEndElement()
 
     /// Creates a sampleList element and inserts it into the MzML file.

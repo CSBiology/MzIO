@@ -88,21 +88,21 @@ let spectra =
     |> Seq.head
     |> (fun run -> wiffReader.ReadMassSpectra run.ID)
     |> Array.ofSeq
-    |> Array.filter (fun x -> MzIO.Processing.MassSpectrum.getMsLevel x = 2)
+    |> Array.filter (fun x -> MzIO.Processing.MassSpectrum.getMsLevel x = 1)
 
-let peaks =
-    spectra
-    |> Seq.map (fun item -> item, wiffReader.ReadSpectrumPeaks item.ID)
-    |> Seq.filter (fun item -> (snd item).Peaks.Length > 0 )
-    |> Seq.map (fun item -> fst item)
+//let peaks =
+//    spectra
+//    |> Seq.map (fun item -> item, wiffReader.ReadSpectrumPeaks item.ID)
+//    |> Seq.filter (fun item -> (snd item).Peaks.Length > 0 )
+//    |> Seq.map (fun item -> fst item)
 
 mzSQLNoCompression.Open()
 let tr = mzSQLNoCompression.cn.BeginTransaction()
 let stopWatch = System.Diagnostics.Stopwatch.StartNew()
-insertMSSpectraBy insertMSSpectrum mzSQLNoCompression "run_1" wiffReader tr BinaryDataCompressionType.NoCompression peaks
+insertMSSpectraBy insertMSSpectrum mzSQLNoCompression "run_1" wiffReader tr BinaryDataCompressionType.NoCompression spectra
 let stopWatchFnished = stopWatch.Elapsed
 
-Seq.length peaks
+Seq.length spectra
 
 //mzSQLZLib.insertMSSpectraBy          (mzSQLZLib.insertMSSpectrum)           "run_1" wiffReader BinaryDataCompressionType.ZLib          spectra
 //mzSQLNumPress.insertMSSpectraBy      (mzSQLNumPress.insertMSSpectrum)       "run_1" wiffReader BinaryDataCompressionType.NumPress      spectra
