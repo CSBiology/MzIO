@@ -141,7 +141,7 @@ let getSpectras (reader:#IMzIODataReader) =
 //let rtIndexEntry = wiffReader.BuildRtIndex("sample=0")
 //let rtProfile = wiffReader.RtProfile (rtIndexEntry, (new MzIO.Processing.RangeQuery(1., 300., 600.)), (new MzIO.Processing.RangeQuery(1., 300., 600.)))
 
-let mzSQLNoCompression  = new MzSQL(wiffTestHome + "NoCompression.mzIO")
+//let mzSQLNoCompression  = new MzSQL(wiffTestHome + "NoCompression.mzIO")
 //let mzSQLZLib           = new MzSQL(wiffTestHome + "ZLib.mzIO")
 //let mzSQLNumPress       = new MzSQL(wiffTestHome + "NumPress.mzIO")
 //let mzSQLNumPressZLib   = new MzSQL(wiffTestHome + "NumPressZLib.mzIO")
@@ -162,7 +162,6 @@ let spectra =
     |> Seq.head
     |> (fun run -> wiffReader.ReadMassSpectra run.ID)
     |> Array.ofSeq
-    |> Array.take 100
 
 //let precursor = new Precursor()
 //let selectedIon = new SelectedIon()
@@ -191,6 +190,9 @@ let spectra =
 //spectra
 //|> Seq.map (fun spectrum -> wiffReader.ReadSpectrumPeaks spectrum.ID)
 //|> Seq.length
+//mzSQLNoCompression.Open()
+//let tr = mzSQLNoCompression.cn.BeginTransaction()
+//insertMSSpectraBy insertMSSpectrum mzSQLNoCompression "run_1" wiffReader tr BinaryDataCompressionType.NoCompression spectra
 
 //mzSQLNoCompression.insertMSSpectraBy (mzSQLNoCompression.insertMSSpectrum)  "run_1" wiffReader BinaryDataCompressionType.NoCompression spectra
 //mzSQLZLib.insertMSSpectraBy          (mzSQLZLib.insertMSSpectrum)           "run_1" wiffReader BinaryDataCompressionType.ZLib          spectra
@@ -235,11 +237,25 @@ let spectra =
 //|> Seq.map (fun spectrum -> mzSQLNumPressZLib.ReadSpectrumPeaks spectrum.ID)
 //|> Seq.length
 
-//mzMLNoCompression.insertMSSpectraBy   (mzMLNoCompression.insertMSSpectrum)  "run_1" bafReader BinaryDataCompressionType.NoCompression spectra
+//let instrument =
+//    wiffReader.Model.Instruments.GetProperties false 
+//    |> Seq.head 
+//    |> (fun item -> item.Value :?> Instrument)
+
+//let software = 
+//    wiffReader.Model.Softwares.GetProperties false 
+//    |> Seq.head 
+//    |> (fun item -> item.Value :?> Software)
+//instrument.Software
+
+mzMLNoCompression.insertMSSpectraBy   (mzMLNoCompression.insertMSSpectrum)  "run_1" wiffReader BinaryDataCompressionType.NoCompression spectra
 //mzMLZLib.insertMSSpectraBy            (mzMLZLib.insertMSSpectrum)           "run_1" bafReader BinaryDataCompressionType.ZLib          spectra
 //mzMLNumPress.insertMSSpectraBy        (mzMLNumPress.insertMSSpectrum)       "run_1" bafReader BinaryDataCompressionType.NumPress      spectra
 //mzMLNumPressZLib.insertMSSpectraBy    (mzMLNumPressZLib.insertMSSpectrum)   "run_1" bafReader BinaryDataCompressionType.NumPressZLib  spectra
 
+let testSoftware = new Software("Test")
+let testInStrument = new Instrument("Test", testSoftware)
+testInStrument.Software
 
 //mzMLReaderNoCompression.ReadMassSpectra "run_1"
 //|> Seq.length
@@ -411,29 +427,29 @@ let spectra =
 //mzSQLNoCompression.BuildRtIndex ("run_1")
 //mzSQLNoCompression.RtProfile (mzSQLNoCompression.BuildRtIndex("run_1"), (new MzIO.Processing.RangeQuery(1., 0., 3000.)), (new MzIO.Processing.RangeQuery(1., 0., 3000.)))
 
-let spectrum = spectra.[0]
+//let spectrum = spectra.[0]
 
-let sqlSqpctrum = mzSQLNoCompression.SelectMassSpectrum "sample=0 experiment=0 scan=0"
+//let sqlSqpctrum = mzSQLNoCompression.SelectMassSpectrum "sample=0 experiment=0 scan=0"
 
-spectrum.GetProperties false
-sqlSqpctrum.GetProperties false
+//spectrum.GetProperties false
+//sqlSqpctrum.GetProperties false
 
-getScanTime spectrum
-getScanTime sqlSqpctrum
+//getScanTime spectrum
+//getScanTime sqlSqpctrum
 
-let mutable msLevel = 0
-sqlSqpctrum.TryGetMsLevel(&msLevel)
+//let mutable msLevel = 0
+//sqlSqpctrum.TryGetMsLevel(&msLevel)
 
-getPrecursorMZ spectrum
-getPrecursorMZ sqlSqpctrum
+//getPrecursorMZ spectrum
+//getPrecursorMZ sqlSqpctrum
 
-spectrum.Precursors.Count()
-sqlSqpctrum.Precursors.Count()
+//spectrum.Precursors.Count()
+//sqlSqpctrum.Precursors.Count()
 
-let tmp =
-    sqlSqpctrum.Precursors.GetProperties false
-    |> Seq.collect (fun item -> (item.Value :?> Precursor).SelectedIons.GetProperties false
-                                |> Seq.map (fun selectedIon -> 
-                                    selectedIon.Value :?> SelectedIon))
+//let tmp =
+//    sqlSqpctrum.Precursors.GetProperties false
+//    |> Seq.collect (fun item -> (item.Value :?> Precursor).SelectedIons.GetProperties false
+//                                |> Seq.map (fun selectedIon -> 
+//                                    selectedIon.Value :?> SelectedIon))
 
-(Seq.head tmp).GetProperties false
+//(Seq.head tmp).GetProperties false

@@ -373,7 +373,7 @@ type WiffFileReader(dataProvider:AnalystWiffDataProvider, disposed:Boolean, wiff
                             model.Softwares.Add(software.ID, software)
                     )
                     let instrumentID = msSample.InstrumentName.Trim()
-                    let instrument = new Instrument(instrumentID)
+                    let instrument = new Instrument(instrumentID, software)
                     (
                         if model.Instruments.TryGetItemByKey(instrumentID, instrument)=false then
                             model.Instruments.Add(instrument.ID, instrument)
