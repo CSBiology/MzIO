@@ -79,19 +79,31 @@ let spectra =
     |> Seq.head
     |> (fun run -> wiffReader.ReadMassSpectra run.ID)
     |> Array.ofSeq
-    |> Array.filter (fun x -> MzIO.Processing.MassSpectrum.getMsLevel x = 2)
+    |> Array.filter (fun x -> MzIO.Processing.MassSpectrum.getMsLevel x = 1)
+    |> Array.take 10
 
-let peaks =
-    spectra
-    |> Seq.map (fun item -> item, wiffReader.ReadSpectrumPeaks item.ID)
-    |> Seq.filter (fun item -> (snd item).Peaks.Length > 0 )
-    |> Seq.map (fun item -> fst item)
+//let peaks =
+//    spectra
+//    |> Seq.map (fun item -> item, wiffReader.ReadSpectrumPeaks item.ID)
+//    |> Seq.filter (fun item -> (snd item).Peaks.Length > 0 )
+//    |> Seq.map (fun item -> fst item)
 
 
 let stopWatch = System.Diagnostics.Stopwatch.StartNew()
-mzMLNoCompression.insertMSSpectraBy mzMLNoCompression.insertMSSpectrum "run_1" wiffReader BinaryDataCompressionType.NoCompression peaks
+mzMLNoCompression.insertMSSpectraBy mzMLNoCompression.insertMSSpectrum "run_1" wiffReader BinaryDataCompressionType.NoCompression spectra
 let stopWatchFnished = stopWatch.Elapsed
 
-Seq.length peaks
+//Seq.length peaks
 
 5+5 
+
+let instrument =
+    wiffReader.Model.Instruments.GetProperties false
+    |>Seq.head
+    |> fun item -> item.Value :?> Instrument
+
+let software = instrument.Software
+
+let fileContent = wiffReader.Model.FileDescription
+
+fileContent.Contact.Count()

@@ -148,9 +148,33 @@ type MzIOJson =
 
         JsonConvert.SerializeObject(obj, MzIOJson.jsonSettings)
 
+    /// Deserializes JSON string to either cv or user param.
+    static member deSerializeParams(item:#DynamicObj) =
+        item.GetProperties false
+        |> Seq.iter (fun param -> 
+            let tmp = param.Value :?> JObject
+            match tmp.["Name"] with
+            | null  -> item.SetValue(param.Key, JsonConvert.DeserializeObject<CvParam<IConvertible>>(tmp.ToString()))
+            | _     -> item.SetValue(param.Key, JsonConvert.DeserializeObject<UserParam<IConvertible>>(tmp.ToString()))
+                    )
+
+    /// Deserializes JSON string to fileDescription.
+    static member private deSerializeSourceFile(sourceFile:string) =
+        let tmp = JsonConvert.DeserializeObject<SourceFile>(sourceFile)
+        MzIOJson.deSerializeParams(tmp)
+        tmp
+
+    /// Deserializes JSON string to fileDescription.
+    static member private deSerializeContact(contact:Contact) =
+        MzIOJson.deSerializeParams(contact)
+
     /// Deserializes JSON string to fileDescription.
     static member private deSerializeFileDescription(fileDescription:FileDescription) =
-        JsonConvert.DeserializeObject<FileDescription>(fileDescription.ToString())
+        fileDescription.SourceFiles.GetProperties false
+        |> Seq.iter (fun sourceFile -> 
+            let tmp = MzIOJson.deSerializeSourceFile(sourceFile.Value.ToString())
+            fileDescription.SourceFiles.SetValue(tmp.ID, tmp))
+        MzIOJson.deSerializeContact(fileDescription.Contact)
 
     /// Deserializes JSON string to sample.
     static member private deSerializeSample(sample:string) =    
@@ -194,9 +218,9 @@ type MzIOJson =
     /// Deserializes JSON string to mzio model.
     static member deSerializeMzIOModel(model:string) =
         let mzIOModel = JsonConvert.DeserializeObject<MzIOModel>(model)
-        //let fileDescription = 
-        //    MzIOJson.deSerializeFileDescription mzIOModel.FileDescription
-        //mzIOModel.FileDescription <- fileDescription
+
+        let fileDescription = MzIOJson.deSerializeFileDescription mzIOModel.FileDescription
+
         let samples = 
             match mzIOModel.Samples with
             | null  -> new SampleList()
@@ -221,16 +245,6 @@ type MzIOJson =
             MzIOJson.deSerializeRuns mzIOModel.Runs
         mzIOModel.Runs <- runs
         mzIOModel
-    
-    /// Deserializes JSON string to either cv or user param.
-    static member deSerializeParams(item:#DynamicObj) =
-        item.GetProperties false
-        |> Seq.iter (fun param -> 
-            let tmp = param.Value :?> JObject
-            match tmp.["Name"] with
-            | null  -> item.SetValue(param.Key, JsonConvert.DeserializeObject<CvParam<IConvertible>>(tmp.ToString()))
-            | _     -> item.SetValue(param.Key, JsonConvert.DeserializeObject<UserParam<IConvertible>>(tmp.ToString()))
-                    )
 
     /// Deserializes JSON string to product list.
     static member deSerializeProducts(products:ProductList) =

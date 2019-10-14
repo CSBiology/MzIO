@@ -45,7 +45,7 @@ type ComponentList [<JsonConstructor>] () =
 /// Expansible description of the hardware configuration of a mass spectrometer.
 [<Sealed>]
 [<JsonObject(MemberSerialization.OptIn, IsReference = true)>]
-type Instrument([<JsonProperty("ID")>] id:string, software, components) =
+type Instrument [<JsonConstructor>] ([<JsonProperty("ID")>] id:string, software, components) =
 
     inherit ModelItem(id)
 
@@ -53,7 +53,7 @@ type Instrument([<JsonProperty("ID")>] id:string, software, components) =
 
     let mutable components' = components
 
-    [<JsonConstructor>]
+    new(id, software) = new Instrument(id, software, new ComponentList())
     new(id) = new Instrument(id, new Software(), new ComponentList())
     new() = new Instrument("id", new Software(), new ComponentList())
 

@@ -13,10 +13,10 @@ open MzIO.Json
 open MzIO.Binary
 open MzIO.IO
 open MzIO.Model
+open MzIO.Model.CvParam
 open MzIO.MetaData.UO.UO
 open MzIO.MetaData.PSIMSExtension
 open MzIO.Commons.Arrays
-
 
 
 //put in an extra module for improved performance
@@ -353,6 +353,11 @@ type WiffFileReader(dataProvider:AnalystWiffDataProvider, disposed:Boolean, wiff
 
             let sampleNames = batch.GetSampleNames()
 
+            let sourceFile = new SourceFile(batch.Name)
+            sourceFile.AddCvParam (new CvParam<IConvertible>("MS:1000770"))
+            model.FileDescription.FileContent.AddCvParam(new CvParam<IConvertible>("MS:1000580"))
+            model.FileDescription.SourceFiles.Add(sourceFile.ID, sourceFile)
+
             for sampleIdx=0 to sampleNames.Length-1 do
                 use wiffSample = batch.GetSample(sampleIdx)
                 (
@@ -373,7 +378,9 @@ type WiffFileReader(dataProvider:AnalystWiffDataProvider, disposed:Boolean, wiff
                             model.Softwares.Add(software.ID, software)
                     )
                     let instrumentID = msSample.InstrumentName.Trim()
-                    let instrument = new Instrument(instrumentID)
+                    let instrument = new Instrument(instrumentID, new Software(wiffSample.Details.SoftwareVersion.Trim()))
+                    let instrumentName = new UserParam<IConvertible>(wiffSample.MassSpectrometerSample.InstrumentName)
+                    instrument.AddUserParam(instrumentName)
                     (
                         if model.Instruments.TryGetItemByKey(instrumentID, instrument)=false then
                             model.Instruments.Add(instrument.ID, instrument)
@@ -381,7 +388,7 @@ type WiffFileReader(dataProvider:AnalystWiffDataProvider, disposed:Boolean, wiff
                     let runID = String.Format("sample={0}", sampleIdx)
                     let run = new Run(runID, sampleID, instrumentID)
                     model.Runs.Add(run.ID, run)
-
+                    model.FileDescription.Contact.AddCvParam(new CvParam<string>("MS:1000586", ParamValue<string>.CvValue(String.Concat(wiffSample.Details.UserName.TakeWhile(fun item -> item <> '\\')))))
                 )
             model
 
