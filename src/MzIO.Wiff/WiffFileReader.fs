@@ -661,3 +661,52 @@ type WiffFileReader(dataProvider:AnalystWiffDataProvider, disposed:Boolean, wiff
                     yield scanTimes
             }
         |> Seq.sum
+
+    /// SampleInfo
+    member this.GetSampleInfo(spectrumID:string) =
+        let sampleIndex = this.getSampleIndex(spectrumID)
+        let sample = batch.GetSample(sampleIndex).MassSpectrometerSample
+        sample.Sample.Details
+
+    /// SampleName
+    member this.GetSampleName(spectrumID:string) =
+        let sampleIndex = this.getSampleIndex(spectrumID)
+        let sample = batch.GetSample(sampleIndex).MassSpectrometerSample
+        sample.Sample.Details.SampleName
+
+     /// SampleID
+    member this.GetSampleID(spectrumID:string) =
+        let sampleIndex = this.getSampleIndex(spectrumID)
+        let sample = batch.GetSample(sampleIndex).MassSpectrometerSample
+        sample.Sample.Details.SampleID
+
+    /// SampleComment
+    member this.GetSampleComment(spectrumID:string) =
+        let sampleIndex = this.getSampleIndex(spectrumID)
+        let sample = batch.GetSample(sampleIndex).MassSpectrometerSample
+        sample.Sample.Details.SampleComment
+
+    /// AcquisitionMethod
+    member this.GetAcquisitionDate(spectrumID:string) =
+        let sampleIndex = this.getSampleIndex(spectrumID)
+        let sample = batch.GetSample(sampleIndex).MassSpectrometerSample
+        sample.Sample.Details.AcquisitionDateTime
+
+    /// AcquisitionDate
+    member this.GetAcquisitionInfo(spectrumID:string) =
+        let sampleIndex = this.getSampleIndex(spectrumID)
+        let sample = batch.GetSample(sampleIndex).MassSpectrometerSample
+        sample.Sample.Details.AcquisitionDateTime
+
+    /// AcquisitionMethod
+    member this.GetAcquisitionTime(spectrumID:string) =
+        let sampleIndex = this.getSampleIndex(spectrumID)
+        let sample = batch.GetSample(sampleIndex).MassSpectrometerSample
+        sample.Sample.Details.ExtraProperties
+
+     /// Rack
+    member this.GetRack(spectrumID:string) =
+        let sampleIndex = this.getSampleIndex(spectrumID)
+        let sample = batch.GetSample(sampleIndex).MassSpectrometerSample
+        sample.Sample.Details.Rack
+
