@@ -49,8 +49,9 @@ open MzIO.Processing.Indexer
 open MzIO.Processing.MassSpectrum
 
 
-let fileDir             = __SOURCE_DIRECTORY__
-let licensePath         = @"C:\Users\Student\source\repos\MzLiteFSharp\src\MzLiteFSharp.Wiff\License\Clearcore2.license.xml"
+let fileDir         = __SOURCE_DIRECTORY__
+let licensePath     = @"C:\Users\Student\source\repos\MzLiteFSharp\src\MzLiteFSharp.Wiff\License\Clearcore2.license.xml"
+let licenseHome     = @"C:\Users\Patrick\source\repos\MzLiteFSharp\src\MzLiteFSharp.Wiff\License\Clearcore2.license.xml"
 
 let wiffTestUni     = @"C:\Users\Student\source\repos\wiffTestFiles\WiffFiles\20171129 FW LWagg001.wiff"
 let wiffTestHome    = @"D:\Users\Patrick\Desktop\BioInformatik\MzLiteTestFiles\WiffTestFiles\20180301_MS_JT88mutID122.wiff"
@@ -63,14 +64,14 @@ let bafMzMLFile     = @"C:\Users\Student\source\repos\wiffTestFiles\Bruker\17092
 let thermoUni       = @"C:\Users\Student\source\repos\wiffTestFiles\Thermo\data02.RAW"
 let termoMzML       = @"C:\Users\Student\source\repos\wiffTestFiles\Thermo\data02.mzML"
 
-let wiffReader          = new WiffFileReader(wiffTestUni, licensePath)
+let wiffReader          = new WiffFileReader(wiffTestHome, licenseHome)
 //let bafReader           = new BafFileReader(bafTestHome)
 //let thermoReader        = new ThermoRawFileReader(thermoUni)
 
-let mzSQLNoCompression  = new MzSQL(wiffTestUni + "NoCompression.mzIO")
-//let mzSQLZLib           = new MzSQL(wiffTestUni + "ZLib.mzIO")
-//let mzSQLNumPress       = new MzSQL(wiffTestUni + "NumPress.mzIO")
-//let mzSQLNumPressZLib   = new MzSQL(wiffTestUni + "NumPressZLib.mzIO")
+let mzSQLNoCompression  = new MzSQL(wiffTestHome + "NoCompression.mzIO")
+let mzSQLZLib           = new MzSQL(wiffTestHome + "ZLib.mzIO")
+let mzSQLNumPress       = new MzSQL(wiffTestHome + "NumPress.mzIO")
+let mzSQLNumPressZLib   = new MzSQL(wiffTestHome + "NumPressZLib.mzIO")
 
 //let mzMLNoCompression   = new MzMLWriter(wiffTestUni + "NoCompression.mzml")
 //let mzMLZLib            = new MzMLWriter(wiffTestUni + "ZLib.mzml")
@@ -102,10 +103,17 @@ let stopWatch = System.Diagnostics.Stopwatch.StartNew()
 insertMSSpectraBy insertMSSpectrum mzSQLNoCompression "run_1" wiffReader tr BinaryDataCompressionType.NoCompression spectra
 let stopWatchFnished = stopWatch.Elapsed
 
-Seq.length spectra
+mzSQLZLib.Open()
+let trZLIB = mzSQLZLib.cn.BeginTransaction()
+insertMSSpectraBy insertMSSpectrum mzSQLZLib "run_1" wiffReader trZLIB BinaryDataCompressionType.ZLib spectra
 
-//mzSQLZLib.insertMSSpectraBy          (mzSQLZLib.insertMSSpectrum)           "run_1" wiffReader BinaryDataCompressionType.ZLib          spectra
-//mzSQLNumPress.insertMSSpectraBy      (mzSQLNumPress.insertMSSpectrum)       "run_1" wiffReader BinaryDataCompressionType.NumPress      spectra
-//mzSQLNumPressZLib.insertMSSpectraBy  (mzSQLNumPressZLib.insertMSSpectrum)   "run_1" wiffReader BinaryDataCompressionType.NumPressZLib  spectra
+mzSQLNumPress.Open()
+let trNumPress = mzSQLNumPress.cn.BeginTransaction()
+insertMSSpectraBy insertMSSpectrum mzSQLNumPress "run_1" wiffReader trNumPress BinaryDataCompressionType.NumPress spectra
+
+mzSQLNumPressZLib.Open()
+let trNumPressZLIB = mzSQLNumPressZLib.cn.BeginTransaction()
+insertMSSpectraBy insertMSSpectrum mzSQLNumPressZLib "run_1" wiffReader trNumPressZLIB BinaryDataCompressionType.NumPressZLib spectra
+
 
 5+5

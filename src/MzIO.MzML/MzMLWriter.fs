@@ -881,9 +881,17 @@ type MzMLWriter(path:string) =
         writer.WriteAttributeString("count", (item.Count() + 1).ToString(new CultureInfo("en-US")))
         item.GetProperties false
         |> Seq.iter (fun software -> this.WriteSoftware(software.Value :?> Software))
+
         writer.WriteStartElement("software")
         writer.WriteAttributeString("id", "MzIO")
         writer.WriteAttributeString("version", "0.95")
+
+        writer.WriteStartElement("userParam")
+        writer.WriteAttributeString("name", "MzIO")
+        //writer.WriteAttributeString("type", "not saved yet")
+        writer.WriteAttributeString("value", "")
+        //End Userparam
+        writer.WriteEndElement()
         //End Software
         writer.WriteEndElement()
         //End SoftwareList
@@ -1101,27 +1109,12 @@ type MzMLWriter(path:string) =
         model <- model'
 
     /// Inserts runID, MassSpectra with corresponding Peak1DArrasy into datbase Spectrum table with chosen compression type for the peak data.
-    member this.insertMSSpectrum (runID:string) (reader:IMzIODataReader) (compress: BinaryDataCompressionType) (spectrum: MassSpectrum)= 
+    member this.insertMSSpectrum (runID:string) index (reader:IMzIODataReader) (compress: BinaryDataCompressionType) (spectrum: MassSpectrum)= 
         let peakArray = reader.ReadSpectrumPeaks(spectrum.ID)
-        match compress with 
-        | BinaryDataCompressionType.NoCompression  -> 
-            let clonedP = new Peak1DArray(BinaryDataCompressionType.NoCompression, peakArray.IntensityDataType,peakArray.MzDataType)
-            clonedP.Peaks <- peakArray.Peaks
-            this.InsertMass(runID, spectrum, clonedP)
-        | BinaryDataCompressionType.ZLib -> 
-            let clonedP = new Peak1DArray(BinaryDataCompressionType.ZLib, peakArray.IntensityDataType,peakArray.MzDataType)
-            clonedP.Peaks <- peakArray.Peaks
-            this.InsertMass(runID, spectrum, clonedP)
-        | BinaryDataCompressionType.NumPress ->
-            let clonedP = new Peak1DArray(BinaryDataCompressionType.NumPress, peakArray.IntensityDataType,peakArray.MzDataType)
-            clonedP.Peaks <- peakArray.Peaks
-            this.InsertMass(runID, spectrum, clonedP)
-        | BinaryDataCompressionType.NumPressZLib ->
-            let clonedP = new Peak1DArray(BinaryDataCompressionType.NumPressZLib, peakArray.IntensityDataType,peakArray.MzDataType)
-            clonedP.Peaks <- peakArray.Peaks
-            this.InsertMass(runID, spectrum, clonedP)
-        | _ ->
-            failwith "Not a valid compression Method"
+        let clonedP = new Peak1DArray(compress, peakArray.IntensityDataType,peakArray.MzDataType)
+        clonedP.Peaks <- peakArray.Peaks
+        this.EnsureWriteState(MzMLWriteState.SPECTRUM)
+        this.WriteSpectrum(spectrum, index, peakArray) |> ignore
 
     /// Modifies spectrum according to the used spectrumPeaksModifierF and inserts the result into the MzML file.
     member this.insertModifiedSpectrumBy (spectrumPeaksModifierF: IMzIODataReader -> MassSpectrum -> BinaryDataCompressionType -> Peak1DArray) (runID:string) (reader:IMzIODataReader) (compress: BinaryDataCompressionType) (spectrum: MassSpectrum) = 
@@ -1143,9 +1136,16 @@ type MzMLWriter(path:string) =
             |> Seq.head
             |> fun item -> item.Value :?> Run
 
+        //let bulkInsert spectra = 
+        //    spectra
+        //    |> Seq.iter (insertSpectrumF index realRun.ID reader compress spectrum)
+
         let bulkInsert spectra = 
-            spectra
-            |> Seq.iter (insertSpectrumF realRun.ID reader compress)
+            let mutable index = -1
+            Seq.iter (fun spectrum -> 
+                index <- index + 1
+                insertSpectrumF realRun.ID index reader compress spectrum) spectra |> ignore
+
         bulkInsert spectra
         writer.WriteEndElement()
         writer.WriteEndElement()
