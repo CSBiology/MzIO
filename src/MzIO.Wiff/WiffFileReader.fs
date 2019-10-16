@@ -373,6 +373,8 @@ type WiffFileReader(dataProvider:AnalystWiffDataProvider, disposed:Boolean, wiff
                     model.Samples.Add(MzIOSample.ID, MzIOSample)
                     let softwareID = wiffSample.Details.SoftwareVersion.Trim()
                     let software = new Software(softwareID)
+                    let analystSoftware = new CvParam<IConvertible>("MS:1000551")
+                    software.AddCvParam(analystSoftware)
                     (
                         if model.Softwares.TryGetItemByKey(softwareID, software)=false then
                             model.Softwares.Add(software.ID, software)

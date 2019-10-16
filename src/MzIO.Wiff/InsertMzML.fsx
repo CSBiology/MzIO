@@ -49,8 +49,9 @@ open MzIO.Processing.Indexer
 open MzIO.Processing.MassSpectrum
 
 
-let fileDir             = __SOURCE_DIRECTORY__
-let licensePath         = @"C:\Users\Student\source\repos\MzLiteFSharp\src\MzLiteFSharp.Wiff\License\Clearcore2.license.xml"
+let fileDir         = __SOURCE_DIRECTORY__
+let licensePath     = @"C:\Users\Student\source\repos\MzLiteFSharp\src\MzLiteFSharp.Wiff\License\Clearcore2.license.xml"
+let licenseHome     = @"C:\Users\Patrick\source\repos\MzLiteFSharp\src\MzLiteFSharp.Wiff\License\Clearcore2.license.xml"
 
 let wiffTestUni     = @"C:\Users\Student\source\repos\wiffTestFiles\WiffFiles\20171129 FW LWagg001.wiff"
 let wiffTestHome    = @"D:\Users\Patrick\Desktop\BioInformatik\MzLiteTestFiles\WiffTestFiles\20180301_MS_JT88mutID122.wiff"
@@ -63,11 +64,11 @@ let bafMzMLFile     = @"C:\Users\Student\source\repos\wiffTestFiles\Bruker\17092
 let thermoUni       = @"C:\Users\Student\source\repos\wiffTestFiles\Thermo\data02.RAW"
 let termoMzML       = @"C:\Users\Student\source\repos\wiffTestFiles\Thermo\data02.mzML"
 
-let wiffReader          = new WiffFileReader(wiffTestUni, licensePath)
+let wiffReader          = new WiffFileReader(wiffTestHome, licenseHome)
 //let bafReader           = new BafFileReader(bafTestHome)
 //let thermoReader        = new ThermoRawFileReader(thermoUni)
 
-let mzMLNoCompression   = new MzMLWriter(wiffTestUni + "NoCompression.mzml")
+let mzMLNoCompression   = new MzMLWriter(wiffTestHome + "NoCompression.mzml")
 //let mzMLZLib            = new MzMLWriter(wiffTestUni + "ZLib.mzml")
 //let mzMLNumPress        = new MzMLWriter(wiffTestUni + "NumPress.mzml")
 //let mzMLNumPressZLib    = new MzMLWriter(wiffTestUni + "NumPressZLib.mzml")
@@ -80,7 +81,7 @@ let spectra =
     |> (fun run -> wiffReader.ReadMassSpectra run.ID)
     |> Array.ofSeq
     |> Array.filter (fun x -> MzIO.Processing.MassSpectrum.getMsLevel x = 1)
-    |> Array.take 10
+    //|> Array.take 10
 
 //let peaks =
 //    spectra

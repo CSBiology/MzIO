@@ -53,9 +53,9 @@ type Instrument [<JsonConstructor>] ([<JsonProperty("ID")>] id:string, software,
 
     let mutable components' = components
 
-    new(id, software) = new Instrument(id, software, new ComponentList())
-    new(id) = new Instrument(id, new Software(), new ComponentList())
-    new() = new Instrument("id", new Software(), new ComponentList())
+    new(id)             = new Instrument(id, new Software(), new ComponentList())
+    new(id, software)   = new Instrument(id, software, new ComponentList())
+    new()               = new Instrument("id", new Software(), new ComponentList())
 
     [<JsonProperty(NullValueHandling = NullValueHandling.Ignore)>]
     member this.Software

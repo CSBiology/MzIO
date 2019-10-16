@@ -394,8 +394,13 @@ type ThermoRawFileReader(rawFilePath:string) =
             let sample      = new Sample("sample_1", sampleName)
             model.Samples.Add(sample.ID, sample)
 
+            let software = new Software(rawFile.GetInstrumentData().SoftwareVersion)
+            let instrument = new Instrument(rawFile.GetInstrumentData().Name, software)
+
             let run         = new Run("run_1", sampleName, rawFile.GetInstrumentData().Name)
 
+            model.Softwares.Add(software.ID, software)
+            model.Instruments.Add(instrument.ID, instrument)
             model.Runs.Add(run.ID, run)
             model
 
