@@ -572,6 +572,28 @@ type WiffFileReader(dataProvider:AnalystWiffDataProvider, disposed:Boolean, wiff
         else
             raise (new FormatException(sprintf "%s%s" "Not a valid wiff spectrum id format: " spectrumID))
 
+    /// Returns scan time of mass range.
+    static member private getScanTime(massRange:MassRange) =
+        match massRange with
+        | :? FullScanMassRange  -> (massRange :?> FullScanMassRange).ScanTime
+        | _     ->  failwith "No supported type for casting"
+
+    /// Returns scan time of spectrum.
+    member this.GetScanTime(spectrumID:string) =
+        let sampleIndex = this.getSampleIndex(spectrumID)
+        use sample = batch.GetSample(sampleIndex).MassSpectrometerSample
+        seq
+            {
+                for experimentIndex= 0 to sample.ExperimentCount-1 do
+                    let mutable msExp = sample.GetMSExperiment(experimentIndex)
+                    let scanTimes =
+                        msExp.Details.MassRangeInfo
+                        |> Array.fold (fun start scanTime -> start + WiffFileReader.getScanTime scanTime) 0.
+                    yield scanTimes
+            }
+        |> Seq.sum
+
+        
     /// Returns TIC of spectrum.
     member this.GetTIC(spectrumID:string) =
         let sampleIndex = this.getSampleIndex(spectrumID)
@@ -643,32 +665,40 @@ type WiffFileReader(dataProvider:AnalystWiffDataProvider, disposed:Boolean, wiff
                         yield msExp.GetMassSpectrumInfo(scanIndex).CollisionEnergy
             }
 
-    /// Returns scan time of mass range.
-    static member private getScanTime(massRange:MassRange) =
-        match massRange with
-        | :? FullScanMassRange  -> (massRange :?> FullScanMassRange).ScanTime
-        | _     ->  failwith "No supported type for casting"
-
-    /// Returns scan time of spectrum.
-    member this.GetScanTime(spectrumID:string) =
+    /// Sample PeriodIndex
+    member this.GetSamplePeriodIndex(spectrumID:string) =
         let sampleIndex = this.getSampleIndex(spectrumID)
-        use sample = batch.GetSample(sampleIndex).MassSpectrometerSample
+        let sample = batch.GetSample(sampleIndex).MassSpectrometerSample
         seq
             {
                 for experimentIndex= 0 to sample.ExperimentCount-1 do
                     let mutable msExp = sample.GetMSExperiment(experimentIndex)
-                    let scanTimes =
-                        msExp.Details.MassRangeInfo
-                        |> Array.fold (fun start scanTime -> start + WiffFileReader.getScanTime scanTime) 0.
-                    yield scanTimes
+                    for scanIndex = 0 to msExp.Details.NumberOfScans do
+                        yield msExp.GetMassSpectrum(scanIndex).Info.PeriodIndex
             }
-        |> Seq.sum
+        //|> Seq.head
 
-    /// SampleInfo
-    member this.GetSampleInfo(spectrumID:string) =
+    /// Sample TransitionIndex
+    member this.GetSampleTransitionIndex(spectrumID:string) =
         let sampleIndex = this.getSampleIndex(spectrumID)
         let sample = batch.GetSample(sampleIndex).MassSpectrometerSample
-        sample.Sample.Details
+        seq
+            {
+                for experimentIndex= 0 to sample.ExperimentCount-1 do
+                    let mutable msExp = sample.GetMSExperiment(experimentIndex)
+                    for scanIndex = 0 to msExp.Details.NumberOfScans do
+                        yield msExp.GetMassSpectrum(scanIndex).Info.TransitionIndex
+            }
+        //|> Seq.head
+
+
+    /// Sample Info
+
+    /// Sample
+    member this.GetSample(spectrumID:string) =
+        let sampleIndex = this.getSampleIndex(spectrumID)
+        let sample = batch.GetSample(sampleIndex).MassSpectrometerSample
+        sample.Sample.SampleLocator.ContainerPath
 
     /// SampleName
     member this.GetSampleName(spectrumID:string) =
@@ -688,27 +718,173 @@ type WiffFileReader(dataProvider:AnalystWiffDataProvider, disposed:Boolean, wiff
         let sample = batch.GetSample(sampleIndex).MassSpectrometerSample
         sample.Sample.Details.SampleComment
 
-    /// AcquisitionMethod
-    member this.GetAcquisitionDate(spectrumID:string) =
-        let sampleIndex = this.getSampleIndex(spectrumID)
-        let sample = batch.GetSample(sampleIndex).MassSpectrometerSample
-        sample.Sample.Details.AcquisitionDateTime
+    ///Acquisition Info
 
     /// AcquisitionDate
-    member this.GetAcquisitionInfo(spectrumID:string) =
+    member this.GetAcquisitionDate(spectrumID) =
+        let sampleIndex = this.getSampleIndex(spectrumID)
+        let sample = batch.GetSample(sampleIndex).MassSpectrometerSample
+        sample.Sample.Details.AcquisitionDateTime.Date
+
+    member private this.getTime(spectrumID) =
         let sampleIndex = this.getSampleIndex(spectrumID)
         let sample = batch.GetSample(sampleIndex).MassSpectrometerSample
         sample.Sample.Details.AcquisitionDateTime
 
-    /// AcquisitionMethod
-    member this.GetAcquisitionTime(spectrumID:string) =
+    /// AcquisitionTime
+    member this.GetAcquisitionTime(spectrumID) =
         let sampleIndex = this.getSampleIndex(spectrumID)
         let sample = batch.GetSample(sampleIndex).MassSpectrometerSample
-        sample.Sample.Details.ExtraProperties
+        sample.Sample.Details.AcquisitionDateTime.TimeOfDay
+        
+    /// UserName
+    member this.GetUserName(spectrumID:string) =
+        let sampleIndex = this.getSampleIndex(spectrumID)
+        let sample = batch.GetSample(sampleIndex).MassSpectrometerSample
+        sample.Sample.Details.UserName
 
-     /// Rack
+    /// AcquisitionMethod
+    member this.GetAcqusitionMethod(spectrumID:string) =
+        let sampleIndex = this.getSampleIndex(spectrumID)
+        let sample = batch.GetSample(sampleIndex).MassSpectrometerSample
+        sample.Sample.Details.AcquisitionMethodName
+
+    /// Rack
     member this.GetRack(spectrumID:string) =
         let sampleIndex = this.getSampleIndex(spectrumID)
         let sample = batch.GetSample(sampleIndex).MassSpectrometerSample
         sample.Sample.Details.Rack
 
+    /// Plate
+    member this.GetPlate(spectrumID:string) =
+        let sampleIndex = this.getSampleIndex(spectrumID)
+        let sample = batch.GetSample(sampleIndex).MassSpectrometerSample
+        sample.Sample.Details.Plate
+
+    /// Vial
+    member this.GetVial(spectrumID:string) =
+        let sampleIndex = this.getSampleIndex(spectrumID)
+        let sample = batch.GetSample(sampleIndex).MassSpectrometerSample
+        sample.Sample.Details.Vial
+
+    ///Log
+
+    ///// Eksigent AS3 v4.2
+    //member this.GetEksigent(spectrumID:string) =
+    //    let sampleIndex = this.getSampleIndex(spectrumID)
+    //    let sample = batch.GetSample(sampleIndex).MassSpectrometerSample
+    //    for experimentIndex= 0 to sample.ExperimentCount-1 do
+    //        let mutable msExp = sample.GetMSExperiment(experimentIndex)
+    //        msExp.Details
+
+    /// InstrumentSerialNumber
+    member this.GetInstrumentSerialNumber(spectrumID:string) =
+        let sampleIndex = this.getSampleIndex(spectrumID)
+        let sample = batch.GetSample(sampleIndex).MassSpectrometerSample
+        sample.Sample.Details.InstrumentSerialNumber
+
+    /// MassSpectrometer
+    member this.GetMassSpectrometer(spectrumID:string) =
+        let sampleIndex = this.getSampleIndex(spectrumID)
+        let sample = batch.GetSample(sampleIndex).MassSpectrometerSample
+        sample.Sample.Details.InstrumentSerialNumber
+
+    /// Sample RowName
+    member this.GetSampleRowName(spectrumID:string) =
+        let sampleIndex = this.getSampleIndex(spectrumID)
+        let sample = batch.GetSample(sampleIndex).MassSpectrometerSample
+        seq
+            {
+                for experimentIndex= 0 to sample.ExperimentCount-1 do
+                    let mutable msExp = sample.GetMSExperiment(experimentIndex)
+                    for scanIndex = 0 to msExp.Details.NumberOfScans do
+                        yield msExp.GetMassSpectrum(scanIndex).Info.XName
+            }
+        |> Seq.head
+
+    /// Sample RowUnits
+    member this.GetSampleRowUnits(spectrumID:string) =
+        let sampleIndex = this.getSampleIndex(spectrumID)
+        let sample = batch.GetSample(sampleIndex).MassSpectrometerSample
+        seq
+            {
+                for experimentIndex= 0 to sample.ExperimentCount-1 do
+                    let mutable msExp = sample.GetMSExperiment(experimentIndex)
+                    for scanIndex = 0 to msExp.Details.NumberOfScans do
+                        yield msExp.GetMassSpectrum(scanIndex).Info.XUnits
+            }
+        |> Seq.head
+
+    /// Sample ColumnName
+    member this.GetSampleColumnName(spectrumID:string) =
+        let sampleIndex = this.getSampleIndex(spectrumID)
+        let sample = batch.GetSample(sampleIndex).MassSpectrometerSample
+        seq
+            {
+                for experimentIndex= 0 to sample.ExperimentCount-1 do
+                    let mutable msExp = sample.GetMSExperiment(experimentIndex)
+                    for scanIndex = 0 to msExp.Details.NumberOfScans do
+                        yield msExp.GetMassSpectrum(scanIndex).Info.YName
+            }
+        |> Seq.head
+
+    /// Sample ColumnUnits
+    member this.GetSampleColumnUnits(spectrumID:string) =
+        let sampleIndex = this.getSampleIndex(spectrumID)
+        let sample = batch.GetSample(sampleIndex).MassSpectrometerSample
+        seq
+            {
+                for experimentIndex= 0 to sample.ExperimentCount-1 do
+                    let mutable msExp = sample.GetMSExperiment(experimentIndex)
+                    for scanIndex = 0 to msExp.Details.NumberOfScans do
+                        yield msExp.GetMassSpectrum(scanIndex).Info.YUnits
+            }
+        |> Seq.head
+
+    /// Returns massrange of spectrum.
+    member this.GetParameters(spectrumID:string) =
+        let sampleIndex = this.getSampleIndex(spectrumID)
+        use sample = batch.GetSample(sampleIndex).MassSpectrometerSample
+        seq
+            {
+                for experimentIndex= 0 to sample.ExperimentCount-1 do
+                    let mutable msExp = sample.GetMSExperiment(experimentIndex)
+                    yield msExp.Details.Parameters
+            }
+    
+    /// RowValues
+    member this.GetRowValues(spectrumID:string) =
+        let sampleIndex = this.getSampleIndex(spectrumID)
+        let sample = batch.GetSample(sampleIndex).MassSpectrometerSample
+        seq
+            {
+                for experimentIndex= 0 to sample.ExperimentCount-1 do
+                    let mutable msExp = sample.GetMSExperiment(experimentIndex)
+                    for scanIndex = 0 to msExp.Details.NumberOfScans do
+                        yield msExp.GetMassSpectrum(scanIndex).GetActualXValues()
+            }
+
+    /// ColumnValues
+    member this.GetColumnValues(spectrumID:string) =
+        let sampleIndex = this.getSampleIndex(spectrumID)
+        let sample = batch.GetSample(sampleIndex).MassSpectrometerSample
+        seq
+            {
+                for experimentIndex= 0 to sample.ExperimentCount-1 do
+                    let mutable msExp = sample.GetMSExperiment(experimentIndex)
+                    for scanIndex = 0 to msExp.Details.NumberOfScans do
+                        yield msExp.GetMassSpectrum(scanIndex).GetActualYValues()
+            }
+
+    /// SaturationValues
+    member this.GetRSaturationValues(spectrumID:string) =
+        let sampleIndex = this.getSampleIndex(spectrumID)
+        let sample = batch.GetSample(sampleIndex).MassSpectrometerSample
+        seq
+            {
+                for experimentIndex= 0 to sample.ExperimentCount-1 do
+                    let mutable msExp = sample.GetMSExperiment(experimentIndex)
+                    for scanIndex = 0 to msExp.Details.NumberOfScans do
+                        yield msExp.GetMassSpectrum(scanIndex).Info.Experiment.Details.SaturationThreshold
+            }
+    
