@@ -123,7 +123,7 @@ let termoMzML       = @"C:\Users\Student\source\repos\wiffTestFiles\Thermo\data0
 //let mzMLHome        = @"D:\Users\Patrick\Desktop\BioInformatik\MzLiteTestFiles\MzMLTestFiles\tiny.pwiz.1.1.txt"
 //let mzMLHome    = @"D:\Users\Patrick\Desktop\BioInformatik\MzLiteTestFiles\MzMLTestFiles\small_miape.pwiz.1.1.txt"
 
-let wiffReader          = new WiffFileReader(wiffTestHome, licenseHome)
+let wiffReader          = new WiffFileReader(wiffTestUni, licensePath)
 //let wiffMzML            = new MzMLReader(mzMLOfWiffUni)
 
 //let bafReader           = new BafFileReader(bafTestHome)
@@ -146,7 +146,7 @@ let getSpectras (reader:#IMzIODataReader) =
 //let mzSQLNumPress       = new MzSQL(wiffTestHome + "NumPress.mzIO")
 //let mzSQLNumPressZLib   = new MzSQL(wiffTestHome + "NumPressZLib.mzIO")
 
-let mzMLNoCompression   = new MzMLWriter(wiffTestHome + "NoCompression.mzml")
+//let mzMLNoCompression   = new MzMLWriter(wiffTestHome + "NoCompression.mzml")
 //let mzMLZLib            = new MzMLWriter(wiffTestHome + "ZLib.mzml")
 //let mzMLNumPress        = new MzMLWriter(wiffTestHome + "NumPress.mzml")
 //let mzMLNumPressZLib    = new MzMLWriter(wiffTestHome + "NumPressZLib.mzml")
@@ -248,14 +248,14 @@ let spectra =
 //    |> (fun item -> item.Value :?> Software)
 //instrument.Software
 
-mzMLNoCompression.insertMSSpectraBy   (mzMLNoCompression.insertMSSpectrum)  "run_1" wiffReader BinaryDataCompressionType.NoCompression spectra
+//mzMLNoCompression.insertMSSpectraBy   (mzMLNoCompression.insertMSSpectrum)  "run_1" wiffReader BinaryDataCompressionType.NoCompression spectra
 //mzMLZLib.insertMSSpectraBy            (mzMLZLib.insertMSSpectrum)           "run_1" bafReader BinaryDataCompressionType.ZLib          spectra
 //mzMLNumPress.insertMSSpectraBy        (mzMLNumPress.insertMSSpectrum)       "run_1" bafReader BinaryDataCompressionType.NumPress      spectra
 //mzMLNumPressZLib.insertMSSpectraBy    (mzMLNumPressZLib.insertMSSpectrum)   "run_1" bafReader BinaryDataCompressionType.NumPressZLib  spectra
 
-let testSoftware = new Software("Test")
-let testInStrument = new Instrument("Test", testSoftware)
-testInStrument.Software
+//let testSoftware = new Software("Test")
+//let testInStrument = new Instrument("Test", testSoftware)
+//testInStrument.Software
 
 //mzMLReaderNoCompression.ReadMassSpectra "run_1"
 //|> Seq.length
@@ -453,3 +453,44 @@ testInStrument.Software
 //                                    selectedIon.Value :?> SelectedIon))
 
 //(Seq.head tmp).GetProperties false
+
+spectra
+|> Seq.filter (fun item -> (getMsLevel item) = 2)
+//|> Seq.map(fun item -> item.ID, getScanTime item)
+|> Seq.map (fun spectrum -> wiffReader.ReadSpectrumPeaks spectrum.ID)
+|> Seq.filter (fun peak -> peak.Peaks.Length <> 0)
+|> Seq.length
+
+
+
+//wiffReader.GetXUnitOfChromatogram("sample=0 experiment=1 scan=0")
+//wiffReader.GetYUnitOfChromatogram("sample=0 experiment=1 scan=0")
+
+//wiffReader.GetXValuesOfChromatogram("sample=0 experiment=0 scan=0")
+//wiffReader.GetYValuesOfChromatogram("sample=0 experiment=0 scan=0")
+
+//wiffReader.GetXValuesOfChromatogram("sample=0 experiment=1 scan=0").Length
+//wiffReader.GetYValuesOfChromatogram("sample=0 experiment=1 scan=0").Length
+
+//wiffReader.GetXValuesOfChromatogram("sample=0 experiment=0 scan=1", 1)
+//wiffReader.GetYValuesOfChromatogram("sample=0 experiment=0 scan=1", 1)
+
+//wiffReader.GetXValuesOfChromatogram("sample=0 experiment=1 scan=1", 2).Length
+//wiffReader.GetYValuesOfChromatogram("sample=0 experiment=1 scan=1", 2).Length
+
+//wiffReader.GetXValuesOfChromatogram("sample=0 experiment=1 scan=1", 2) |> Array.sort
+wiffReader.GetYValuesOfChromatogram("sample=0 experiment=1 scan=2", 2) |> Array.filter (fun item -> item <> 0.) |> Array.length
+//1+1
+//wiffReader.GetExperimentCount("sample=0 experiment=0 scan=2700")
+
+wiffReader.GetChromatograms("sample=0 experiment=1 scan=0", 2)
+
+//for i = 0 to 3000 do 
+//    let index = sprintf"sample=0 experiment=1 scan=%i"i
+//    printfn "%s" index
+//    printfn "%A" (wiffReader.GetXValuesOfChromatogram(index, 2))
+
+//for i = 0 to 2794 do 
+//    printfn "%A" (wiffReader.GetYValuesOfChromatogram(sprintf"sample=0 experiment=1 scan=%i"i, 2))
+
+

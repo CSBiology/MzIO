@@ -17,7 +17,7 @@ open MzIO.Model.CvParam
 open MzIO.MetaData.UO.UO
 open MzIO.MetaData.PSIMSExtension
 open MzIO.Commons.Arrays
-
+open MzIO.Commons.Arrays.MzIOArray
 
 //put in an extra module for improved performance
 //module Regex =
@@ -448,8 +448,7 @@ type WiffFileReader(dataProvider:AnalystWiffDataProvider, disposed:Boolean, wiff
             this.RaiseDisposed()
             let mutable sampleIndex     = 0
             let mutable experimentIndex = 0
-            let mutable scanIndex       = 0
-
+            let mutable scanIndex       = 0            
             this.ParseBySpectrumID(spectrumID, & sampleIndex, & experimentIndex, & scanIndex)
             use sample  = batch.GetSample(sampleIndex).MassSpectrometerSample
             use msExp   = sample.GetMSExperiment(experimentIndex)
@@ -887,4 +886,97 @@ type WiffFileReader(dataProvider:AnalystWiffDataProvider, disposed:Boolean, wiff
                     for scanIndex = 0 to msExp.Details.NumberOfScans do
                         yield msExp.GetMassSpectrum(scanIndex).Info.Experiment.Details.SaturationThreshold
             }
-    
+
+    /// Returns TIC of spectrum.
+    member this.GetXValuesOfChromatogram(spectrumID:string) =
+        let sampleIndex = this.getSampleIndex(spectrumID)
+        let msSample = batch.GetSample(sampleIndex).MassSpectrometerSample
+        msSample.GetTotalIonChromatogram().GetActualXValues()
+
+    /// Returns TIC of spectrum.
+    member this.GetXUnitOfChromatogram(spectrumID:string) =
+        let sampleIndex = this.getSampleIndex(spectrumID)
+        let msSample = batch.GetSample(sampleIndex).MassSpectrometerSample
+        msSample.GetTotalIonChromatogram().Info.XName
+
+    /// Returns TIC of spectrum.
+    member this.GetYValuesOfChromatogram(spectrumID:string) =
+        let sampleIndex = this.getSampleIndex(spectrumID)
+        let msSample = batch.GetSample(sampleIndex).MassSpectrometerSample
+        msSample.GetTotalIonChromatogram().GetActualYValues()
+        
+    /// Returns TIC of spectrum.
+    member this.GetYUnitOfChromatogram(spectrumID:string) =
+        let sampleIndex = this.getSampleIndex(spectrumID)
+        let msSample = batch.GetSample(sampleIndex).MassSpectrometerSample
+        msSample.GetTotalIonChromatogram().Info.YName
+
+    /// Returns TIC of spectrum.
+    member this.GetXValuesOfChromatogram(spectrumID:string, msLevel:int) =
+        let sampleIndex = this.getSampleIndex(spectrumID)
+        let msSample = batch.GetSample(sampleIndex).MassSpectrometerSample
+        
+        match msLevel with
+        | 1 -> msSample.GetTotalIonChromatogram().GetActualXValues()
+        | 2 ->        
+            let msExpIndex = [|1..msSample.ExperimentCount-1|]
+            msExpIndex
+            |> Array.collect (fun expIndex -> 
+                let msExp = msSample.GetMSExperiment(expIndex)
+                let scanIndex = [|0..msExp.Details.NumberOfScans-1|]
+                scanIndex
+                |> Array.map (fun scanIdx -> msExp.GetTotalIonChromatogram().GetXValue(scanIdx)))
+
+    /// Returns TIC of spectrum.
+    member this.GetYValuesOfChromatogram(spectrumID:string, msLevel:int) =
+        let sampleIndex = this.getSampleIndex(spectrumID)
+        let msSample = batch.GetSample(sampleIndex).MassSpectrometerSample
+        
+        match msLevel with
+        | 1 -> msSample.GetTotalIonChromatogram().GetActualYValues()
+        | 2 ->        
+            let msExpIndex = [|1..msSample.ExperimentCount-1|]
+            msExpIndex
+            |> Array.collect (fun expIndex -> 
+                let msExp = msSample.GetMSExperiment(expIndex)
+                let scanIndex = [|0..msExp.Details.NumberOfScans-1|]
+                scanIndex
+                |> Array.map (fun scanIdx -> msExp.GetTotalIonChromatogram().GetYValue(scanIdx)))
+        | _ -> failwith "Only MS1 and MS2 exist!"
+
+    /// Returns TIC of spectrum.
+    member this.GetChromatograms(spectrumID:string, msLevel:int) =
+        let sampleIndex = this.getSampleIndex(spectrumID)
+        let msSample = batch.GetSample(sampleIndex).MassSpectrometerSample
+        let pa  = new Peak2DArray(BinaryDataCompressionType.NoCompression, BinaryDataType.Float64, BinaryDataType.Float64, BinaryDataType.Float64)
+        match msLevel with
+        //| 1 -> msSample.GetTotalIonChromatogram().GetActualYValues()
+        | 2 ->        
+            let peaks =
+                let msExpIndex = [|1..msSample.ExperimentCount-1|]
+                msExpIndex
+                |> Array.collect (fun expIndex -> 
+                    let msExp = msSample.GetMSExperiment(expIndex)
+                    let scanIndex = [|0..msExp.Details.NumberOfScans-1|]
+                    scanIndex
+                    |> Array.collect (fun scanIdx ->
+                        let massSpectrum = msExp.GetMassSpectrum(scanIdx)                    
+                        let msIndex = [|0..massSpectrum.NumDataPoints-1|]
+                        msIndex
+                        |> Array.map (fun msIdx ->
+                            Peak2D(massSpectrum.GetYValue(msIdx), massSpectrum.GetXValue(msIdx), msExp.GetTotalIonChromatogram().GetXValue(scanIdx)))))
+            pa.Peaks <- (peaks.ToMzIOArray())
+            pa
+        | _ -> failwith "Only MS1 and MS2 exist!"
+
+    member this.GetExperimentCount(spectrumID:string) =
+        let sampleIndex = this.getSampleIndex(spectrumID)
+        let msSample = batch.GetSample(sampleIndex).MassSpectrometerSample
+        msSample.ExperimentCount
+
+    /// Returns TIC of whole run.
+    member this.GetMSLevelDependingTICs(runID:string, msLevel:int) =
+        this.ReadMassSpectra(runID)
+        |> Seq.map (fun spectrum -> this.GetTIC(spectrum.ID))
+
+
