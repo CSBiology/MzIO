@@ -480,17 +480,9 @@ spectra
 
 //wiffReader.GetXValuesOfChromatogram("sample=0 experiment=1 scan=1", 2) |> Array.sort
 wiffReader.GetYValuesOfChromatogram("sample=0 experiment=1 scan=2", 2) |> Array.filter (fun item -> item <> 0.) |> Array.length
-//1+1
-//wiffReader.GetExperimentCount("sample=0 experiment=0 scan=2700")
-
-wiffReader.GetChromatograms("sample=0 experiment=1 scan=0", 2)
-
-//for i = 0 to 3000 do 
-//    let index = sprintf"sample=0 experiment=1 scan=%i"i
-//    printfn "%s" index
-//    printfn "%A" (wiffReader.GetXValuesOfChromatogram(index, 2))
-
-//for i = 0 to 2794 do 
-//    printfn "%A" (wiffReader.GetYValuesOfChromatogram(sprintf"sample=0 experiment=1 scan=%i"i, 2))
 
 
+let test = wiffReader.GetChromatograms("sample=0 experiment=0 scan=0", 2)
+
+test
+1+1

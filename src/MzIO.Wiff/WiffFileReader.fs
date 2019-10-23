@@ -952,21 +952,21 @@ type WiffFileReader(dataProvider:AnalystWiffDataProvider, disposed:Boolean, wiff
         match msLevel with
         //| 1 -> msSample.GetTotalIonChromatogram().GetActualYValues()
         | 2 ->        
-            let peaks =
                 let msExpIndex = [|1..msSample.ExperimentCount-1|]
                 msExpIndex
-                |> Array.collect (fun expIndex -> 
-                    let msExp = msSample.GetMSExperiment(expIndex)
-                    let scanIndex = [|0..msExp.Details.NumberOfScans-1|]
-                    scanIndex
-                    |> Array.collect (fun scanIdx ->
-                        let massSpectrum = msExp.GetMassSpectrum(scanIdx)                    
-                        let msIndex = [|0..massSpectrum.NumDataPoints-1|]
-                        msIndex
-                        |> Array.map (fun msIdx ->
-                            Peak2D(massSpectrum.GetYValue(msIdx), massSpectrum.GetXValue(msIdx), msExp.GetTotalIonChromatogram().GetXValue(scanIdx)))))
-            pa.Peaks <- (peaks.ToMzIOArray())
-            pa
+                |> Array.map (fun expIndex -> 
+                    let peaks =
+                        let msExp = msSample.GetMSExperiment(expIndex)
+                        let scanIndex = [|0..msExp.Details.NumberOfScans-1|]
+                        scanIndex
+                        |> Array.collect (fun scanIdx ->
+                            let massSpectrum = msExp.GetMassSpectrum(scanIdx)                    
+                            let msIndex = [|0..massSpectrum.NumDataPoints-1|]
+                            msIndex
+                            |> Array.map (fun msIdx ->
+                                Peak2D(massSpectrum.GetYValue(msIdx), massSpectrum.GetXValue(msIdx), msExp.GetTotalIonChromatogram().GetXValue(scanIdx))))
+                    pa.Peaks <- (peaks.ToMzIOArray())
+                    pa)
         | _ -> failwith "Only MS1 and MS2 exist!"
 
     member this.GetExperimentCount(spectrumID:string) =
