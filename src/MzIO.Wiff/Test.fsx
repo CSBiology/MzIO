@@ -123,7 +123,7 @@ let termoMzML       = @"C:\Users\Student\source\repos\wiffTestFiles\Thermo\data0
 //let mzMLHome        = @"D:\Users\Patrick\Desktop\BioInformatik\MzLiteTestFiles\MzMLTestFiles\tiny.pwiz.1.1.txt"
 //let mzMLHome    = @"D:\Users\Patrick\Desktop\BioInformatik\MzLiteTestFiles\MzMLTestFiles\small_miape.pwiz.1.1.txt"
 
-let wiffReader          = new WiffFileReader(wiffTestUni, licensePath)
+let wiffReader          = new WiffFileReader(wiffTestHome, licenseHome)
 //let wiffMzML            = new MzMLReader(mzMLOfWiffUni)
 
 //let bafReader           = new BafFileReader(bafTestHome)
@@ -162,6 +162,8 @@ let spectra =
     |> Seq.head
     |> (fun run -> wiffReader.ReadMassSpectra run.ID)
     |> Array.ofSeq
+    |> Array.ofSeq
+    |> Array.filter (fun x -> MzIO.Processing.MassSpectrum.getMsLevel x = 1)
 
 //let precursor = new Precursor()
 //let selectedIon = new SelectedIon()
@@ -454,12 +456,12 @@ let spectra =
 
 //(Seq.head tmp).GetProperties false
 
-spectra
-|> Seq.filter (fun item -> (getMsLevel item) = 2)
-//|> Seq.map(fun item -> item.ID, getScanTime item)
-|> Seq.map (fun spectrum -> wiffReader.ReadSpectrumPeaks spectrum.ID)
-|> Seq.filter (fun peak -> peak.Peaks.Length <> 0)
-|> Seq.length
+//spectra
+//|> Seq.filter (fun item -> (getMsLevel item) = 2)
+////|> Seq.map(fun item -> item.ID, getScanTime item)
+//|> Seq.map (fun spectrum -> wiffReader.ReadSpectrumPeaks spectrum.ID)
+//|> Seq.filter (fun peak -> peak.Peaks.Length <> 0)
+//|> Seq.length
 
 
 
@@ -479,10 +481,24 @@ spectra
 //wiffReader.GetYValuesOfChromatogram("sample=0 experiment=1 scan=1", 2).Length
 
 //wiffReader.GetXValuesOfChromatogram("sample=0 experiment=1 scan=1", 2) |> Array.sort
-wiffReader.GetYValuesOfChromatogram("sample=0 experiment=1 scan=2", 2) |> Array.filter (fun item -> item <> 0.) |> Array.length
+//wiffReader.GetYValuesOfChromatogram("sample=0 experiment=1 scan=2", 2) |> Array.filter (fun item -> item <> 0.) |> Array.length
 
+let runID = 
+    wiffReader.Model.Runs.GetProperties false
+    |> Seq.map (fun item -> item.Value :?> Run)
+    |> Seq.head
 
-let test = wiffReader.GetChromatograms("sample=0 experiment=0 scan=0", 2)
+spectra.Length
 
-test
+//let peaks =
+//    spectra
+//    |> Seq.map (fun spectrum -> wiffReader.ReadSpectrumPeaks spectrum.ID)
+//    |> Seq.length
+
 1+1
+
+//let test = wiffReader.GetChromatogramsOfMSLevel(runID.ID, 1)
+let test2 = wiffReader.ReadSpectrumPeaks("sample=0 experiment=0 scan=0")
+test2.Peaks.Length
+wiffReader.GetTICOfRun(runID.ID)
+wiffReader.GetTICOfSpectrum("sample=0 experiment=0 scan=0")

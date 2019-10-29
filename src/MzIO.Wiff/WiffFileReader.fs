@@ -84,6 +84,60 @@ type WiffPeaksArray(wiffSpectrum:Clearcore2.Data.MassSpectrum) =
     //        raise (new IndexOutOfRangeException())
     //    else new Peak1D(wiffSpectrum.GetYValue(idx), wiffSpectrum.GetXValue(idx))
 
+type WiffPeak2DArray(wiffSpectrum:Clearcore2.Data.MassSpectrum, scanIndex:int) =
+
+    //let wiffSpectrum = new Clearcore2.Data.MassSpectrum(
+
+    let rt = wiffSpectrum.Info.Experiment.GetRTFromExperimentScanIndex(scanIndex)
+
+    interface IMzIOArray<Peak2D> with
+
+        member this.Length = wiffSpectrum.NumDataPoints
+
+        //potential error source
+        member this.Item
+            with get (idx:int) =
+                if (idx < 0 || idx >= this.Length) then
+                    raise (new IndexOutOfRangeException())
+                else
+                    new Peak2D(wiffSpectrum.GetYValue(idx), wiffSpectrum.GetXValue(idx), rt)
+
+    member this.Length =
+
+        (this :> IMzIOArray<Peak2D>).Length
+
+    member this.Item(idx:int) =
+
+        (this :> IMzIOArray<Peak2D>).Item(idx)
+
+    static member private Yield(wiffSpectrum:Clearcore2.Data.MassSpectrum, scanIndex) =
+
+        let spectrum = Array.create wiffSpectrum.NumDataPoints (new Peak2D())
+        
+        let rt = wiffSpectrum.Info.Experiment.GetRTFromExperimentScanIndex(scanIndex)
+
+        for i=0 to wiffSpectrum.NumDataPoints-1 do
+            spectrum.[i] <- new Peak2D(wiffSpectrum.GetYValue(i), wiffSpectrum.GetXValue(i), rt)
+        spectrum
+
+    interface IEnumerable<Peak2D> with
+
+        member this.GetEnumerator() =
+            WiffPeak2DArray.Yield(wiffSpectrum, scanIndex).AsEnumerable<Peak2D>().GetEnumerator()
+
+    interface System.Collections.IEnumerable with
+        member this.GetEnumerator() =
+            WiffPeak2DArray.Yield(wiffSpectrum, scanIndex).GetEnumerator()
+
+    member this.GetEnumerator() =
+
+        (this :> IEnumerable<Peak2D>).GetEnumerator()
+
+    //member this.Peak1D (idx:int) =
+    //    if (idx < 0 || idx >= this.Length) then
+    //        raise (new IndexOutOfRangeException())
+    //    else new Peak1D(wiffSpectrum.GetYValue(idx), wiffSpectrum.GetXValue(idx))
+
 type WiffTransactionScope() =
 
     interface IDisposable with
@@ -594,15 +648,28 @@ type WiffFileReader(dataProvider:AnalystWiffDataProvider, disposed:Boolean, wiff
 
         
     /// Returns TIC of spectrum.
-    member this.GetTIC(spectrumID:string) =
-        let sampleIndex = this.getSampleIndex(spectrumID)
-        let msExperiment = batch.GetSample(sampleIndex).MassSpectrometerSample
-        msExperiment.GetTotalIonChromatogram().NumDataPoints
+    member this.GetTICOfRun(runID:string) =
+        let mutable sampleIndex = 0
+        this.ParseByRunID(runID, &sampleIndex)
+        let sample = batch.GetSample(sampleIndex).MassSpectrometerSample
+        sample.GetTotalIonChromatogram().NumDataPoints
 
-    /// Returns TIC of whole run.
-    member this.GetTotalTIC(runID:string) =
-        this.ReadMassSpectra(runID)
-        |> Seq.fold (fun start spectrum -> start + this.GetTIC(spectrum.ID)) 0
+    /// Returns TIC of spectrum.
+    member this.GetTICOfSpectrum(spectrumID:string) =
+        let mutable sampleIndex     = 0
+        let mutable experimentIndex = 0
+        let mutable scanIndex       = 0            
+        this.ParseBySpectrumID(spectrumID, & sampleIndex, & experimentIndex, & scanIndex)
+        let sample  = batch.GetSample(sampleIndex).MassSpectrometerSample
+        let msExp   = sample.GetMSExperiment(experimentIndex)
+        let ms      = msExp.GetMassSpectrum(scanIndex)
+        //msExp.GetTotalIonChromatogram().GetActualXValues().Length
+        ms.NumDataPoints
+
+    ///// Returns TIC of whole run.
+    //member this.GetTotalTIC(runID:string) =
+    //    this.ReadMassSpectra(runID)
+    //    |> Seq.fold (fun start spectrum -> start + this.GetTIC(spectrum.ID)) 0
 
     /// Returns dwell time of spectrum.
     member this.GetDwellTime(spectrumID:string) =
@@ -969,14 +1036,50 @@ type WiffFileReader(dataProvider:AnalystWiffDataProvider, disposed:Boolean, wiff
                     pa)
         | _ -> failwith "Only MS1 and MS2 exist!"
 
+    member this.GetChromatogram(spectrumID) =
+        this.RaiseDisposed()
+        let mutable sampleIndex     = 0
+        let mutable experimentIndex = 0
+        let mutable scanIndex       = 0            
+        this.ParseBySpectrumID(spectrumID, & sampleIndex, & experimentIndex, & scanIndex)
+        use sample  = batch.GetSample(sampleIndex).MassSpectrometerSample
+        use msExp   = sample.GetMSExperiment(experimentIndex)
+        let ms      = msExp.GetMassSpectrum(scanIndex)
+        let pa      = new Peak2DArray(BinaryDataCompressionType.NoCompression, BinaryDataType.Float64, BinaryDataType.Float64, BinaryDataType.Float64)
+
+        pa.Peaks <- new WiffPeak2DArray(ms, scanIndex)
+        pa
+
+    static member YieldChrom(batch:Batch, sampleIndex:int, msLevel:int) =
+
+        use sample = batch.GetSample(sampleIndex).MassSpectrometerSample
+        (
+            let tmp =
+                seq{
+                    for experimentIndex= 0 to sample.ExperimentCount-1 do
+                        let mutable msExp = sample.GetMSExperiment(experimentIndex)
+                        for scanIndex = 0 to msExp.Details.NumberOfScans-1 do
+                            let mutable ms = msExp.GetMassSpectrum(scanIndex)
+                            if ms.Info.MSLevel = msLevel then
+                                let mutable pa = new WiffPeak2DArray(ms, scanIndex)
+                                yield Some (new Peak2DArray(BinaryDataCompressionType.NoCompression, BinaryDataType.Float64, BinaryDataType.Float64, BinaryDataType.Float64, pa))
+                            else
+                                yield None
+                }
+            let tmp2 = Seq.choose(fun item -> item) tmp
+            Seq.sortBy (fun (item:Peak2DArray) -> item.Peaks.[0].Rt) tmp2 |> ignore
+            tmp2.AsEnumerable<Peak2DArray>()
+        )
+
+    member this.GetChromatogramsOfMSLevel(runID:string, msLevel:int) =        
+        this.RaiseDisposed()
+        let mutable sampleIndex = 0
+        this.ParseByRunID(runID, & sampleIndex)
+        WiffFileReader.YieldChrom(batch, sampleIndex, msLevel)
+
     member this.GetExperimentCount(spectrumID:string) =
         let sampleIndex = this.getSampleIndex(spectrumID)
         let msSample = batch.GetSample(sampleIndex).MassSpectrometerSample
         msSample.ExperimentCount
-
-    /// Returns TIC of whole run.
-    member this.GetMSLevelDependingTICs(runID:string, msLevel:int) =
-        this.ReadMassSpectra(runID)
-        |> Seq.map (fun spectrum -> this.GetTIC(spectrum.ID))
 
 
