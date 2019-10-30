@@ -72,6 +72,7 @@ type WiffPeaksArray(wiffSpectrum:Clearcore2.Data.MassSpectrum) =
             WiffPeaksArray.Yield(wiffSpectrum).AsEnumerable<Peak1D>().GetEnumerator()
 
     interface System.Collections.IEnumerable with
+
         member this.GetEnumerator() =
             WiffPeaksArray.Yield(wiffSpectrum).GetEnumerator()
 
@@ -137,6 +138,28 @@ type WiffPeak2DArray(wiffSpectrum:Clearcore2.Data.MassSpectrum, scanIndex:int) =
     //    if (idx < 0 || idx >= this.Length) then
     //        raise (new IndexOutOfRangeException())
     //    else new Peak1D(wiffSpectrum.GetYValue(idx), wiffSpectrum.GetXValue(idx))
+
+type TICPeak(intensitySum:float, rt:float) =
+    
+    member this.IntensitySum    = intensitySum
+
+    member this.RetentionTime   = rt
+
+type TIC(binaryDataCompressionType:BinaryDataCompressionType, intDataType, rtDataType, peaks:IMzIOArray<TICPeak>) =
+    
+    let mutable peaks   = peaks
+    
+    member this.BinaryDataCompressionType = binaryDataCompressionType
+
+    member this.IntensityDataType       = intDataType
+
+    member this.RetentionTimeDataType   = rtDataType
+
+    member this.Peaks
+        with get() = peaks
+        and set(value) = peaks <- value
+
+
 
 type WiffTransactionScope() =
 
@@ -1082,4 +1105,56 @@ type WiffFileReader(dataProvider:AnalystWiffDataProvider, disposed:Boolean, wiff
         let msSample = batch.GetSample(sampleIndex).MassSpectrometerSample
         msSample.ExperimentCount
 
+    member this.GetTotalTICOfSpectrum(spectrumID) =
+        this.RaiseDisposed()
+        let mutable sampleIndex     = 0
+        let mutable experimentIndex = 0
+        let mutable scanIndex       = 0            
+        this.ParseBySpectrumID(spectrumID, & sampleIndex, & experimentIndex, & scanIndex)
+        use sample  = batch.GetSample(sampleIndex).MassSpectrometerSample
+        use msExp   = sample.GetMSExperiment(experimentIndex)
+        let ticRT   = msExp.GetTotalIonChromatogram().GetXValue(scanIndex)
+        let ticInt  = msExp.GetTotalIonChromatogram().GetYValue(scanIndex)        
+        let ticPeak = new TICPeak(ticInt, ticRT)
+        ticPeak
 
+    member this.GetTIC(runID) =
+        this.RaiseDisposed()
+        let mutable sampleIndex = 0          
+        this.ParseByRunID(runID, & sampleIndex)
+        let sample      = batch.GetSample(sampleIndex).MassSpectrometerSample
+        let TICRTs      = sample.GetTotalIonChromatogram().GetActualXValues()
+        let TICInts     = sample.GetTotalIonChromatogram().GetActualYValues()
+        let ticPeaks    = 
+            Array.map2 (fun intSum rt -> new TICPeak(intSum, rt)) TICInts TICRTs
+            |> Array.sortBy (fun item -> item.RetentionTime)
+        new TIC(BinaryDataCompressionType.NoCompression, BinaryDataType.Float64, BinaryDataType.Float64, ticPeaks.ToMzIOArray())
+
+    static member YieldTIC(batch:Batch, sampleIndex:int, msLevel:int) =
+
+        use sample = batch.GetSample(sampleIndex).MassSpectrometerSample
+        (
+            let pa =
+                seq{
+                    for experimentIndex= 0 to sample.ExperimentCount-1 do
+                        let mutable msExp = sample.GetMSExperiment(experimentIndex)
+                        for scanIndex = 0 to msExp.Details.NumberOfScans-1 do
+                            let mutable ms = msExp.GetMassSpectrum(scanIndex)
+                            if ms.Info.MSLevel = msLevel then
+                                let mutable intSum = ms.GetActualYValues().Sum()
+                                let mutable rt     = msExp.GetTotalIonChromatogram().GetXValue(scanIndex)                                
+                                yield Some (new TICPeak(intSum, rt))
+                            else
+                                yield None
+                    }
+            let tmp = Array.choose(fun item -> item) (pa.ToArray())
+            let tic = new TIC(BinaryDataCompressionType.NoCompression, BinaryDataType.Float64, BinaryDataType.Float64, tmp.ToMzIOArray())
+            Seq.sortBy (fun (item:TICPeak) -> item.RetentionTime) tic.Peaks |> ignore
+            tic
+        )
+
+    member this.GetTICOfMSLevel(runID, msLevel:int) =
+        this.RaiseDisposed()
+        let mutable sampleIndex = 0          
+        this.ParseByRunID(runID, & sampleIndex)
+        WiffFileReader.YieldTIC(batch, sampleIndex, msLevel)

@@ -498,7 +498,30 @@ spectra.Length
 1+1
 
 //let test = wiffReader.GetChromatogramsOfMSLevel(runID.ID, 1)
-let test2 = wiffReader.ReadSpectrumPeaks("sample=0 experiment=0 scan=0")
-test2.Peaks.Length
-wiffReader.GetTICOfRun(runID.ID)
-wiffReader.GetTICOfSpectrum("sample=0 experiment=0 scan=0")
+wiffReader.ReadSpectrumPeaks("sample=0 experiment=0 scan=0").Peaks
+
+wiffReader.GetChromatogram("sample=0 experiment=0 scan=0").Peaks
+
+wiffReader.GetChromatogramsOfMSLevel(runID.ID, 1)
+
+wiffReader.GetTotalTICOfSpectrum("sample=0 experiment=0 scan=0")
+
+wiffReader.GetTIC(runID.ID).Peaks
+
+let ms1TICS = wiffReader.GetTICOfMSLevel(runID.ID, 1).Peaks
+let ms2TICS = wiffReader.GetTICOfMSLevel(runID.ID, 2).Peaks
+
+ms1TICS
+ms2TICS
+
+for i in ms2TICS do
+    printfn "IntensitySum:%f RetentionTime:%f" i.IntensitySum i.RetentionTime
+
+wiffReader.GetChromatogram("sample=0 experiment=0 scan=2").Peaks
+|> Seq.map (fun item -> item.Intensity)
+|> Seq.sum
+
+//let test2 = wiffReader.ReadSpectrumPeaks("sample=0 experiment=0 scan=0")
+//test2.Peaks.Length
+//wiffReader.GetTICOfRun(runID.ID)
+//wiffReader.GetTICOfSpectrum("sample=0 experiment=0 scan=0")
