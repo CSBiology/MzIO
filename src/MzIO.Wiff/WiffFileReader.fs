@@ -370,7 +370,7 @@ type WiffFileReader(dataProvider:AnalystWiffDataProvider, disposed:Boolean, wiff
                         let mutable msExp = sample.GetMSExperiment(experimentIndex)
                         for scanIndex = 0 to msExp.Details.NumberOfScans-1 do
                             yield WiffFileReader.GetSpectrum(batch, sample, msExp, sampleIndex, experimentIndex, scanIndex)
-                }
+                    }
             tmp.AsEnumerable<MassSpectrum>()
         )
 
@@ -720,15 +720,13 @@ type WiffFileReader(dataProvider:AnalystWiffDataProvider, disposed:Boolean, wiff
 
     /// Returns mass range of spectrum.
     member this.GetMassRange(spectrumID:string) =
-        let sampleIndex = this.getSampleIndex(spectrumID)
-        use sample = batch.GetSample(sampleIndex).MassSpectrometerSample
-        seq
-            {
-                for experimentIndex= 0 to sample.ExperimentCount-1 do
-                    let mutable msExp = sample.GetMSExperiment(experimentIndex)
-                    yield (msExp.Details.StartMass, msExp.Details.EndMass)
-            }
-        |> Seq.distinct
+        this.RaiseDisposed()
+        let mutable sampleIndex     = 0
+        let mutable experimentIndex = 0
+        let mutable scanIndex       = 0            
+        this.ParseBySpectrumID(spectrumID, & sampleIndex, & experimentIndex, & scanIndex)
+        use sample  = batch.GetSample(sampleIndex).MassSpectrometerSample
+        sample.GetMSExperiment(experimentIndex).Details.StartMass, sample.GetMSExperiment(experimentIndex).Details.EndMass
 
     /// Returns isolation window of spectrum.
     member this.GetIsolationWindow(spectrumID:string) =
@@ -741,6 +739,7 @@ type WiffFileReader(dataProvider:AnalystWiffDataProvider, disposed:Boolean, wiff
                     yield msExp.Details.MassRangeInfo
             }
         |> Seq.distinctBy(fun item -> item.[0].Name)
+
 
     /// Returns collision energy of spectrum.
     member this.GetCollisionEnergy(spectrumID:string) =
@@ -1158,3 +1157,68 @@ type WiffFileReader(dataProvider:AnalystWiffDataProvider, disposed:Boolean, wiff
         let mutable sampleIndex = 0          
         this.ParseByRunID(runID, & sampleIndex)
         WiffFileReader.YieldTIC(batch, sampleIndex, msLevel)
+
+    member this.GetSpectrumIDsOfRt(runID:string, rt:float) =
+        this.RaiseDisposed()
+        let mutable sampleIndex     = 0        
+        this.ParseByRunID(runID, & sampleIndex)
+        let sample  = batch.GetSample(sampleIndex).MassSpectrometerSample
+        let msExperiments = sample.FindExperiments(rt)
+        let experimentIndexes =
+            msExperiments
+            |> Array.map (fun item -> item.GetMassSpectrum(rt).Info.ExperimentIndex)
+        let scanIndexes=
+            msExperiments
+            |> Array.map (fun item -> item.RetentionTimeToExperimentScan(rt))
+        Array.map2 (fun msExp scanIndex -> WiffFileReader.ToSpectrumID(sampleIndex, msExp, scanIndex)) experimentIndexes scanIndexes
+
+     //member this.GetSpectrumIDsOfRtWindow(runID:string, startRT:float, endRT:float) =
+     //   this.RaiseDisposed()
+     //   let mutable sampleIndex     = 0        
+     //   this.ParseByRunID(runID, & sampleIndex)
+     //   let sample  = batch.GetSample(sampleIndex).MassSpectrometerSample
+     //   let msExperiments = sample.GetMSExperiment(0).Details
+     //   let experimentIndexes =
+     //       msExperiments
+     //       |> Array.map (fun item -> item.GetMassSpectrum(rt).Info.ExperimentIndex)
+     //   let scanIndexes=
+     //       msExperiments
+     //       |> Array.map (fun item -> item.RetentionTimeToExperimentScan(rt))
+     //   Array.map2 (fun msExp scanIndex -> WiffFileReader.ToSpectrumID(sampleIndex, msExp, scanIndex)) experimentIndexes scanIndexes
+
+    member this.GetSoftwareVersion(runID:string) =
+        this.RaiseDisposed()
+        let mutable sampleIndex     = 0        
+        this.ParseByRunID(runID, & sampleIndex)
+        let sample  = batch.GetSample(sampleIndex).MassSpectrometerSample.Sample
+        sample.Details.SoftwareVersion
+
+    member this.GetInstrumentName(runID:string) =
+        this.RaiseDisposed()
+        let mutable sampleIndex     = 0        
+        this.ParseByRunID(runID, & sampleIndex)
+        let sample  = batch.GetSample(sampleIndex).MassSpectrometerSample.Sample
+        sample.MassSpectrometerSample.InstrumentName
+
+    member this.GetWiffFolderLocation() =
+        dataProvider.GetWiffFolderLocation()
+
+    member this.GetDataProviderName() =
+        dataProvider.RootProject.Name
+
+    member this.GetSampleLocatorPath(runID:string) =
+        this.RaiseDisposed()
+        let mutable sampleIndex     = 0        
+        this.ParseByRunID(runID, & sampleIndex)
+        let sample  = batch.GetSample(sampleIndex).MassSpectrometerSample.Sample
+        sample.SampleLocator.ContainerPath
+
+    member this.GetDefaultResolution(spectrumID) =
+        this.RaiseDisposed()
+        let mutable sampleIndex     = 0
+        let mutable experimentIndex = 0
+        let mutable scanIndex       = 0            
+        this.ParseBySpectrumID(spectrumID, & sampleIndex, & experimentIndex, & scanIndex)
+        use sample  = batch.GetSample(sampleIndex).MassSpectrometerSample
+        sample.GetMSExperiment(experimentIndex).Details.DefaultResolution
+        

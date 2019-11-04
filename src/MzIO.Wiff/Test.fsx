@@ -123,7 +123,7 @@ let termoMzML       = @"C:\Users\Student\source\repos\wiffTestFiles\Thermo\data0
 //let mzMLHome        = @"D:\Users\Patrick\Desktop\BioInformatik\MzLiteTestFiles\MzMLTestFiles\tiny.pwiz.1.1.txt"
 //let mzMLHome    = @"D:\Users\Patrick\Desktop\BioInformatik\MzLiteTestFiles\MzMLTestFiles\small_miape.pwiz.1.1.txt"
 
-let wiffReader          = new WiffFileReader(wiffTestHome, licenseHome)
+let wiffReader          = new WiffFileReader(wiffTestUni, licensePath)
 //let wiffMzML            = new MzMLReader(mzMLOfWiffUni)
 
 //let bafReader           = new BafFileReader(bafTestHome)
@@ -500,7 +500,7 @@ spectra.Length
 //let test = wiffReader.GetChromatogramsOfMSLevel(runID.ID, 1)
 wiffReader.ReadSpectrumPeaks("sample=0 experiment=0 scan=0").Peaks
 
-wiffReader.GetChromatogram("sample=0 experiment=0 scan=0").Peaks
+wiffReader.GetChromatogram("sample=0 experiment=0 scan=1").Peaks
 
 wiffReader.GetChromatogramsOfMSLevel(runID.ID, 1)
 
@@ -525,3 +525,5 @@ wiffReader.GetChromatogram("sample=0 experiment=0 scan=2").Peaks
 //test2.Peaks.Length
 //wiffReader.GetTICOfRun(runID.ID)
 //wiffReader.GetTICOfSpectrum("sample=0 experiment=0 scan=0")
+
+wiffReader.GetSpectrumIDOfRt(runID.ID, 0.009366666667)
