@@ -83,14 +83,14 @@ let mzSQLNoCompression  = new MzSQL(wiffTestHome + "NoCompression.mzIO")
 //let mzMLReaderNumPress      = new MzMLReader(wiffTestUni + "NumPress.mzml")
 //let mzMLReaderNumPressZLib  = new MzMLReader(wiffTestUni + "NumPressZLib.mzml")
 
-let spectra =
-    wiffReader.Model.Runs.GetProperties false
-    |> Seq.map (fun item -> item.Value :?> Run)
-    |> Seq.head
-    |> (fun run -> wiffReader.ReadMassSpectra run.ID)
-    |> Array.ofSeq
-    |> Array.filter (fun x -> MzIO.Processing.MassSpectrum.getMsLevel x = 1)
-    |> Array.take 10
+//let spectra =
+//    wiffReader.Model.Runs.GetProperties false
+//    |> Seq.map (fun item -> item.Value :?> Run)
+//    |> Seq.head
+//    |> (fun run -> wiffReader.ReadMassSpectra run.ID)
+//    |> Array.ofSeq
+//    |> Array.filter (fun x -> MzIO.Processing.MassSpectrum.getMsLevel x = 1)
+//    |> Array.take 10
 
 //let peaks =
 //    spectra
@@ -98,11 +98,11 @@ let spectra =
 //    |> Seq.filter (fun item -> (snd item).Peaks.Length > 0 )
 //    |> Seq.map (fun item -> fst item)
 
-mzSQLNoCompression.Open()
-let tr = mzSQLNoCompression.cn.BeginTransaction()
-let stopWatch = System.Diagnostics.Stopwatch.StartNew()
-insertMSSpectraBy insertMSSpectrum mzSQLNoCompression "run_1" wiffReader tr BinaryDataCompressionType.NoCompression spectra
-let stopWatchFnished = stopWatch.Elapsed
+//mzSQLNoCompression.Open()
+//let tr = mzSQLNoCompression.cn.BeginTransaction()
+//let stopWatch = System.Diagnostics.Stopwatch.StartNew()
+//insertMSSpectraBy insertMSSpectrum mzSQLNoCompression "run_1" wiffReader tr BinaryDataCompressionType.NoCompression spectra
+//let stopWatchFnished = stopWatch.Elapsed
 
 //mzSQLZLib.Open()
 //let trZLIB = mzSQLZLib.cn.BeginTransaction()
@@ -124,7 +124,10 @@ let stopWatchFnished = stopWatch.Elapsed
 
 //wiffReader.GetRSaturationValues(spectra.[0].ID)
 
-mzSQLNoCompression.Model.Runs.GetProperties false
-|> Seq.head
-|> fun item -> item.Value :?> Run
+//mzSQLNoCompression.Model.Runs.GetProperties false
+//|> Seq.head
+//|> fun item -> item.Value :?> Run
 
+let msSample = wiffReader.GetSomething("sample=0 experiment=0 scan=0")
+
+msSample.Info
