@@ -10,7 +10,6 @@ open MzIO.MzSQL
 
 module MassSpectrum = 
 
-
     /// Create a new file instance of the DB schema. DELETES already existing instance
     let initDB filePath =
         let _ = System.IO.File.Delete filePath  
@@ -31,14 +30,18 @@ module MassSpectrum =
         clonedP.Peaks <- peakArray.Peaks
         db.Insert(runID, spectrum, clonedP)
 
-
     /// Starts bulkinsert of mass spectra into a MzLiteSQL database
     let insertMSSpectraBy insertSpectrumF (db:MzSQL) runID (reader:IMzIODataReader) (tr:SQLiteTransaction) (compress: BinaryDataCompressionType) (spectra: seq<MassSpectrum>) = 
         //let db = getConnection outFilepath
+        //let selectModel = db.SelectModel()
+        let model = MzSQL.updateModel(db.SelectModel(), reader.Model)
+        db.UpdateRunIDOfMzIOModel runID model
+        
         let bulkInsert spectra = 
             spectra
-            |> Seq.iter (insertSpectrumF db runID reader compress)
+            |> Seq.iter (insertSpectrumF db runID reader compress)        
         bulkInsert spectra
+        
         tr.Commit()
         tr.Dispose() 
         db.Dispose()

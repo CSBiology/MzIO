@@ -64,11 +64,11 @@ let bafMzMLFile     = @"C:\Users\Student\source\repos\wiffTestFiles\Bruker\17092
 let thermoUni       = @"C:\Users\Student\source\repos\wiffTestFiles\Thermo\data02.RAW"
 let termoMzML       = @"C:\Users\Student\source\repos\wiffTestFiles\Thermo\data02.mzML"
 
-let wiffReader          = new WiffFileReader(wiffTestUni, licensePath)
+let wiffReader          = new WiffFileReader(wiffTestHome, licenseHome)
 //let bafReader           = new BafFileReader(bafTestHome)
 //let thermoReader        = new ThermoRawFileReader(thermoUni)
 
-//let mzSQLNoCompression  = new MzSQL(wiffTestUni + "NoCompression.mzIO")
+let mzSQLNoCompression  = new MzSQL(wiffTestHome + "NoCompression.mzIO")
 //let mzSQLZLib           = new MzSQL(wiffTestUni + "ZLib.mzIO")
 //let mzSQLNumPress       = new MzSQL(wiffTestUni + "NumPress.mzIO")
 //let mzSQLNumPressZLib   = new MzSQL(wiffTestUni + "NumPressZLib.mzIO")
@@ -90,6 +90,7 @@ let spectra =
     |> (fun run -> wiffReader.ReadMassSpectra run.ID)
     |> Array.ofSeq
     |> Array.filter (fun x -> MzIO.Processing.MassSpectrum.getMsLevel x = 1)
+    |> Array.take 10
 
 //let peaks =
 //    spectra
@@ -97,11 +98,11 @@ let spectra =
 //    |> Seq.filter (fun item -> (snd item).Peaks.Length > 0 )
 //    |> Seq.map (fun item -> fst item)
 
-//mzSQLNoCompression.Open()
-//let tr = mzSQLNoCompression.cn.BeginTransaction()
-//let stopWatch = System.Diagnostics.Stopwatch.StartNew()
-//insertMSSpectraBy insertMSSpectrum mzSQLNoCompression "run_1" wiffReader tr BinaryDataCompressionType.NoCompression spectra
-//let stopWatchFnished = stopWatch.Elapsed
+mzSQLNoCompression.Open()
+let tr = mzSQLNoCompression.cn.BeginTransaction()
+let stopWatch = System.Diagnostics.Stopwatch.StartNew()
+insertMSSpectraBy insertMSSpectrum mzSQLNoCompression "run_1" wiffReader tr BinaryDataCompressionType.NoCompression spectra
+let stopWatchFnished = stopWatch.Elapsed
 
 //mzSQLZLib.Open()
 //let trZLIB = mzSQLZLib.cn.BeginTransaction()
@@ -115,13 +116,15 @@ let spectra =
 //let trNumPressZLIB = mzSQLNumPressZLib.cn.BeginTransaction()
 //insertMSSpectraBy insertMSSpectrum mzSQLNumPressZLib "run_1" wiffReader trNumPressZLIB BinaryDataCompressionType.NumPressZLib spectra
 
-let runID =
-    wiffReader.Model.Runs.GetProperties false
-    |> Seq.map (fun item -> item.Value :?> Run)
-    |> Seq.head
-    |> (fun run -> run.ID)
+//let runID =
+//    wiffReader.Model.Runs.GetProperties false
+//    |> Seq.map (fun item -> item.Value :?> Run)
+//    |> Seq.head
+//    |> (fun run -> run.ID)
 
-wiffReader.GetRSaturationValues(spectra.[0].ID)
+//wiffReader.GetRSaturationValues(spectra.[0].ID)
 
-
+mzSQLNoCompression.Model.Runs.GetProperties false
+|> Seq.head
+|> fun item -> item.Value :?> Run
 

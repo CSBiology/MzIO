@@ -127,25 +127,27 @@ type MzSQL(path) =
     member this.Open() = this.cn.Open()
 
     /// Initialization of all prePareFunctions for the current connection.
-    member this.InsertModel         = MzSQL.prepareInsertModel(this.cn)
+    member this.InsertModel             = MzSQL.prepareInsertModel(this.cn)
 
-    member this.SelectModel         = MzSQL.prepareSelectModel(this.cn)
+    member this.SelectModel             = MzSQL.prepareSelectModel(this.cn)
 
-    member this.InsertMassSpectrum  = MzSQL.prepareInsertMassSpectrum(this.cn)
+    member this.UpdateRunIDOfMzIOModel  = MzSQL.prepareUpdateRunIDOfMzIOModel(this.cn)
 
-    member this.SelectMassSpectrum  = MzSQL.prepareSelectMassSpectrum(this.cn)
+    member this.InsertMassSpectrum      = MzSQL.prepareInsertMassSpectrum(this.cn)
 
-    member this.SelectMassSpectra   = MzSQL.prepareSelectMassSpectra(this.cn)
+    member this.SelectMassSpectrum      = MzSQL.prepareSelectMassSpectrum(this.cn)
 
-    member this.SelectPeak1DArray   = MzSQL.prepareSelectPeak1DArray(this.cn)
+    member this.SelectMassSpectra       = MzSQL.prepareSelectMassSpectra(this.cn)
 
-    member this.InsertChromatogram  = MzSQL.prepareInsertChromatogram(this.cn)
+    member this.SelectPeak1DArray       = MzSQL.prepareSelectPeak1DArray(this.cn)
 
-    member this.SelectChromatogram  = MzSQL.prepareSelectChromatogram(this.cn)
+    member this.InsertChromatogram      = MzSQL.prepareInsertChromatogram(this.cn)
 
-    member this.SelectChromatograms = MzSQL.prepareSelectChromatograms(this.cn)
+    member this.SelectChromatogram      = MzSQL.prepareSelectChromatogram(this.cn)
 
-    member this.SelectPeak2DArray   = MzSQL.prepareSelectPeak2DArray(this.cn)
+    member this.SelectChromatograms     = MzSQL.prepareSelectChromatograms(this.cn)
+
+    member this.SelectPeak2DArray       = MzSQL.prepareSelectPeak2DArray(this.cn)
 
     //member this.Commit() = 
     //    MzSQL.RaiseConnectionState(cn)
@@ -242,19 +244,25 @@ type MzSQL(path) =
         //let jsonModel = MzIOJson.ToJson(model)
         let queryString = "UPDATE Model SET Content = @model WHERE Lock = 0"
         let cmd = new SQLiteCommand(queryString, cn)
+        let potModel = MzSQL.trySelectModel(cn)
+        let insertModel = MzSQL.prepareInsertModel(cn)
         cmd.Parameters.Add("@model" ,Data.DbType.String)    |> ignore
         fun (runID:string) (model:MzIOModel) ->
-            let run = 
-                let tmp =
-                    model.Runs.GetProperties false
-                    |> Seq.head
-                    |> (fun item -> item.Value :?> Run)
-                new Run(runID, tmp.SampleID, tmp.DefaultInstrumentID,tmp.DefaultSpectrumProcessing, tmp.DefaultChromatogramProcessing)
-            if model.Runs.TryAdd(run.ID, run) then
-                cmd.Parameters.["@model"].Value <- MzIOJson.ToJson(model)
-                cmd.ExecuteNonQuery() |> ignore
-            else 
-                ()
+            if potModel.IsSome then
+                let run = 
+                    let tmp =
+                        model.Runs.GetProperties false
+                        |> Seq.head
+                        |> (fun item -> item.Value :?> Run)
+                    new Run(runID, tmp.SampleID, tmp.DefaultInstrumentID,tmp.DefaultSpectrumProcessing, tmp.DefaultChromatogramProcessing)
+                if model.Runs.TryAdd(run.ID, run) then
+                    printfn "MzIOJson.ToJson(model) %s" (MzIOJson.ToJson(model))
+                    cmd.Parameters.["@model"].Value <- MzIOJson.ToJson(model)
+                    cmd.ExecuteNonQuery() |> ignore
+                else 
+                    ()
+            else
+                insertModel model
 
     ///Prepare function to insert MzQuantMLDocument-record.
     static member private prepareInsertMassSpectrum(cn:SQLiteConnection) =
@@ -617,25 +625,9 @@ type MzSQL(path) =
     /// Inserts runID, MassSpectra with corresponding Peak1DArrasy into datbase Spectrum table with chosen compression type for the peak data.
     member this.insertMSSpectrum (runID:string) (reader:IMzIODataReader) (compress: BinaryDataCompressionType) (spectrum: MassSpectrum) = 
         let peakArray = reader.ReadSpectrumPeaks(spectrum.ID)
-        match compress with 
-        | BinaryDataCompressionType.NoCompression  -> 
-            let clonedP = new Peak1DArray(BinaryDataCompressionType.NoCompression, peakArray.IntensityDataType,peakArray.MzDataType)
-            clonedP.Peaks <- peakArray.Peaks
-            this.Insert(runID, spectrum, clonedP)
-        | BinaryDataCompressionType.ZLib -> 
-            let clonedP = new Peak1DArray(BinaryDataCompressionType.ZLib, peakArray.IntensityDataType,peakArray.MzDataType)
-            clonedP.Peaks <- peakArray.Peaks
-            this.Insert(runID, spectrum, clonedP)
-        | BinaryDataCompressionType.NumPress ->
-            let clonedP = new Peak1DArray(BinaryDataCompressionType.NumPress, peakArray.IntensityDataType,peakArray.MzDataType)
-            clonedP.Peaks <- peakArray.Peaks
-            this.Insert(runID, spectrum, clonedP)
-        | BinaryDataCompressionType.NumPressZLib ->
-            let clonedP = new Peak1DArray(BinaryDataCompressionType.NumPressZLib, peakArray.IntensityDataType,peakArray.MzDataType)
-            clonedP.Peaks <- peakArray.Peaks
-            this.Insert(runID, spectrum, clonedP)
-        | _ ->
-            failwith "Not a valid compression Method"
+        let clonedP = new Peak1DArray(BinaryDataCompressionType.NoCompression, peakArray.IntensityDataType,peakArray.MzDataType)
+        clonedP.Peaks <- peakArray.Peaks
+        this.Insert(runID, spectrum, clonedP)
 
     /// Modifies spectrum according to the used spectrumPeaksModifier and inserts the result into the MzSQL data base. 
     member this.insertModifiedSpectrumBy (spectrumPeaksModifierF: IMzIODataReader -> MassSpectrum -> BinaryDataCompressionType -> Peak1DArray) (runID:string) (reader:IMzIODataReader) (compress: BinaryDataCompressionType) (spectrum: MassSpectrum) = 
@@ -643,7 +635,7 @@ type MzSQL(path) =
         this.Insert(runID, spectrum, modifiedP)
 
     /// Updates the an MzIOModel by adding all values of the other MzIOModel.
-    static member private updateModel(newModel:MzIOModel, oldModel:MzIOModel) =
+    static member internal updateModel(oldModel:MzIOModel, newModel:MzIOModel) =
         oldModel.GetProperties false
         |> Seq.iter (fun item -> newModel.TryAdd(item.Key, item.Value) |> ignore)
         oldModel.Instruments.GetProperties false
@@ -656,7 +648,7 @@ type MzSQL(path) =
         |> Seq.iter (fun item -> newModel.Softwares.TryAdd(item.Key, item.Value) |> ignore)
         oldModel.Samples.GetProperties false
         |> Seq.iter (fun item -> newModel.Samples.TryAdd(item.Key, item.Value) |> ignore)
-        oldModel.FileDescription <- newModel.FileDescription
+        newModel.FileDescription <- oldModel.FileDescription
         newModel
 
     /// Starts bulkinsert of mass spectra into a MzLiteSQL database
