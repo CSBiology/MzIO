@@ -29,6 +29,7 @@
     <None Include="paket.template" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\MzIO.Processing\MzIO.Processing.fsproj" />
     <ProjectReference Include="..\MzIO\MzIO.fsproj" />
   </ItemGroup>
   <ItemGroup>

@@ -18,6 +18,8 @@ open MzIO.MetaData.UO.UO
 open MzIO.MetaData.PSIMSExtension
 open MzIO.Commons.Arrays
 open MzIO.Commons.Arrays.MzIOArray
+open MzIO.Processing
+
 
 //put in an extra module for improved performance
 //module Regex =
@@ -1153,6 +1155,32 @@ type WiffFileReader(dataProvider:AnalystWiffDataProvider, disposed:Boolean, wiff
             |> Array.map (fun item -> item.RetentionTimeToExperimentScan(rt))
         Array.map2 (fun msExp scanIndex -> WiffFileReader.ToSpectrumID(sampleIndex, msExp, scanIndex)) experimentIndexes scanIndexes
 
+    member this.GetSpectrumIDsOfRtRange(runID:string, rtQuery:RangeQuery, ?stepSize:float) =
+        let stepSize' = defaultArg stepSize 0.01
+        let rtRange = [rtQuery.LowValue..stepSize'..rtQuery.HighValue]
+        rtRange
+        |> Seq.collect (fun rt -> this.GetSpectrumIDsOfRt(runID, rt))
+
+    member this.GetSpectraOfRt(runID:string, rt:float) =
+        this.RaiseDisposed()
+        let mutable sampleIndex     = 0        
+        this.ParseByRunID(runID, & sampleIndex)
+        let sample  = batch.GetSample(sampleIndex).MassSpectrometerSample
+        let msExperiments = sample.FindExperiments(rt)
+        let experimentIndexes =
+            msExperiments
+            |> Array.map (fun item -> item.GetMassSpectrum(rt).Info.ExperimentIndex)
+        let scanIndexes=
+            msExperiments
+            |> Array.map (fun item -> item.RetentionTimeToExperimentScan(rt))
+        Array.map2 (fun msExp scanIndex -> this.ReadMassSpectrum(WiffFileReader.ToSpectrumID(sampleIndex, msExp, scanIndex))) experimentIndexes scanIndexes
+
+    member this.GetSpectraOfRtRange(runID:string, rtQuery:RangeQuery, ?stepSize:float) =
+        let stepSize' = defaultArg stepSize 0.01
+        let rtRange = [rtQuery.LowValue..stepSize'..rtQuery.HighValue]
+        rtRange
+        |> Seq.collect (fun rt -> this.GetSpectraOfRt(runID, rt))
+            
      //member this.GetSpectrumIDsOfRtWindow(runID:string, startRT:float, endRT:float) =
      //   this.RaiseDisposed()
      //   let mutable sampleIndex     = 0        
