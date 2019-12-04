@@ -242,7 +242,17 @@ type WiffFileReader(dataProvider:AnalystWiffDataProvider, disposed:Boolean, wiff
     //    |   _   -> WiffFileReader.ReadWiffLicense(licenseFilePath)
 
     new(wiffFilePath:string, ?licenseFilePath:string) =
-        let licenseFilePath = defaultArg licenseFilePath (sprintf @"%s"(__SOURCE_DIRECTORY__ + "\License\Clearcore2.license.xml"))
+        let licenseFilePath = 
+            defaultArg licenseFilePath (
+                let appFolder = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData)
+                let wiffFolder = Path.Combine(appFolder, @"IOMIQS\Clearcore2\Licensing")
+                Directory.CreateDirectory(wiffFolder) |> ignore
+                Path.Combine(wiffFolder, "Clearcore2.license.xml")
+            )
+        if not (File.Exists licenseFilePath) then
+            failwithf "No valid license file found at %s.\n Please provide a license path or put a valid license in %s"
+                licenseFilePath
+                (Path.GetDirectoryName licenseFilePath)
         new WiffFileReader
                             (
                                 new AnalystWiffDataProvider(true), false, wiffFilePath, licenseFilePath
