@@ -1,3 +1,6 @@
+#### 0.0.9.4 - Tuesday, December 4, 2019
+* Add new access to metadata and data for wiff files
+
 #### 0.0.9.3 - Tuesday, October 9, 2019
 * Fixed deserialize SelecteIon CvParams bug
 
