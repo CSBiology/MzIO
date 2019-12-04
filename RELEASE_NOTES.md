@@ -1,4 +1,8 @@
-#### 0.0.9.4 - Tuesday, December 4, 2019
+#### 0.0.9.5 - Wednesday, December 4, 2019
+* Change clearcore license path to look under AppData/Local/IOMIQS/Clearcore2/Licensing
+for the license
+
+#### 0.0.9.4 - Tuesday, December 3, 2019
 * Add new access to metadata and data for wiff files
 
 #### 0.0.9.3 - Tuesday, October 9, 2019
