@@ -17,35 +17,28 @@ open Newtonsoft.Json.Linq
 open System.Runtime.InteropServices
 
 
-type private MzSQLTransactionScope() =
+type private MzSQLTransactionScope(tr:SQLiteTransaction) =
 
     interface IDisposable with
-
         member this.Dispose() =
-            ()
+            tr.Dispose()
 
     member this.Dispose() =
-
         (this :> IDisposable).Dispose()
 
     interface ITransactionScope with
 
-        /// Does Nothing.
         member this.Commit() =
-            ()
+            tr.Commit()
 
-        /// Does Nothing.
         member this.Rollback() =
-            ()
+            tr.Rollback()
 
-    /// Does Nothing.
     member this.Commit() =
-
         (this :> ITransactionScope).Commit()
 
-    /// Does Nothing.
-    member this.Rollback() =
 
+    member this.Rollback() =
         (this :> ITransactionScope).Rollback()
     
 /// Contains methods and procedures to create, insert and access MzSQL files.
@@ -61,56 +54,26 @@ type MzSQL(path) =
             else
                 path
 
-    let mutable cn' = new SQLiteConnection(sprintf "Data Source=%s;Version=3" sqlitePath)
-
     do
-        if File.Exists("sqlitePath") then 
+        if File.Exists(sqlitePath) then 
             ()
         else
+            let mutable cn' = new SQLiteConnection(sprintf "Data Source=%s;Version=3" sqlitePath)
             cn'.Open()
             MzSQL.SqlInitSchema(cn')
             cn'.Close()
+            cn'.Dispose()
 
-    //let mutable tr = 
-    //    MzSQL.RaiseConnectionState(cn)
-    //    cn.BeginTransaction()
 
-    /// Initialization of all prePareFunctions for the current connection.
-    //let insertModel =
-    //    MzSQL.prepareInsertModel(cn)
-
-    //let selectModel =
-    //    MzSQL.prepareSelectModel(cn)
-
-    //let insertMassSpectrum =
-    //    MzSQL.prepareInsertMassSpectrum(cn)
-
-    //let selectMassSpectrum =
-    //    MzSQL.prepareSelectMassSpectrum(cn)
-
-    //let selectMassSpectra =
-    //    MzSQL.prepareSelectMassSpectra(cn)
-
-    //let selectPeak1DArray =
-    //    MzSQL.prepareSelectPeak1DArray(cn)
-
-    //let insertChromatogram =
-    //    MzSQL.prepareInsertChromatogram(cn)
-
-    //let selectChromatogram =
-    //    MzSQL.prepareSelectChromatogram(cn)
-
-    //let selectChromatograms =
-    //    MzSQL.prepareSelectChromatograms(cn)
-
-    //let selectPeak2DArray =
-    //    MzSQL.prepareSelectPeak2DArray(cn)
 
     let mutable tmp = new SQLiteConnection(sprintf "Data Source=%s;Version=3" sqlitePath)
+    
+    member this.cn = tmp
 
+    member this.Open() = this.cn.Open()
+    
     member this.model =
-        cn'.Open()
-        let tr = cn'.BeginTransaction()
+        let tr = this.cn.BeginTransaction()
         let potMdoel = MzSQL.trySelectModel(this.cn)
         match potMdoel with
         | Some model    -> model
@@ -119,12 +82,10 @@ type MzSQL(path) =
             this.InsertModel tmp
             tr.Commit()
             tr.Dispose()
-            cn'.Close()
+            this.cn.Close()
             tmp
 
-    member this.cn = tmp
 
-    member this.Open() = this.cn.Open()
 
     /// Initialization of all prePareFunctions for the current connection.
     member this.InsertModel             = MzSQL.prepareInsertModel(this.cn)
@@ -154,11 +115,7 @@ type MzSQL(path) =
     //    MzSQL.RaiseTransactionState(cn)
     //    tr.Commit()
 
-    member this.CreateConnection() =
-        disposed <- false
-        new SQLiteConnection(sprintf "Data Source=%s;Version=3" sqlitePath)
 
-    /// Closes SQLiteConnection.
     member this.Close() = this.cn.Close() 
 
     /// Checks whether SQLiteConnection is open or not and reopens it, when is should be closed.
@@ -580,33 +537,35 @@ type MzSQL(path) =
 
         (this :> IDisposable).Dispose()
 
+
     interface IMzIOIO with
 
         /// Open connection to MzSQL data base.
         member this.BeginTransaction() =
-            this.RaiseDisposed()
-            //MzSQL.RaiseConnectionState(this.cn)
+            if (this.cn.State=ConnectionState.Open) then () else this.cn.Open()
             //MzSQL.RaiseTransactionState(cn)
-            new MzSQLTransactionScope() :> ITransactionScope
+            let tr = this.cn.BeginTransaction()
+            new MzSQLTransactionScope(tr) :> ITransactionScope
 
         /// Creates MzIOModel based on global metadata in MzSQL or default model when no model was in the db.
         member this.CreateDefaultModel() =
-            this.RaiseDisposed()
+            if (this.cn.State=ConnectionState.Open) then () else this.cn.Open()
             new MzIOModel(Path.GetFileNameWithoutExtension(sqlitePath))
 
         /// Saves in memory MzIOModel into the MzSQL data base.
         member this.SaveModel() =
-            this.RaiseDisposed()
+            if (this.cn.State=ConnectionState.Open) then () else this.cn.Open()
             this.InsertModel this.Model
             //tr.Commit()
 
         /// Access MzIOModel in memory.
         member this.Model =
-            this.RaiseDisposed()
+            if (this.cn.State=ConnectionState.Open) then () else this.cn.Open()
             this.model
 
     /// Open connection to MzSQL data base.
     member this.BeginTransaction() =
+        if (this.cn.State=ConnectionState.Open) then () else this.cn.Open()
         this.cn.BeginTransaction()
         //(this :> IMzIOIO).BeginTransaction()
 

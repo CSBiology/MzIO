@@ -1,3 +1,9 @@
+#### 0.0.9.7 - Thursday, December 12, 2019
+* Refactoring
+
+#### 0.0.9.6 - Thursday, December 12, 2019
+* Unification of scan time units
+
 #### 0.0.9.5 - Wednesday, December 4, 2019
 * Change clearcore license path to look under AppData/Local/IOMIQS/Clearcore2/Licensing
 for the license

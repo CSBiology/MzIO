@@ -5,8 +5,8 @@ open System.Reflection
 [<assembly: AssemblyTitleAttribute("MzIO.Processing")>]
 [<assembly: AssemblyProductAttribute("MzIO")>]
 [<assembly: AssemblyDescriptionAttribute("Generic data model to unify various readers and writers for different formats used in protein mass spectrometry")>]
-[<assembly: AssemblyVersionAttribute("0.0.9.5")>]
-[<assembly: AssemblyFileVersionAttribute("0.0.9.5")>]
+[<assembly: AssemblyVersionAttribute("0.0.9.7")>]
+[<assembly: AssemblyFileVersionAttribute("0.0.9.7")>]
 [<assembly: AssemblyConfigurationAttribute("Release")>]
 do ()
 
@@ -14,6 +14,6 @@ module internal AssemblyVersionInformation =
     let [<Literal>] AssemblyTitle = "MzIO.Processing"
     let [<Literal>] AssemblyProduct = "MzIO"
     let [<Literal>] AssemblyDescription = "Generic data model to unify various readers and writers for different formats used in protein mass spectrometry"
-    let [<Literal>] AssemblyVersion = "0.0.9.5"
-    let [<Literal>] AssemblyFileVersion = "0.0.9.5"
+    let [<Literal>] AssemblyVersion = "0.0.9.7"
+    let [<Literal>] AssemblyFileVersion = "0.0.9.7"
     let [<Literal>] AssemblyConfiguration = "Release"
