@@ -343,7 +343,7 @@ type WiffFileReader(dataProvider:AnalystWiffDataProvider, disposed:Boolean, wiff
 
         // scan
         let mutable scan = new Scan()
-        scan.SetScanStartTime(wiffSpectrum.StartRT).UO_Minute |> ignore
+        scan.SetScanStartTime(wiffSpectrum.StartRT).UO_Minute() |> ignore
         MzIOSpectrum.Scans.Add(Guid.NewGuid().ToString(), scan)
 
         // precursor
