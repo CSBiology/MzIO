@@ -498,7 +498,7 @@ type BafFileReader(bafFilePath:string) =
         // scan
         if bafSpec.Rt.HasValue then
             let scan = new Scan()
-            scan.SetScanStartTime(bafSpec.Rt.Value).UO_Second() |> ignore
+            scan.SetScanStartTime(bafSpec.Rt.Value / 60.).UO_Minute()|> ignore
             ms.Scans.Add(Guid.NewGuid().ToString(), scan)
         else
             ()
