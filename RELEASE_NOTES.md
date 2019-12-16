@@ -1,3 +1,6 @@
+#### 0.0.9.8 - Thursday, December 12, 2019
+* Fix BuildRTIndex
+
 #### 0.0.9.7 - Thursday, December 12, 2019
 * Refactoring
 
