@@ -169,16 +169,14 @@ module MzIOLinq =
             let massSpectra   = this.ReadMassSpectra(runID)
             let entries       = new List<RtIndexEntry>()
             let mutable entry = new RtIndexEntry()
-            //for ms in massSpectra do
-            //    if RtIndexEntry.TryCreateEntry(ms, msLevel, & entry) then
-            //        entries.Add(entry)
             massSpectra
             |> Seq.iter (fun ms -> 
-                            RtIndexEntry.TryCreateEntry(ms, msLevel, & entry) |> ignore
-                            entries.Add(entry)
-                        )
+                if RtIndexEntry.TryCreateEntry(ms, msLevel, & entry) then 
+                    entries.Add(entry)
+            )
             entries.Sort(new RtIndexEntrySorting())
             MzIOArray.ToMzIOArray(entries)
+                            
 
         /// Extract a rt profile matrix for specified target masses and rt range.
         /// Mz range peak aggregation is closest lock mz.
