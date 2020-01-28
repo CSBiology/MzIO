@@ -368,6 +368,8 @@ type WiffFileReader(dataProvider:AnalystWiffDataProvider, disposed:Boolean, wiff
         else
             MzIOSpectrum
 
+
+
     /// Generates runID based on sampleIndex.
     static member private ToRunID(sample: int) =
         String.Format("sample={0}", sample)
@@ -578,12 +580,8 @@ type WiffFileReader(dataProvider:AnalystWiffDataProvider, disposed:Boolean, wiff
                     raise (MzIOIOException(ex.Message, ex))
 
         /// Not implemented yet.
-        member this.ReadChromatogramPeaks(runID:string) =
-            try
-                raise ((new NotSupportedException()))
-            with
-                | :? Exception as ex -> 
-                    raise (MzIOIOException(ex.Message, ex))
+        member this.ReadChromatogramPeaks(spectrumID:string) =
+            this.GetChromatogramPeaks(spectrumID)
 
         /// Not implemented yet.
         member this.ReadChromatogramAsync(runID:string) =
@@ -594,12 +592,12 @@ type WiffFileReader(dataProvider:AnalystWiffDataProvider, disposed:Boolean, wiff
                     raise (MzIOIOException(ex.Message, ex))
 
         /// Not implemented yet.
-        member this.ReadChromatogramPeaksAsync(runID:string) =
-            try
-                raise ((new NotSupportedException()))
-            with
-                | :? Exception as ex -> 
-                    raise (MzIOIOException(ex.Message, ex))
+        member this.ReadChromatogramPeaksAsync(spectrumID:string) =
+            let tmp = this :> IMzIODataReader
+            async
+                {
+                    return tmp.ReadChromatogramPeaks(spectrumID)
+                }
 
     /// Read all mass spectra of one run of baf file.
     member this.ReadMassSpectra(runID:string)               =
@@ -1051,7 +1049,7 @@ type WiffFileReader(dataProvider:AnalystWiffDataProvider, disposed:Boolean, wiff
                     pa)
         | _ -> failwith "Only MS1 and MS2 exist!"
 
-    member this.GetChromatogram(spectrumID) =
+    member this.GetChromatogramPeaks(spectrumID) =
         this.RaiseDisposed()
         let mutable sampleIndex     = 0
         let mutable experimentIndex = 0
@@ -1086,11 +1084,35 @@ type WiffFileReader(dataProvider:AnalystWiffDataProvider, disposed:Boolean, wiff
             tmp2.AsEnumerable<Peak2DArray>()
         )
 
+    static member YieldChrom(batch:Batch, sampleIndex:int) =
+
+        use sample = batch.GetSample(sampleIndex).MassSpectrometerSample
+        (
+            let tmp =
+                seq{
+                    for experimentIndex= 0 to sample.ExperimentCount-1 do
+                        let mutable msExp = sample.GetMSExperiment(experimentIndex)
+                        for scanIndex = 0 to msExp.Details.NumberOfScans-1 do
+                            let mutable ms = msExp.GetMassSpectrum(scanIndex)
+                            let mutable pa = new WiffPeak2DArray(ms, scanIndex)
+                            yield Some (new Peak2DArray(BinaryDataCompressionType.NoCompression, BinaryDataType.Float64, BinaryDataType.Float64, BinaryDataType.Float64, pa))
+                    }
+            let tmp2 = Seq.choose(fun item -> item) tmp
+            Seq.sortBy (fun (item:Peak2DArray) -> item.Peaks.[0].Rt) tmp2 |> ignore
+            tmp2.AsEnumerable<Peak2DArray>()
+        )
+
     member this.GetChromatogramsOfMSLevel(runID:string, msLevel:int) =        
         this.RaiseDisposed()
         let mutable sampleIndex = 0
         this.ParseByRunID(runID, & sampleIndex)
         WiffFileReader.YieldChrom(batch, sampleIndex, msLevel)
+
+    member this.GetChromatograms(runID:string) =        
+        this.RaiseDisposed()
+        let mutable sampleIndex = 0
+        this.ParseByRunID(runID, & sampleIndex)
+        WiffFileReader.YieldChrom(batch, sampleIndex)
 
     member this.GetExperimentCount(spectrumID:string) =
         let sampleIndex = this.getSampleIndex(spectrumID)
