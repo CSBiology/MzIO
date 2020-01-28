@@ -201,13 +201,8 @@ type Chromatogram [<JsonConstructor>] (id: string, precursor:Precursor, product:
 
     inherit PeakList(id)
 
-    //let precursor = precursor
-
-    //let product = product
-
+    new(id) = Chromatogram(id, new Precursor(), new Product())
     new() = Chromatogram("id", new Precursor(), new Product())
-
-    //member this.Chromatogram = base.ID
 
     [<JsonProperty>]
     member this.Precursor = precursor
