@@ -205,7 +205,7 @@ type Chromatogram [<JsonConstructor>] (id: string, precursor:Precursor, product:
     new() = Chromatogram("id", new Precursor(), new Product())
 
     [<JsonProperty>]
-    member this.Precursor = precursor
+    member this.Precursors = precursor
 
     [<JsonProperty>]
     member this.Product = product
