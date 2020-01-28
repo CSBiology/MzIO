@@ -322,6 +322,27 @@ type WiffFileReader(dataProvider:AnalystWiffDataProvider, disposed:Boolean, wiff
         else
             false
 
+    /// Gets isolationWindow, target M/Z and offset.
+    static member GetIsolationWindowProduct(exp:MSExperiment, isoWidth:byref<double>, targetMz:byref<double>) =
+
+        let mr  = exp.Details.MassRangeInfo
+
+        isoWidth <- double 0.
+
+        targetMz <- double 0.
+
+        if mr.Length>1 then
+
+            let mri = mr.[1] :?> FragmentBasedScanMassRange
+
+            isoWidth <- mri.IsolationWindow * (double 0.5)
+
+            targetMz <- double mri.FixedMasses.[0]
+
+            mri <> null
+        else
+            false
+
     /// Generate spectrumID based on sampleIndex, experimentIndex and scanIndex.
     static member private ToSpectrumID(sampleIndex:int, experimentIndex:int, scanIndex:int) =
 
@@ -368,7 +389,45 @@ type WiffFileReader(dataProvider:AnalystWiffDataProvider, disposed:Boolean, wiff
         else
             MzIOSpectrum
 
+    static member private GetChrom(batch:Batch, sample:MassSpectrometerSample, msExp:MSExperiment, sampleIndex:int, experimentIndex:int, scanIndex:int) =
 
+        let wiffSpectrum    = msExp.GetMassSpectrumInfo(scanIndex)
+        let MzIOChrom       = new Chromatogram(WiffFileReader.ToSpectrumID(sampleIndex, experimentIndex, scanIndex))
+
+        if wiffSpectrum.IsProductSpectrum then
+            
+            // precursor
+            let precursor = new Precursor()
+            let mutable isoWidth = double 0
+            let mutable targetMz = double 0
+            
+            if WiffFileReader.GetIsolationWindow(wiffSpectrum.Experiment, & isoWidth, & targetMz)=true
+            then
+                precursor.IsolationWindow.SetIsolationWindowTargetMz(targetMz)      |> ignore
+                precursor.IsolationWindow.SetIsolationWindowUpperOffset(isoWidth)   |> ignore
+                precursor.IsolationWindow.SetIsolationWindowLowerOffset(isoWidth)   |> ignore
+            let selectedIon = new SelectedIon()
+            selectedIon.SetSelectedIonMz(wiffSpectrum.ParentMZ)                     |> ignore
+            selectedIon.SetChargeState(wiffSpectrum.ParentChargeState)              |> ignore
+            precursor.SelectedIons.Add(Guid.NewGuid().ToString(), selectedIon)
+            precursor.Activation.SetCollisionEnergy(wiffSpectrum.CollisionEnergy)   |> ignore
+            MzIOChrom.Precursors.Add(Guid.NewGuid().ToString(), precursor)
+            
+
+            // product
+            let product = new Product()
+            let mutable isoWidth_Prod = double 0
+            let mutable targetMz_Prod = double 0
+            if WiffFileReader.GetIsolationWindowProduct(wiffSpectrum.Experiment, & isoWidth, & targetMz)=true
+            then
+                product.IsolationWindow.SetIsolationWindowTargetMz(targetMz)      |> ignore
+                product.IsolationWindow.SetIsolationWindowUpperOffset(isoWidth)   |> ignore
+                product.IsolationWindow.SetIsolationWindowLowerOffset(isoWidth)   |> ignore
+                MzIOChrom
+            else
+                MzIOChrom
+        else
+            MzIOChrom
 
     /// Generates runID based on sampleIndex.
     static member private ToRunID(sample: int) =
@@ -399,6 +458,20 @@ type WiffFileReader(dataProvider:AnalystWiffDataProvider, disposed:Boolean, wiff
         //    )
         //)
         //(List.rev massSpectra).AsEnumerable<PeakList.MassSpectrum>()
+
+    static member YieldChrom(batch:Batch, sampleIndex:int) =
+
+        use sample = batch.GetSample(sampleIndex).MassSpectrometerSample
+        (
+            let tmp =
+                seq{
+                    for experimentIndex= 0 to sample.ExperimentCount-1 do
+                        let mutable msExp = sample.GetMSExperiment(experimentIndex)
+                        for scanIndex = 0 to msExp.Details.NumberOfScans-1 do
+                            yield WiffFileReader.GetChrom(batch, sample, msExp, sampleIndex, experimentIndex, scanIndex)
+                    }
+            tmp.AsEnumerable<Chromatogram>()
+        )
 
     /// Checks whether connection is disposed or not and fails when it is.
     member private this.RaiseDisposed() =
@@ -532,7 +605,7 @@ type WiffFileReader(dataProvider:AnalystWiffDataProvider, disposed:Boolean, wiff
             this.ParseBySpectrumID(spectrumID, & sampleIndex, & experimentIndex, & scanIndex)
             use sample      = batch.GetSample(sampleIndex).MassSpectrometerSample
             use msExp       = sample.GetMSExperiment(experimentIndex)
-            (WiffFileReader.GetSpectrum(batch, sample, msExp, sampleIndex, experimentIndex, scanIndex))
+            (WiffFileReader.GetSpectrum(batch, sample, msExp, sampleIndex, experimentIndex, scanIndex))            
 
         /// Read peaks of spectrum of wiff file.
         member this.ReadSpectrumPeaks(spectrumID:string) =
@@ -569,27 +642,33 @@ type WiffFileReader(dataProvider:AnalystWiffDataProvider, disposed:Boolean, wiff
 
         /// Not implemented yet.
         member this.ReadChromatograms(runID:string) =
-            Enumerable.Empty<Chromatogram>()
+            this.RaiseDisposed()
+            let mutable sampleIndex = 0
+            this.ParseByRunID(runID, & sampleIndex)
+            WiffFileReader.YieldChrom(batch, sampleIndex)            
 
         /// Not implemented yet.
-        member this.ReadChromatogram(runID:string) =
-            try
-                raise (new NotSupportedException())
-            with
-                | :? Exception as ex-> 
-                    raise (MzIOIOException(ex.Message, ex))
+        member this.ReadChromatogram(spectrumID:string) =
+            this.RaiseDisposed()
+            let mutable sampleIndex     = 0
+            let mutable experimentIndex = 0
+            let mutable scanIndex       = 0
+            this.ParseBySpectrumID(spectrumID, & sampleIndex, & experimentIndex, & scanIndex)
+            use sample      = batch.GetSample(sampleIndex).MassSpectrometerSample
+            use msExp       = sample.GetMSExperiment(experimentIndex)
+            (WiffFileReader.GetChrom(batch, sample, msExp, sampleIndex, experimentIndex, scanIndex))
 
         /// Not implemented yet.
         member this.ReadChromatogramPeaks(spectrumID:string) =
             this.GetChromatogramPeaks(spectrumID)
 
         /// Not implemented yet.
-        member this.ReadChromatogramAsync(runID:string) =
-            try
-                raise ((new NotSupportedException()))
-            with
-                | :? Exception as ex -> 
-                    raise (MzIOIOException(ex.Message, ex))
+        member this.ReadChromatogramAsync(spectrumID:string) =
+            let tmp = this :> IMzIODataReader
+            async
+                {
+                    return tmp.ReadChromatogram(spectrumID)
+                }
 
         /// Not implemented yet.
         member this.ReadChromatogramPeaksAsync(spectrumID:string) =
@@ -1084,7 +1163,7 @@ type WiffFileReader(dataProvider:AnalystWiffDataProvider, disposed:Boolean, wiff
             tmp2.AsEnumerable<Peak2DArray>()
         )
 
-    static member YieldChrom(batch:Batch, sampleIndex:int) =
+    static member YieldChromPeaks(batch:Batch, sampleIndex:int) =
 
         use sample = batch.GetSample(sampleIndex).MassSpectrometerSample
         (
@@ -1108,11 +1187,11 @@ type WiffFileReader(dataProvider:AnalystWiffDataProvider, disposed:Boolean, wiff
         this.ParseByRunID(runID, & sampleIndex)
         WiffFileReader.YieldChrom(batch, sampleIndex, msLevel)
 
-    member this.GetChromatograms(runID:string) =        
+    member this.GetChromatogramsPeaks(runID:string) =        
         this.RaiseDisposed()
         let mutable sampleIndex = 0
         this.ParseByRunID(runID, & sampleIndex)
-        WiffFileReader.YieldChrom(batch, sampleIndex)
+        WiffFileReader.YieldChromPeaks(batch, sampleIndex)
 
     member this.GetExperimentCount(spectrumID:string) =
         let sampleIndex = this.getSampleIndex(spectrumID)
