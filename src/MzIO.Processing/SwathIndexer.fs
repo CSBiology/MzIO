@@ -279,45 +279,30 @@ module SwathIndexer =
                 if p.Mz > mzRange.HighValue then 1
                 else 0
 
-    //        //public Peak2D[,] GetRTProfiles(
-    //        //    IMzIODataReader dataReader,
-    //        //    SwathQuery query,
-    //        //    bool getLockMz,
-    //        //    Func<Peak1DArray, RangeQuery, Peak1D> mzRangeSelector)
-    //        //{
-    //        //    var swathSpectra = swathList.SearchAllTargetMz(query)
-    //        //        .SelectMany(x => x.SearchAllRt(query))
-    //        //        .ToArray();
+        member this.GetRTProfiles(dataReader:IMzIODataReader, query: SwathQuery, getLockMz: bool, mzRangeSelector: Peak1DArray -> RangeQuery -> Peak1D) =
+            let swathSpectra = 
+                swathList.SearchAllTargetMz(query.TargetMz)
+                    .SelectMany(fun x -> x.SearchAllRt(query))
+                    .ToArray()
+            if swathSpectra.Length > 0 then
 
-    //        //    if (swathSpectra.Length > 0)
-    //        //    {
-    //        //        Peak2D[,] profile = new Peak2D[query.CountMS2Masses, swathSpectra.Length];
+                let profile = Array2D.create query.CountMS2Masses swathSpectra.Length (new Peak2D())
 
-    //        //        for (int specIdx = 0; specIdx < swathSpectra.Length; specIdx++)
-    //        //        {
-    //        //            var swathSpec = swathSpectra[specIdx];
-    //        //            var pa = dataReader.ReadSpectrumPeaks(swathSpec.SpectrumID);
+                for specIdx = 0 to swathSpectra.Length - 1 do
 
-    //        //            for (int ms2MassIndex = 0; ms2MassIndex < query.CountMS2Masses; ms2MassIndex++)
-    //        //            {
-    //        //                RangeQuery mzRange = query[ms2MassIndex];
-    //        //                Peak1D p = mzRangeSelector(pa, mzRange);
+                    let swathSpec = swathSpectra.[specIdx]
+                    let pa = dataReader.ReadSpectrumPeaks(swathSpec.SpectrumID)
 
-    //        //                if (getLockMz)
-    //        //                {
-    //        //                    profile[ms2MassIndex, specIdx] = new Peak2D(p.Intensity, mzRange.LockValue, swathSpec.Rt);
-    //        //                }
-    //        //                else
-    //        //                {
-    //        //                    profile[ms2MassIndex, specIdx] = new Peak2D(p.Intensity, p.Mz, swathSpec.Rt);
-    //        //                }
-    //        //            }
-    //        //        }
+                    for ms2MassIndex = 0 to query.CountMS2Masses - 1 do
+                        
+                        let mzRange = query.Ms2Masses.[ms2MassIndex]
+                        let p = mzRangeSelector pa mzRange
 
-    //        //        return profile;
-    //        //    }
-    //        //    else
-    //        //    {
-    //        //        return empty2D;
-    //        //    }
-    //        //}
+                        if getLockMz then
+                            profile.[ms2MassIndex, specIdx] <- new Peak2D(p.Intensity, mzRange.LockValue, swathSpec.Rt)
+                        else
+                            profile.[ms2MassIndex, specIdx] <- new Peak2D(p.Intensity, p.Mz, swathSpec.Rt)
+
+                profile
+            else
+                Array2D.zeroCreate 1 1
