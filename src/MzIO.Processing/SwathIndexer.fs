@@ -99,7 +99,7 @@ module SwathIndexer =
                     let mutable mzHeigh = 0.
 
                     let isoWin  = ((ms.Precursors.GetProperties false |> Seq.head).Value :?> Precursor).IsolationWindow
-                    let scan    = ((ms.Precursors.GetProperties false |> Seq.head).Value :?> Scan)
+                    let scan    = ((ms.Scans.GetProperties false |> Seq.head).Value :?> Scan)
 
                     if (scan.TryGetScanStartTime(& rt) &&
                         isoWin.TryGetIsolationWindowTargetMz(& mz) &&
