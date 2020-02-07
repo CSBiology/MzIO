@@ -247,9 +247,9 @@ module SwathIndexer =
             new SwathIndexer(swathList)
 
         /// Creates a Peak2DArray based on the MzIOReader and SwathQuery.
-        member this.GetMS2(dataReader:IMzIODataReader, query:SwathQuery(*, mzRangeSelector:Func<IEnumerable<Peak1D>, RangeQuery, Peak1D>*)) =
+        member this.GetMS2(dataReader:IMzIODataReader, query:SwathQuery, ?mzRangeSelector: IEnumerable<Peak1D> * RangeQuery -> Peak1D) =
 
-            let mutable mzRangeSelector = SwathIndexer.GetClosestMz
+            let mzRangeSelector =  defaultArg mzRangeSelector SwathIndexer.GetClosestMz
 
             let mutable swath = swathList.SearchClosestTargetMz(query)
 
@@ -279,7 +279,15 @@ module SwathIndexer =
                 if p.Mz > mzRange.HighValue then 1
                 else 0
 
-        member this.GetRTProfiles(dataReader:IMzIODataReader, query: SwathQuery, getLockMz: bool, mzRangeSelector: Peak1DArray -> RangeQuery -> Peak1D) =
+        member this.GetRTProfiles(dataReader:IMzIODataReader, query: SwathQuery, getLockMz: bool, ?mzRangeSelector: Peak1DArray * RangeQuery -> Peak1D) =
+
+            let getClosestMz (peaks: Peak1DArray, mzRange: RangeQuery) =
+                peaks.Peaks
+                    .DefaultIfEmpty(new Peak1D(0., mzRange.LockValue))
+                    .ItemAtMin(fun x -> Math.Abs(x.Mz - mzRange.LockValue))
+
+            let mzRangeSelector = defaultArg mzRangeSelector getClosestMz
+
             let swathSpectra = 
                 swathList.SearchAllTargetMz(query.TargetMz)
                     .SelectMany(fun x -> x.SearchAllRt(query))
@@ -296,7 +304,7 @@ module SwathIndexer =
                     for ms2MassIndex = 0 to query.CountMS2Masses - 1 do
                         
                         let mzRange = query.Ms2Masses.[ms2MassIndex]
-                        let p = mzRangeSelector pa mzRange
+                        let p = mzRangeSelector(pa, mzRange)
 
                         if getLockMz then
                             profile.[ms2MassIndex, specIdx] <- new Peak2D(p.Intensity, mzRange.LockValue, swathSpec.Rt)
