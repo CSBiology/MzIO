@@ -1,3 +1,6 @@
+#### 0.0.9.9 - Tuesday, February 11, 2020
+* Add new functions to the SwathIndexer
+
 #### 0.0.9.8 - Thursday, December 12, 2019
 * Fix BuildRTIndex
 
