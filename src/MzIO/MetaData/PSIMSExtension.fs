@@ -114,7 +114,7 @@ module PSIMSExtension =
         member this.SetIsolationWindowTargetMz(mz: double) =
             if mz < 0. then
                 raise (ArgumentOutOfRangeException("mz"))
-            this.SetCvParam(PSIMS_IsolationWindow.IsolationWindowTargetMz).PSIMS_Mz() |> ignore
+            this.SetCvParam(PSIMS_IsolationWindow.IsolationWindowTargetMz, mz).PSIMS_Mz() |> ignore
             this
 
         /// The primary or reference m/z about which the isolation window is defined. [PSI:MS]
@@ -134,7 +134,7 @@ module PSIMSExtension =
         member this.SetIsolationWindowLowerOffset(offset: double) =
             if offset < 0. then
                 raise (ArgumentOutOfRangeException("offset"))
-            this.SetCvParam(PSIMS_IsolationWindow.IsolationWindowLowerOffset).PSIMS_Mz() |> ignore
+            this.SetCvParam(PSIMS_IsolationWindow.IsolationWindowLowerOffset, offset).PSIMS_Mz() |> ignore
             this
 
         /// The extent of the isolation window in m/z below the isolation window target m/z.
@@ -155,7 +155,7 @@ module PSIMSExtension =
         member this.SetIsolationWindowUpperOffset(offset: double) =
             if offset < 0. then
                 raise (ArgumentOutOfRangeException("offset"))
-            this.SetCvParam(PSIMS_IsolationWindow.IsolationWindowUpperOffset).PSIMS_Mz() |> ignore
+            this.SetCvParam(PSIMS_IsolationWindow.IsolationWindowUpperOffset, offset).PSIMS_Mz() |> ignore
             this
 
         /// The extent of the isolation window in m/z above the isolation window target m/z.
