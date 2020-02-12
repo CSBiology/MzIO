@@ -212,7 +212,7 @@ module PSIMSExtension =
         member this.SetCollisionEnergy (ce: double) =
             if ce < 0. then
                 raise (ArgumentOutOfRangeException("ce"))
-            this.SetCvParam(PSIMS_Precursor.CollisionEnergy).UO_Electronvolt() |> ignore
+            this.SetCvParam(PSIMS_Precursor.CollisionEnergy, ce).UO_Electronvolt() |> ignore
             this
 
     ///Contains the accessions for different params important for scan defintions.
