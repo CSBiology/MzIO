@@ -142,7 +142,7 @@ module Encode =
         match dataSize with
         | value when value = 0 -> 0.
         | value when value = 1 -> 
-                Math.Floor((0xFFFFFFFFL|> double) / data.[0])
+                Math.Floor((0x7FFFFFFFL|> double) / data.[0])
         | value when value > 1 -> 
                 let rec loop i (maxDoubleV: double) =
                     match i with
@@ -156,6 +156,16 @@ module Encode =
                     | _ ->  failwith "Error in optimalLinearFixedPoint; case: dataSize > 1"
                 loop 2 (Math.Max(data.[0], data.[1]))
         | _ -> failwith "Error in optimalLinearFixedPoint. dataSize has to be the length of the inputarray."
+
+    /// Determines the optimal fixed point for the function encodeLinear depending on the data to encode.
+    /// Not as prone to overflow errors as optimalLinearFixedPoint.
+    let optimalLinearFixedPointSave ((data: double[]), (dataSize:int)) =
+        match dataSize with
+        | 0 -> 0.
+        | 1 -> Math.Floor((0x7FFFFFFFL |> double) / data.[0])
+        | _ ->
+            let maxVal = data |> Array.max
+            Math.Floor((0x7FFFFFFFL |> double) / maxVal)
     
     ///Determines the optimal fixed point for the function encodeSlof depending on the data to encode.    
     let optimalSlofFixedPoint ((data: double[]), (dataSize: int)) =
