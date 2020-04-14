@@ -93,7 +93,7 @@ type ThermoRawFileReader(rawFilePath:string) =
     //let x =        
         //rawfile.Open(rawFilePath)
         //rawfile.SetCurrentController(0, 1)
-    do rawFile.SelectInstrument(rawFile.GetInstrumentType(0), 1)
+    do rawFile.SelectInstrument(ThermoFisher.CommonCore.Data.Business.Device.MS, 1)
 
     let mutable disposed = false
 
@@ -197,7 +197,7 @@ type ThermoRawFileReader(rawFilePath:string) =
     member private this.ReadMassSpectrum(scanNo:int) =
 
         //Select instrument in order to gain information that is connected to this instrument with the follow up methods.
-        rawFile.SelectInstrument(rawFile.GetInstrumentType(0), 1)
+        rawFile.SelectInstrument(ThermoFisher.CommonCore.Data.Business.Device.MS, 1)
         
         this.RaiseDisposed()
 
@@ -270,7 +270,7 @@ type ThermoRawFileReader(rawFilePath:string) =
             new Peak1DArray( BinaryDataCompressionType.NoCompression, BinaryDataType.Float32, BinaryDataType.Float32, peaks)
 
         with
-            | :? Exception as ex ->
+            | ex ->
                 raise (new MzIOIOException(ex.Message, ex))
 
     // #region IMzLiteDataReader Members
@@ -417,7 +417,7 @@ type ThermoRawFileReader(rawFilePath:string) =
             try
                 MzIOJson.SaveJsonFile(this.model, ThermoRawFileReader.GetModelFilePath(rawFilePath))
             with
-                | :? Exception as ex ->
+                | ex ->
 
                     raise (new MzIOIOException(ex.Message, ex))
 

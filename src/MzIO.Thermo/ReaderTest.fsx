@@ -45,7 +45,6 @@ open MzIO.Processing.MzIOLinq
 open MzIO.Json
 open MzIO.Bruker
 open MzIO.IO.MzML
-open MzIO.IO.MzML.MzML
 open MzIO.IO
 open MzIO.Thermo
 
