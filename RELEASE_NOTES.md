@@ -1,3 +1,6 @@
+#### 0.0.11 - Wednesday, February 12, 2020
+* Imroved ThermoRawFileReader
+
 #### 0.0.9.10 - Wednesday, February 12, 2020
 * Fix a case where parameters were not saved correctly in the Isolation Window
 
