@@ -35,10 +35,9 @@ module internal helpers =
     /// </remarks>
     
     let encodeInt ((x: int64), (res: byte[]), (resOffset: int)) =
-        let mask: int64 = 0xf0000000L
+        let mask: int64 = 0xf0000000 |> int64
         let init: int64 = x &&& mask
-        match init with 
-        | 0L ->  
+        if init = 0L then
                 let rec loop i= 
                         match i with
                         | value when value >= 0 && value < 8 ->
@@ -52,7 +51,7 @@ module internal helpers =
                 for i = l to 7 do
                    res.[resOffset + 1 + i - l] <- byte (0xfL &&& (x >>> (4 * (i - l))))
                 1 + 8 - l
-        | mask ->
+        elif init = mask then
                 let rec loop i= 
                     match i with
                     | value when value >= 0 && value < 8 ->
@@ -66,6 +65,11 @@ module internal helpers =
                 for i = l to 7 do
                    res.[resOffset + 1 + i - l] <- byte (0xfL &&& (x >>> (4 * (i - l))))
                 1 + 8 - l
+        else
+            res.[resOffset] <- (0 |> byte)
+            for i = 0 to 7 do
+                res.[resOffset + 1 + i] <- byte (0xfL &&& (x >>> (4 * i)))
+            9
 
     /// Decodes ints from the half bytes in bytes. Lossless reverse of encodeInt, although not symmetrical in input arguments.    
     let decodeInt() (bytes: byte[], pos, half)   =

@@ -46,7 +46,7 @@ module NumpressEncodingHelpers =
             else
                 Array.zeroCreate (array.Length * 5)
         //gives optimal fixed point for encoding. Can also be set by hand.
-        let fixedPoint = Encode.optimalLinearFixedPointSave(array, array.Length)
+        let fixedPoint = Encode.optimalLinearFixedPoint(array, array.Length)
         //encoding happens here
         let encodeInt = Encode.encodeLinear (array, array.Length, encodedByteArray, fixedPoint)
         //creates a NumpressHelper with the encoded byte array, the number of encoded bytes and original data length
