@@ -1,3 +1,8 @@
+#### 0.0.11 - Wednesday, February 12, 2020
+* imrove ThermoRawFileReader
+* clean dependendies
+* add Targetframework netstandard2.0 to all combatible projects
+
 #### 0.0.9.10 - Wednesday, February 12, 2020
 * Fix a case where parameters were not saved correctly in the Isolation Window
 
