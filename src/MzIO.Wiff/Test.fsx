@@ -35,7 +35,7 @@ open Newtonsoft.Json
 open Newtonsoft.Json.Linq
 open MzIO.Binary
 open MzIO.Wiff
-open MzIO.SQLReader
+open MzIO.MzSQL
 open MzIO.MetaData.ParamEditExtension
 open MzIO.MetaData.PSIMSExtension
 open MzIO.Model
@@ -45,7 +45,6 @@ open MzIO.Processing.MzIOLinq
 open MzIO.Json
 open MzIO.Bruker
 open MzIO.IO.MzML
-open MzIO.IO.MzML.MzML
 open MzIO.IO
 open MzIO.Thermo
 open BioFSharp
@@ -1011,11 +1010,11 @@ let optimalLinearFixedPointMass ((data:double[]), (dataSize:int), (massAccuracy:
         if maxFp > maxFpOverflow then -1.
         else
             maxFp
-
+printfn "%A" (0xf |> int64)
 let encodeInt ((x: int64), (res: byte[]), (resOffset: int)) =
-    let mask: int64 = 0xf0000000L
+    let mask: int64 = 0xf0000000 |> int64
     let init: int64 = x &&& mask
-    match init with 
+    match init with
     | 0L ->  
             let rec loop i= 
                     match i with
@@ -1051,7 +1050,8 @@ let encodeInt ((x: int64), (res: byte[]), (resOffset: int)) =
         9
 
 let encodeInt2 ((x: int64), (res: byte[]), (resOffset: int)) =
-    let mask: int64 = 0xf0000000 |> int64
+    // not sure if this should be cast to int64 or ...L, both seems to work
+    let mask: int64 = 0xf0000000L
     let init: int64 = x &&& mask
     if init = 0L then
             let rec loop i= 
@@ -1206,11 +1206,52 @@ let testMass =
       1227.036509; 1227.631843; 1227.887733; 1229.650163; 1230.014621;
       1230.581117; 1237.53745; 1238.525752; 1240.251283|]
 
+let testMass2 =
+    [|354.8729419; 355.0581611; 355.3652022; 356.0512298; 357.0589541;
+    365.8217733; 368.8499289; 370.8296561; 371.0974469; 371.3112079;
+    372.1018462; 372.3158962; 373.0886137; 373.3192284; 374.0875532;
+    376.8197128; 383.8421708; 384.8250888; 385.8451256; 386.8609878;
+    391.2766385; 392.2801498; 393.2905167; 397.8826628; 399.3407151;
+    401.8508614; 402.8565582; 403.8381111; 404.8095555; 405.8246039;
+    411.8418258; 412.0328047; 413.3651855; 419.3170537; 419.8492546;
+    421.8285441; 422.8213781; 423.8529661; 425.1608693; 425.375187;
+    428.8843232; 429.0908497; 429.2043149; 430.071801; 430.8847713;
+    431.0742833; 432.8811079; 433.0769036; 434.8820584; 440.7975911;
+    441.7977301; 444.8019852; 445.1160077; 445.403465; 446.1180648;
+    447.1034307; 447.33509; 448.1166399; 449.1161144; 449.8128347; 454.7678882;
+    455.7657539; 457.7617612; 461.803075; 462.138137; 463.1440518; 463.8182938;
+    464.1571116; 472.7654721; 479.8272337; 482.812858; 486.8111934;
+    489.8060009; 490.78868; 492.7881684; 500.7639118; 504.1007795; 510.8014091;
+    518.757888; 519.1354065; 520.1246438; 521.1308528; 522.1316158;
+    535.8301497; 536.1650485; 537.1606076; 538.1636062; 550.7437691;
+    552.7395737; 554.738988; 557.8029223; 568.7622715; 569.7507583;
+    570.7568794; 571.7403811; 588.7768564; 593.1537219; 594.1529029;
+    595.1494987; 610.1778335; 611.1738858; 612.1707505; 630.7081248; 667.1823346;
+    668.1621411; 669.1753631; 670.1784455; 727.1637017; 741.1862602;
+    743.187288; 745.221684; 815.2113781; 816.2061286; 904.0744268; 922.6860691;
+    923.0615162; 923.5864168; 926.2772714; 963.2614937; 964.6350052;
+    964.9141875; 1175.480666; 1177.041266; 1177.508684; 1178.038859;
+    1178.178652; 1178.564331; 1179.340701; 1181.420317; 1182.492203;
+    1183.066973; 1183.574238; 1184.598763; 1185.135366; 1194.009277;
+    1194.494613; 1195.281068; 1195.552989; 1197.058825; 1197.685726;
+    1198.375993; 1198.512126|]
+
+let testMass3 =
+    [|120.0802488; 130.0621784; 173.1347074; 197.131058; 244.1699318;
+    310.1891582; 363.1899845; 387.2211462; 429.0699926; 430.275327;
+    449.2248044; 511.3396848; 542.8016093; 600.3729056; 637.4318806;
+    714.4811173; 720.3800509; 736.2697555; 809.4668384; 988.5456103|]
+
 (0x7FFFFFFFL |> double)/1240.251283
 
 let encMass = encodeLin testMass
 
 let decMass = decodeLin (encMass.Bytes, encMass.NumberEncodedBytes, encMass.OriginalDataLength)
 
-
 Array.map2 (fun x y-> if x=y then () else printfn "%f;%f"x y)(testMass |> Array.map (fun x -> Math.Round(x,5))) (decMass |> Array.map (fun x -> Math.Round(x,5))) 
+
+let a = NumpressHelper.NumpressEncodingHelpers.encodeLin testMass3
+
+let b = NumpressDecodingHelpers.decodeLin (a.Bytes, a.NumberEncodedBytes, a.OriginalDataLength)
+
+Array.map2 (fun x y-> if x=y then () else printfn "%f;%f"x y)(testMass3 |> Array.map (fun x -> Math.Round(x,5))) (b |> Array.map (fun x -> Math.Round(x,5)))
