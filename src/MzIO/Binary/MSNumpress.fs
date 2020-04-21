@@ -35,7 +35,8 @@ module internal helpers =
     /// </remarks>
     
     let encodeInt ((x: int64), (res: byte[]), (resOffset: int)) =
-        let mask: int64 = 0xf0000000 |> int64
+        // changed mask to int64 from original int32
+        let mask: int64 = 0xf0000000L
         let init: int64 = x &&& mask
         if init = 0L then
                 let rec loop i= 
@@ -347,7 +348,6 @@ module Decode =
         | value when value = 8 -> 0
         | value when value < 8 -> -1
         | value when value < 12 ->
-            let fixedPoint = helpers.decodeFixedPoint (data)
             -1
         | _ ->
             let fixedPoint = helpers.decodeFixedPoint (data)
