@@ -1244,9 +1244,18 @@ let testMass3 =
 
 (0x7FFFFFFFL |> double)/1240.251283
 
-let encMass = encodeLin testMass
+let encMass = NumpressHelper.NumpressEncodingHelpers.encodeLin testMass3
+
+let equalWithinRange (n1: float) (n2: float) accuracy =
+    let diff = abs (n1 - n2)
+    diff < accuracy
 
 let decMass = decodeLin (encMass.Bytes, encMass.NumberEncodedBytes, encMass.OriginalDataLength)
+
+Array.map2 (fun x y ->
+    equalWithinRange x y 0.0000001
+)testMass3 decMass
+|> Array.contains false
 
 Array.map2 (fun x y-> if x=y then () else printfn "%f;%f"x y)(testMass |> Array.map (fun x -> Math.Round(x,5))) (decMass |> Array.map (fun x -> Math.Round(x,5))) 
 
