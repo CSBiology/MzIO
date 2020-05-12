@@ -1,7 +1,10 @@
-#### 0.0.12 - Wednesday, February 22, 2020
+#### 0.0.13 - Tuesday, Mai 12, 2020
+* Replace 'null' in GetRTProfiles with option type
+
+#### 0.0.12 - Wednesday, April 22, 2020
 * Fix an error in the Numpress Linear Encoding
 
-#### 0.0.11 - Sunday, February 12, 2020
+#### 0.0.11 - Sunday, April 12, 2020
 * Improve ThermoRawFileReader
 * Clean dependendies
 * Add Targetframework netstandard2.0 to all combatible projects
