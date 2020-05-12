@@ -311,6 +311,6 @@ module SwathIndexer =
                         else
                             profile.[ms2MassIndex, specIdx] <- new Peak2D(p.Intensity, p.Mz, swathSpec.Rt)
 
-                profile
+                Some profile
             else
-                Array2D.zeroCreate 1 1
+                None
