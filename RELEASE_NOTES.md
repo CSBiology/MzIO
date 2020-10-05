@@ -1,3 +1,6 @@
+#### 0.0.14 - Monday, October 5, 2020
+* Add Target Framework "netstandard2.0" to the Wiff Filereader
+
 #### 0.0.13 - Tuesday, Mai 12, 2020
 * Replace 'null' in GetRTProfiles with option type
 
