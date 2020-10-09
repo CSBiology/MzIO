@@ -1,5 +1,6 @@
 ﻿namespace MzIO.Binary
 
+
 open System
 open System.IO
 open System.IO.Compression
@@ -7,8 +8,11 @@ open NumpressHelper
 open MzIO.Commons.Arrays
 open MzIO.Binary
 
+
+///Contains methods to convert bytes into peak arrays.
 type BinaryDataDecoder() =
 
+    /// Converts bytes into the given binary data type.
     static member private ReadValue(reader:BinaryReader, binaryDataType:BinaryDataType) =
         match binaryDataType with
         | BinaryDataType.Int32      ->  float (reader.ReadInt32())
@@ -17,71 +21,43 @@ type BinaryDataDecoder() =
         | BinaryDataType.Float64    ->  float (reader.ReadDouble())
         | _     -> failwith (sprintf "%s%s" "BinaryDataType not supported: " (binaryDataType.ToString()))
 
+    /// Converts bytes directly into Peak1DArray because they musn't be decompromissed.
     static member private NoCompression(stream:Stream, peakArray:Peak1DArray) =
-
         let reader = new BinaryReader(stream, System.Text.Encoding.UTF8, true)
         let len = reader.ReadInt32()
-        //let len =
-        //    match peakArray.IntensityDataType with
-        //    | BinaryDataType.Int32      -> int stream.Length/4
-        //    | BinaryDataType.Int64      -> int stream.Length/8
-        //    | BinaryDataType.Float32    -> int stream.Length/4
-        //    | BinaryDataType.Float64    -> int stream.Length/8
-        //    | _     -> failwith ("IntensityDataType not supported: " + (peakArray.IntensityDataType.ToString()))
-
-        //let peaks = Array.create len (Peak1D())
-
-        //for i = 0 to len-1 do
-        //    let intensity   = BinaryDataDecoder.ReadValue(reader, peakArray.IntensityDataType)
-        //    let mz          = BinaryDataDecoder.ReadValue(reader, peakArray.MzDataType)
-        //    peaks.[i]   <-  new Peak1D(intensity, mz)
         let peaks = Array.init len (fun i -> Peak1D(BinaryDataDecoder.ReadValue(reader, peakArray.IntensityDataType), BinaryDataDecoder.ReadValue(reader, peakArray.MzDataType)))
         peakArray.Peaks <- MzIOArray.ToMzIOArray<Peak1D>(peaks)
         peakArray
 
+    /// Converts bytes directly into Peak2DArray because they musn't be decompromissed.
     static member private NoCompression(stream:Stream, peakArray:Peak2DArray) =
-
         let reader = new BinaryReader(stream, System.Text.Encoding.UTF8, true)
-
         let len = reader.ReadInt32()
-
-        //let len =
-        //    match peakArray.IntensityDataType with
-        //    | BinaryDataType.Int32      -> int stream.Length/4
-        //    | BinaryDataType.Int64      -> int stream.Length/8
-        //    | BinaryDataType.Float32    -> int stream.Length/4
-        //    | BinaryDataType.Float64    -> int stream.Length/8
-        //    | _     -> failwith ("IntensityDataType not supported: " + (peakArray.IntensityDataType.ToString()))
-
-        //let peaks = Array.create len (Peak2D())
-
-        //for i = 0 to len-1 do
-        //    let intensity   = BinaryDataDecoder.ReadValue(reader, peakArray.IntensityDataType)
-        //    let mz          = BinaryDataDecoder.ReadValue(reader, peakArray.MzDataType)
-        //    let rt          = BinaryDataDecoder.ReadValue(reader, peakArray.RtDataType)
-        //    peaks.[i]   <-  new Peak2D(intensity, mz, rt)
-
         let peaks = Array.init len (fun i -> Peak2D(BinaryDataDecoder.ReadValue(reader, peakArray.IntensityDataType), BinaryDataDecoder.ReadValue(reader, peakArray.MzDataType), BinaryDataDecoder.ReadValue(reader, peakArray.RtDataType)))
         peakArray.Peaks <- MzIOArray.ToMzIOArray<Peak2D>(peaks)
         peakArray
 
+    /// Decompress bytes based on zlib decompression method and convert to Peak1DArray.
     static member private ZLib(stream:Stream, peakArray:Peak1DArray) =
 
         let decompressStream = new DeflateStream(stream, CompressionMode.Decompress, true)
 
         BinaryDataDecoder.NoCompression(decompressStream, peakArray)
 
+    /// Decompress bytes based on zlib decompression method and convert to Peak2DArray.
     static member private ZLib(stream:Stream, peakArray:Peak2DArray) =
 
         let decompressStream = new DeflateStream(stream, CompressionMode.Decompress, true)
 
         BinaryDataDecoder.NoCompression(decompressStream, peakArray)
 
+    /// Convert byte array to float array.
     static member private ByteToFloatArray (byteArray: byte[]) =
         let floatArray = Array.init (byteArray.Length/8) (fun x -> 0.)
         Buffer.BlockCopy  (byteArray, 0, floatArray, 0, byteArray.Length)
         floatArray
 
+    /// Decompress stream and convert to new byte array.
     static member private DeflateStreamDecompress (data: byte[]) =
         let outStream = new MemoryStream()
         let decompress = new System.IO.Compression.DeflateStream (new MemoryStream(data), CompressionMode.Decompress)
@@ -89,6 +65,7 @@ type BinaryDataDecoder() =
         let byteArray = outStream.ToArray()
         byteArray
 
+    /// Decompress bytes based on zlib decompression method and convert to Peak1DArray.
     static member private ZLib2(stream:Stream, peakArray:Peak1DArray) =
         let reader                  = new BinaryReader(stream, System.Text.Encoding.UTF8, true)
         let intLength               = reader.ReadInt32()
@@ -101,6 +78,7 @@ type BinaryDataDecoder() =
         |> fun peak1Ds -> peakArray.Peaks <- MzIOArray.ToMzIOArray<Peak1D>(peak1Ds)
         peakArray
 
+    /// Decompress bytes based on numpress decompression method and convert to Peak1DArray.
     static member private Numpress1D(stream:Stream, peakArray: Peak1DArray) =
         let reader                  = new BinaryReader(stream, System.Text.Encoding.UTF8, true)
         //read information for decoding of intensities
@@ -118,6 +96,7 @@ type BinaryDataDecoder() =
         |> fun peak1Ds -> peakArray.Peaks <- MzIOArray.ToMzIOArray<Peak1D>(peak1Ds)
         peakArray
 
+    /// Decompress bytes based on numpress decompression method and convert to Peak2DArray.
     static member private Numpress2D(stream:Stream, peakArray: Peak2DArray) =
         let reader                  = new BinaryReader(stream, System.Text.Encoding.UTF8, true)
         //read information for decoding of intensities
@@ -140,6 +119,7 @@ type BinaryDataDecoder() =
         |> fun peak2Ds -> peakArray.Peaks <- MzIOArray.ToMzIOArray<Peak2D>(peak2Ds)
         peakArray
 
+    /// Decompress bytes based on numpress and zlib decompression method and convert to Peak1DArray.
     static member private NumpressDeflate1D(stream:Stream, peakArray: Peak1DArray) =
         let reader                  = new BinaryReader(stream, System.Text.Encoding.UTF8, true)
         //read information for decoding of intensities
@@ -162,6 +142,7 @@ type BinaryDataDecoder() =
         |> fun peak1Ds -> peakArray.Peaks <- MzIOArray.ToMzIOArray<Peak1D>(peak1Ds)
         peakArray
 
+    /// Decompress bytes based on numpress and zlib decompression method and convert to Peak2DArray.
     static member private NumpressDeflate2D(stream:Stream, peakArray: Peak2DArray) =
         let reader                  = new BinaryReader(stream, System.Text.Encoding.UTF8, true)
         //read information for decoding of intensities
@@ -190,6 +171,7 @@ type BinaryDataDecoder() =
         |> fun peak2Ds -> peakArray.Peaks <- MzIOArray.ToMzIOArray<Peak2D>(peak2Ds)
         peakArray
 
+    /// Convert stream to peaks and add to Peak1DArray.
     member this.Decode(stream:Stream, peakArray:Peak1DArray) =
 
         match peakArray.CompressionType with
@@ -199,16 +181,14 @@ type BinaryDataDecoder() =
         | BinaryDataCompressionType.NumPressZLib    ->  BinaryDataDecoder.NumpressDeflate1D(stream, peakArray)
         |   _   -> failwith (sprintf "%s%s" "Compression type not supported: " (peakArray.CompressionType.ToString()))
 
-            ////////////////////////////////////////////////////\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
-    ///////////////////////////////////////////////////////DIFFERENCE\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
-            ////////////////////////////////////////////////////\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
-    //Add Decode function for Peak1DArray and byte[] that did not exist in MzIO.
+    /// Convert bytes to peaks and add to Peak1DArray.
     member this.Decode(peakArray:Peak1DArray, bytes:byte[]) =
 
         let memoryStream = new MemoryStream(bytes)
 
         this.Decode(memoryStream, peakArray)
 
+    /// Convert bytes to peaks and add to Peak2DArray.
     member this.Decode(stream:Stream, peakArray:Peak2DArray) =
 
         match peakArray.CompressionType with
@@ -218,6 +198,7 @@ type BinaryDataDecoder() =
         | BinaryDataCompressionType.NumPressZLib    ->  BinaryDataDecoder.NumpressDeflate2D(stream, peakArray)
         |   _   -> failwith (sprintf "%s%s" "Compression type not supported: " (peakArray.CompressionType.ToString()))
 
+    /// Convert bytes to peaks and add to Peak2DArray.
     member this.Decode(peakArray:Peak2DArray, bytes:byte[]) =
 
         let memoryStream = new MemoryStream(bytes)

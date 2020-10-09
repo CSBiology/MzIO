@@ -4,7 +4,6 @@ open System
 open System.Collections.Generic
 open System.Globalization
 open System.IO
-//open System.Threading.Tasks
 
 
 [<Sealed>]
@@ -32,10 +31,8 @@ type CSVRecord(columnIndexer:IDictionary<string, int>, lineNumber:int, culture:C
         else
             value
 
-    /// <summary>
-    /// Parse a bool value.
-    /// </summary>        
-    /// <returns>Returns true if value is 'trueValue', false if value is 'falseValue' or null.</returns>
+    /// Parse a bool value.        
+    /// Returns true if value is 'trueValue', false if value is 'falseValue' or null.
     member this.GetBooleanOrNull(columnName:string, trueValue:string, falseValue:string) = 
         
         let mutable value = this.GetValue(columnName)
@@ -51,18 +48,14 @@ type CSVRecord(columnIndexer:IDictionary<string, int>, lineNumber:int, culture:C
                 else
                     None
 
-    /// <summary>
     /// Parse a bool value.
-    /// </summary>        
-    /// <returns>Returns true if value is 'trueValue' or false.</returns>
+    /// Returns true if value is 'trueValue' or false.
     member this.GetBoolean(columnName:string, trueValue:string) =
         
         let mutable value = this.GetValue(columnName)
         value.Equals(trueValue, StringComparison.InvariantCultureIgnoreCase)
 
-    /// <summary>
-    /// Parse an double value.
-    /// </summary>    
+    /// Parse an double value.    
     member private this.ParseDouble(columnName:string, value:string) =
 
         try Convert.ToDouble(value, culture)
@@ -71,10 +64,8 @@ type CSVRecord(columnIndexer:IDictionary<string, int>, lineNumber:int, culture:C
             | :? FormatException ->
                 raise (new FormatException(String.Format("Number format error in column: '{0}' at line number: {1}.", columnName, this.LineNumber)))
 
-    /// <summary>
     /// Parse an double value.
-    /// </summary>        
-    /// <returns>Returns NaN if value is 'nanValue' or null if empty.</returns>
+    /// Returns NaN if value is 'nanValue' or null if empty.
     member this.GetDoubleOrNull(columnName:string, nanValue:string) =
         
         let mutable value = this.GetValue(columnName)
@@ -87,18 +78,13 @@ type CSVRecord(columnIndexer:IDictionary<string, int>, lineNumber:int, culture:C
             else 
                 Some (this.ParseDouble(columnName, value))
 
-    /// <summary>
-    /// Parse an double value.
-    /// </summary> 
+    /// Parse an double value. 
     member this.GetDouble(columnName:string) =
 
         let mutable value = this.GetValueNotNullOrEmpty(columnName)
         this.ParseDouble(columnName, value)
 
-    /// <summary>
     /// Parse an double value list.
-    /// </summary>        
-    /// <returns></returns>
     member this.GetDoubleArray(columnName:string, sep:char) =
         
         let mutable value = this.GetValue(columnName)
@@ -113,9 +99,7 @@ type CSVRecord(columnIndexer:IDictionary<string, int>, lineNumber:int, culture:C
                 values
                 |> Array.map (fun value -> this.ParseDouble(columnName, value))
 
-    /// <summary>
-    /// Parse an int value.
-    /// </summary>  
+    /// Parse an int value.  
     member private this.ParseInt(columnName:string, value:string) =
         try
             Convert.ToInt32(value, culture);
@@ -124,10 +108,8 @@ type CSVRecord(columnIndexer:IDictionary<string, int>, lineNumber:int, culture:C
             | :? FormatException ->
                 raise (new FormatException(String.Format("Number format error in column: '{0}' at line number: {1}.", columnName, this.LineNumber)))
 
-    /// <summary>
-    /// Parse an int value.
-    /// </summary>        
-    /// <returns>Returns null if empty.</returns>
+    /// Parse an int value.        
+    /// Returns null if empty.
     member this.getIntOrNull(columnName:string) =
 
         let mutable value = this.GetValue(columnName)
@@ -136,9 +118,7 @@ type CSVRecord(columnIndexer:IDictionary<string, int>, lineNumber:int, culture:C
         else
             Some (this.ParseInt(columnName, value))
 
-    /// <summary>
     /// Parse an int value.
-    /// </summary> 
     member this.GetInt(columnName:string) =
 
         let mutable value = this.GetValueNotNullOrEmpty(columnName)
@@ -186,11 +166,7 @@ type CSVReader(filePath:string, separator:char, culture:CultureInfo) =
     member private this.separator   = separator
     member private this.culture     = culture
 
-    /// <summary>
     /// Read the column names from first line.
-    /// </summary>
-    /// <param name="reader"></param>
-    /// <returns></returns>
     static member private ReadColumnHeaderIndex(reader:StreamReader, separator:char) =
 
         let columnIndex = new Dictionary<string, int>()
@@ -212,10 +188,8 @@ type CSVReader(filePath:string, separator:char, culture:CultureInfo) =
     member this.GetTabReader(filePath:string) =
         new CSVReader(filePath, '\t', new CultureInfo("en-US"))
 
-    /// <summary>
     /// Read the next record from stream.
-    /// </summary>        
-    /// <returns>Next record or null at EOF.</returns>
+    /// Next record or null at EOF.
     member this.ReadNext() =
         
         if isDisposed = true then 
@@ -234,10 +208,7 @@ type CSVReader(filePath:string, separator:char, culture:CultureInfo) =
                 | :? Exception as ex ->
                     raise (new IOException(String.Format("Parse error at line {0}.", lineNumber, ex)))
 
-    /// <summary>
     /// Read all records.
-    /// </summary>
-    /// <returns></returns>
     member this.ReadAll() =
         seq
             {
@@ -247,10 +218,8 @@ type CSVReader(filePath:string, separator:char, culture:CultureInfo) =
             }
 
 
-    /// <summary>
     /// Read the next record from stream.
-    /// </summary>        
-    /// <returns>Next record or null at EOF.</returns>
+    /// Next record or null at EOF.
     member this.ReadNextAsync() =
         async 
             {

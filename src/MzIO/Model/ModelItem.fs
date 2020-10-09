@@ -10,9 +10,7 @@ open MzIO.Model.CvParam
 open Newtonsoft.Json
 
 
-/// <summary>
 /// An abstract base class of a expansible description model item that can be referenced by an id.
-/// </summary> 
 [<AbstractClass>]
 type ModelItem(id:string)  =
     
@@ -65,9 +63,7 @@ type ModelItem(id:string)  =
             if not (this.GetType().Equals(obj.GetType())) then false
             else id=this.ID
 
-/// <summary>
 /// An abstract base class of a expansible description model item that can be referenced by an id and has an additional name.
-/// </summary>
 [<AbstractClass>]
 type NamedModelItem(id:string, name:string) =
 
@@ -81,8 +77,6 @@ type NamedModelItem(id:string, name:string) =
 
     new() = NamedModelItem("id", "name")
 
-    //member this.name = name'
-
     [<JsonProperty(Required = Required.Always)>]
     member this.Name
         with get() = name
@@ -93,24 +87,27 @@ type NamedModelItem(id:string, name:string) =
                     this.Name <- value
                     this.NotifyPropertyChanged("Name")
     
-/// <summary>
-/// Base class of an observable collection of model items that can be accessed by their embedded ids.     
-/// </summary>
-type ObservableModelItemCollection<'T when 'T :> ModelItem> [<JsonConstructor>] internal (dict:Dictionary<string, obj>) =
+/// A class of an observable collection of model items that can be accessed by their embedded ids and which inherits the dynamic object class.     
+[<AllowNullLiteral>]
+type ObservableModelItemCollection<'T when 'T :> ModelItem> [<JsonConstructor>] () =
 
-    inherit DynamicObj(dict)
+    inherit DynamicObj()
 
-    new() =  ObservableModelItemCollection<'T>(new Dictionary<string, obj>())
 
-    member this.GetKeyForItem(item:'T) =
-        item.ID
+    member this.GetKeyForItem(item:'T) = item.ID
 
-type ObservableCollection<'T when 'T :> DynamicObj> [<JsonConstructor>] internal (dict:Dictionary<string, obj>) =
+    /// Gets the amount of dynamic fields of this object.
+    member this.Count() =
+        this.GetProperties false
+        |> Seq.length
 
-    inherit DynamicObj(dict)
+/// A class of an observable collection of dynamic objects that can be accessed by their embedded ids and which inherits the dynamic object class. 
+[<AllowNullLiteral>]
+type ObservableCollection<'T when 'T :> DynamicObj> [<JsonConstructor>] () =
 
-    new() = new ObservableCollection<'T>(new Dictionary<string, obj>())
+    inherit DynamicObj()
 
+    /// Gets the amount of dynamic fields of this object.
     member this.Count() =
         this.GetProperties false
         |> Seq.length

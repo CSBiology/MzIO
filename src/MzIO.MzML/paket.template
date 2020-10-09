@@ -19,11 +19,11 @@ language
 copyright
     Copyright 2017
 tags
-    F# MassSpectrometry FSharp MzLite MzMl BigData
+    F# MassSpectrometry FSharp MzIO MzMl BigData
 summary
-    F# port of MzLite
+    F# port of MzIO
 description
-    F# port of MzLite
+    F# port of MzIO
 include-referenced-projects 
     true
 files

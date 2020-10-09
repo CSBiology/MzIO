@@ -7,6 +7,7 @@ open MzIO.Model
 open Newtonsoft.Json
 
 
+///Not implemented fully yet.
 [<Sealed>]
 [<JsonObject(MemberSerialization = MemberSerialization.OptIn)>]
 type RunReference [<JsonConstructor>] (sourceFile:SourceFile, runID:string) =
@@ -34,7 +35,6 @@ type RunReference [<JsonConstructor>] (sourceFile:SourceFile, runID:string) =
             let other = 
                 match obj with
                 | :? RunReference as obj -> obj
-                //| null                   -> failwith (NullReferenceException().ToString())
                 | _                      -> failwith "Wrong type"
             this.RunID.Equals(other.RunID) && this.SourceFile.Equals(other.SourceFile)
     

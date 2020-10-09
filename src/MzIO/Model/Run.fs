@@ -6,68 +6,65 @@ open MzIO.Model
 open Newtonsoft.Json
 
 
-/// <summary>
 /// Base class of a ms run which is associated to a sample description.
-/// </summary>
 [<AbstractClass>]
-type RunBase ( [<JsonProperty("ID")>] id:string, sample:Sample) =
+type RunBase ( [<JsonProperty("ID")>] id:string, sampleID:string) =
 
     inherit ModelItem(id)
 
-    let mutable sample = sample
+    let mutable sampleID = sampleID
 
-    new(id:string) = RunBase(id, new Sample())
+    [<JsonConstructor>]
+    new(id:string) = RunBase(id, null)
     
     new() = RunBase("id")
 
     [<JsonProperty(NullValueHandling = NullValueHandling.Ignore)>]
-    member this.Sample
-        with get() = sample
+    member this.SampleID
+        with get() = sampleID
             and set(value) = 
-                if value = sample then ()
+                if value = sampleID then ()
                 else
-                    this.NotifyPropertyChaning("Sample")
-                    sample <- value
-                    this.NotifyPropertyChanged("Sample")
+                    this.NotifyPropertyChaning("SampleID")
+                    sampleID <- value
+                    this.NotifyPropertyChanged("SampleID")
 
-/// <summary>
 /// Expansible description of a ms run in a mz data model.
 /// Represents the entry point to the storage of peak lists that are result
 /// of instrument scans or data processings.
-/// </summary>
 [<Sealed>]
 [<JsonObject(MemberSerialization.OptIn, IsReference = true)>]
-type Run [<JsonConstructor>] (id:string, sample:Sample, defaultInstrument, defaultSpectrumProcessing, defaultChromatogramProcessing) =
+type Run [<JsonConstructor>] (id:string, sampleID:string, defaultInstrumentID:string, defaultSpectrumProcessing, defaultChromatogramProcessing) =
 
-    inherit RunBase(id, sample)
+    inherit RunBase(id, sampleID)
 
-    let mutable defaultInstrument               = defaultInstrument
+    let mutable defaultInstrumentID             = defaultInstrumentID
     
     let mutable defaultSpectrumProcessing       = defaultSpectrumProcessing
 
     let mutable defaultChromatogramProcessing   = defaultChromatogramProcessing
 
+    new (id:string, defaultInstrument, defaultSpectrumProcessing, defaultChromatogramProcessing) = Run(id, null, defaultInstrument, defaultSpectrumProcessing, defaultChromatogramProcessing)
+
     new(id:string, sample, defaultInstrument) = Run(id, sample, defaultInstrument, new DataProcessing(), new DataProcessing())
 
-    new(id:string, sample) = Run(id, sample, new Instrument(), new DataProcessing(), new DataProcessing())
+    //new(id:string, sample) = Run(id, sample, new Instrument(), new DataProcessing(), new DataProcessing())
 
-    new(id:string, defaultInstrument) = Run(id, new Sample(), defaultInstrument, new DataProcessing(), new DataProcessing())
+    new(id:string, defaultInstrument) = Run(id, null, defaultInstrument, new DataProcessing(), new DataProcessing())
 
-    new(id:string) = Run(id, new Sample(), new Instrument(), new DataProcessing(), new DataProcessing())
+    //new(id:string) = Run(id, null, new Instrument(), new DataProcessing(), new DataProcessing())
 
-    new() = Run("id", new Sample(), new Instrument(), new DataProcessing(), new DataProcessing())
+    new() = Run("id", null, null, new DataProcessing(), new DataProcessing())
 
-    //member this.Run = base.ID
-
-    [<JsonProperty(NullValueHandling = NullValueHandling.Ignore)>]
-    member this.DefaultInstrument
-        with get() = defaultInstrument 
+    [<JsonProperty(Required = Required.Always, ObjectCreationHandling = ObjectCreationHandling.Reuse)>]
+    member this.DefaultInstrumentID
+        with get() = defaultInstrumentID 
             and set(value) = 
-                if value = defaultInstrument then ()
+                if value = defaultInstrumentID then ()
                 else
-                    this.NotifyPropertyChaning("DefaultInstrument")
-                    defaultInstrument <- value
-                    this.NotifyPropertyChanged("DefaultInstrument")
+                    this.NotifyPropertyChaning("DefaultInstrumentID")
+                    defaultInstrumentID <- value
+                    this.NotifyPropertyChanged("DefaultInstrumentID")
 
     [<JsonProperty(NullValueHandling = NullValueHandling.Ignore)>]
     member this.DefaultSpectrumProcessing
@@ -89,22 +86,21 @@ type Run [<JsonConstructor>] (id:string, sample:Sample, defaultInstrument, defau
                     defaultChromatogramProcessing <- value
                     this.NotifyPropertyChanged("DefaultChromatogramProcessing")
 
-/// <summary>
 /// Expansible description of a ms run in a project model.
 /// Represents the entry point to the storage of peak lists that are result
 /// of instrument scans or data processings.
-/// </summary>
+/// Not implemented fully yet.
 [<Sealed>]
 [<JsonObject(MemberSerialization.OptIn, IsReference = true)>]
-type ProjectRun [<JsonConstructor>] ( [<JsonProperty("ID")>] id:string, sample:Sample) =
+type ProjectRun [<JsonConstructor>] ( [<JsonProperty("ID")>] id:string, sampleID:string) =
     
-    inherit RunBase(id, sample)
+    inherit RunBase(id, sampleID)
 
     let mutable runReference = new RunReference()
 
-    new(id) = ProjectRun(id, new Sample())
+    new(id) = ProjectRun(id, null)
 
-    new() = ProjectRun("id", new Sample())
+    new() = ProjectRun("id", null)
 
     member this.RunBase = base.ID
 
@@ -118,23 +114,17 @@ type ProjectRun [<JsonConstructor>] ( [<JsonProperty("ID")>] id:string, sample:S
                     runReference <- value
                     this.NotifyPropertyChanged("RunReference")
 
-/// <summary>
-/// The model item container for ms runs.
-/// </summary>
+/// The model item container for all ms runs of this experiment.
 [<Sealed>]
-type RunList [<JsonConstructor>] internal (dict:Dictionary<string, obj>) =
+type RunList [<JsonConstructor>] () =
 
     inherit ObservableModelItemCollection<Run>()
 
-    new() = new RunList(new Dictionary<string, obj>())
 
 
-/// <summary>
 /// The project item container for ms runs.
-/// </summary>
+/// Not implemented fully yet.
 [<Sealed>]
-type ProjectRunList [<JsonConstructor>] internal (dict:Dictionary<string, obj>) =
+type ProjectRunList [<JsonConstructor>] () =
 
-    inherit ObservableModelItemCollection<ProjectRun>(dict)
-
-    new() = new ProjectRunList(new Dictionary<string, obj>())
+    inherit ObservableModelItemCollection<ProjectRun>()
