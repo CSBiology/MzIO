@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>net45</TargetFrameworks>
+    <TargetFrameworks>net45;netstandard2.0</TargetFrameworks>
     <RootNamespace>MzIO</RootNamespace>
     <AssemblyName>MzIO.Wiff</AssemblyName>
     <Name>MzIO.Wiff</Name>
@@ -18,6 +18,8 @@
     <EmbeddedResource Remove="Scripts\**" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="InsertMzML.fsx" />
+    <None Include="InsertMzSQLTest.fsx" />
     <Content Include="License\Clearcore2License_Placeholder.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
@@ -27,6 +29,7 @@
     <None Include="paket.template" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\MzIO.Processing\MzIO.Processing.fsproj" />
     <ProjectReference Include="..\MzIO\MzIO.fsproj" />
   </ItemGroup>
   <ItemGroup>

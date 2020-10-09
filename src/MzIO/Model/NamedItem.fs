@@ -8,9 +8,7 @@ open MzIO.Model.CvParam
 open Newtonsoft.Json
 
 
-/// <summary>
 /// An abstract base class of expansible description items that can be identified a name.
-/// </summary>
 [<AbstractClass>]
 type NamedItem(name:string) =
 
@@ -43,8 +41,6 @@ type NamedItem(name:string) =
     member this.NotifyPropertyChaning (propertyName:string) =
         
         propertyChanging.Trigger(this, new PropertyChangingEventArgs(propertyName))
-    
-    //member private this.name = name'
 
     [<JsonProperty(Required = Required.Always)>]
     member this.Name
@@ -65,9 +61,7 @@ type NamedItem(name:string) =
     override this.GetHashCode() =
         name.GetHashCode()
 
-/// <summary>
 /// Base class of an observable collection of items that can be accessed by name. 
-/// </summary>
 [<AbstractClass>]
 type ObservableNamedItemCollection<'T when 'T :> NamedItem>() =
 
@@ -76,6 +70,7 @@ type ObservableNamedItemCollection<'T when 'T :> NamedItem>() =
     member this.GetKeyForItem(item:'T) =
         item.Name
 
+/// A small module to expanse the use of dynamic object to add named and model items in a specific manner.
 module Helper =
 
     type DynamicObj with

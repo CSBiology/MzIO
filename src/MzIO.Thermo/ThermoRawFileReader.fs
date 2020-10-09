@@ -26,6 +26,8 @@ open MzIO.MetaData.PSIMSExtension
 open MzIO.MetaData.ParamEditExtension
 open MzIO.MetaData.UO.UO
 
+
+/// Special peakArray for PeakArrays of thermo Raw files.
 [<Sealed>]
 type ThermoPeaksArray(peakData:float [,], peakArraySize:int) =
 
@@ -59,24 +61,22 @@ type ThermoRawTransactionScope() =
 
     interface ITransactionScope with
     
-        member this.Commit() =
+        /// Does Nothing.
+        member this.Commit() = ()
 
-            ()
-
-        member this.Rollback() =
-
-            ()
+        /// Does Nothing.
+        member this.Rollback() = ()
 
     interface IDisposable with
 
-        member this.Dispose() =
+        /// Does Nothing.
+        member this.Dispose() = ()
 
-            ()
-
-
+/// Reader for Thermo RAW files.
 [<Sealed>]
-type ThermoRawFileReader(rawFilePath:string) =(* : IMzLiteDataReader*)
+type ThermoRawFileReader(rawFilePath:string) =
 
+    // Checks whether path is empty and file exists or not.
     let rawFilePath =
         if String.IsNullOrWhiteSpace(rawFilePath) then
             failwith ((new ArgumentNullException("rawFilePath")).ToString())
@@ -85,101 +85,73 @@ type ThermoRawFileReader(rawFilePath:string) =(* : IMzLiteDataReader*)
                 failwith ((new FileNotFoundException("Raw file not exists.")).ToString())
             else 
                 rawFilePath
-                //try
-    //let rawFile = new MSFileReader_XRawfile() :> IXRawfile5
-    //rawFile.Open(rawFilePath)
-    let rawFile =
-        RawFileReaderAdapter.FileFactory(rawFilePath)
-        //ThermoFisher.CommonCore.Data.RawDataCreator(null, null, null)
 
-    let x =        
+    // Init IRawDataPlus itnerface to access information of the RAW file.
+    let rawFile = RawFileReaderAdapter.FileFactory(rawFilePath)
+
+    //Select instrument in order to gain information that is connected to this instrument with the follow up methods.
+    //let x =        
         //rawfile.Open(rawFilePath)
         //rawfile.SetCurrentController(0, 1)
-        rawFile.SelectInstrument(rawFile.GetInstrumentType(0), 1)
+    do rawFile.SelectInstrument(ThermoFisher.CommonCore.Data.Business.Device.MS, 1)
 
     let mutable disposed = false
 
+    // Get id of first spectrum.
     let startScanNo = rawFile.RunHeaderEx.FirstSpectrum
+    // Get id of last spectrum.
     let endScanNo = rawFile.RunHeaderEx.LastSpectrum
-
-    //member private this.IsSet = rawFile.SelectInstrument(rawFile.GetInstrumentType(0), 1)
 
     member private this.model = MzIOJson.HandleExternalModelFile(this, ThermoRawFileReader.GetModelFilePath(rawFilePath))
 
-                //with
-                //    | :? Exception as ex ->
-                //        failwith ((new MzLiteIOException(ex.Message, ex)).ToString())
-
-    member private this.rawFilePath = rawFilePath
-        
-
-//        private bool disposed = false;
-//        private readonly MzLiteModel model;
-//        private readonly string rawFilePath;
-//        private readonly IXRawfile5 rawFile;
-//        private readonly int startScanNo;
-//        private readonly int endScanNo;
-
-//        #region ThermoRawFileReader Members
-
-    static member private GetModelFilePath(rawFilePath) =
-
-        sprintf "%s%s" rawFilePath ".mzlitemodel"
+    // #region ThermoRawFileReader Members
+    static member private GetModelFilePath(rawFilePath) = sprintf "%s%s" rawFilePath ".MzIOModel"
 
     static member private GetFirstSpectrumNumber(rawFile:IRawDataPlus) =
-        //let t,firstScanNumber = rawFile.GetFirstSpectrumNumber(& firstScanNumber)
-
         rawFile.RunHeaderEx.FirstSpectrum
 
     static member private GetLastSpectrumNumber(rawFile:IRawDataPlus) =
-
         rawFile.RunHeaderEx.LastSpectrum
 
+    /// Checks whether spectrum is centroided or not.
     static member private IsCentroidSpectrum(rawFile:IRawDataPlus, scanNo:int) =
-
         rawFile.GetScanStatsForScanNumber(scanNo).IsCentroidScan
-        //IsCentroidScan(scanNo, & isCentroidScan)
         
+    /// Gets retentionTime of the spectrum.
     static member private GetRetentionTime(rawFile:IRawDataPlus, scanNo:int) =
-
         rawFile.RetentionTimeFromScanNumber(scanNo)
 
-    static member GetFilterString(rawFile:IRawDataPlus, scanNo:int) =
-        
+    /// Gets the scanning method for a spectrum.
+    static member GetFilterString(rawFile:IRawDataPlus, scanNo:int) =        
         rawFile.GetFilterForScanNumber(scanNo)
         
+    /// Gets MSLEvel of spectrum.
     static member private GetMSLevel(rawFile:IRawDataPlus, scanNo:int) =
-
         int (rawFile.GetFilterForScanNumber(scanNo).MSOrder)
 
+    /// Ges IsolationWindowWith of Spectrum.
     static member private GetIsolationWindowWidth(rawFile:IRawDataPlus, scanNo:int, msLevel:int) =
-
         rawFile.GetFilterForScanNumber(scanNo).GetIsolationWidth(0)
 
+    /// Gets target M/Z of isolationWindowWith of spectrum.
     static member private GetIsolationWindowTargetMz(rawFile:IRawDataPlus, scanNo:int, msLevel:int) =
-
         rawFile.GetScanEventForScanNumber(scanNo).GetReaction(0).PrecursorMass
 
+    /// Gets precursor M/Z of isolationWindowWith of spectrum.
     static member private GetPrecursorMz(rawFile:IRawDataPlus, scanNo:int, msLevel:int) =
-
         rawFile.GetScanEventForScanNumber(scanNo).GetReaction(0).PrecursorMass
 
-    static member private GetCollisionEnergy(rawFile:IRawDataPlus, scanNo:int, msLevel:int) =
-        
+    /// Get CollisionEnergy of spectrum.
+    static member GetCollisionEnergy(rawFile:IRawDataPlus, scanNo:int, msLevel:int) =        
         rawFile.GetScanEventForScanNumber(scanNo).GetReaction(0).CollisionEnergy
 
     static member private GetChargeState(rawFile:IRawDataPlus, scanNo:int) =
-
-        //Propably wrong index for charge state, needs further testing
+        // Propably wrong index for charge state, needs further testing
         Convert.ToInt32(rawFile.GetTrailerExtraValue(scanNo, 9(*"Charge State:"*)))
 
 
-    /// <summary>
     /// Parse the scan number from spectrum native id.
     /// Native id has the format: 'scan=[scanNumber]', i.e. for scan number 1000 the id is 'scan=1000'.
-    /// </summary>
-    /// <param name="id"></param>
-    /// <returns></returns>
     member private this.ParseSpectrumId(id:string) =
         
         if id = null then 
@@ -200,21 +172,19 @@ type ThermoRawFileReader(rawFilePath:string) =(* : IMzLiteDataReader*)
                 raise (new FormatException("Wrong native id format in: " + id))
 
 
-    /// <summary>
     /// Builds a spectrum id from scan number in format : 'scan=scanNumber'.
-    /// </summary>
-    /// <param name="scanNumber"></param>
-    /// <returns></returns>
     static member private GetSpectrumID(scanNumber:int) =
 
         sprintf "scan=%s" (scanNumber.ToString())
 
+    /// Checks whether connection is disposed or not and fails when it is.
     member this.RaiseDisposed() =
 
         if disposed then raise (new ObjectDisposedException(this.GetType().Name))
 
     interface IDisposable with
 
+        /// Sets disposed to true and disables work with this instance of the ThermoRawFileReader.
         member this.Dispose() =
 
             if disposed then ()
@@ -223,10 +193,12 @@ type ThermoRawFileReader(rawFilePath:string) =(* : IMzLiteDataReader*)
 
             disposed <- true
 
+    /// Gets MassSpectrum of RAW file.
     member private this.ReadMassSpectrum(scanNo:int) =
 
-        rawFile.SelectInstrument(rawFile.GetInstrumentType(0), 1)
-
+        //Select instrument in order to gain information that is connected to this instrument with the follow up methods.
+        rawFile.SelectInstrument(ThermoFisher.CommonCore.Data.Business.Device.MS, 1)
+        
         this.RaiseDisposed()
 
         //try
@@ -245,7 +217,7 @@ type ThermoRawFileReader(rawFilePath:string) =(* : IMzLiteDataReader*)
 
         // scan
         let scan = new Scan()
-        //Maybe orther type than Name needed
+        // Maybe orther type than Name needed
         scan.SetFilterString(ThermoRawFileReader.GetFilterString(rawFile, scanNo).ToString())
         scan.SetScanStartTime(ThermoRawFileReader.GetRetentionTime(rawFile, scanNo)).UO_Minute() |> ignore
         spectrum.Scans.Add(Guid.NewGuid().ToString(), scan)
@@ -272,14 +244,14 @@ type ThermoRawFileReader(rawFilePath:string) =(* : IMzLiteDataReader*)
 
             spectrum
 
-        else
-                
+        else                
             spectrum
 
         //with
         //    | :? Exception as ex ->
         //        raise (new MzIOIOException(ex.Message, ex))
 
+    /// Gets peaks of spectrum of RAW file.
     member private this.ReadSpectrumPeaks(scanNo:int) =
 
         this.RaiseDisposed()
@@ -288,137 +260,129 @@ type ThermoRawFileReader(rawFilePath:string) =(* : IMzLiteDataReader*)
             let scanStats       = rawFile.GetScanStatsForScanNumber(scanNo)
             let segmentedScan   = rawFile.GetSegmentedScanFromScanNumber(scanNo, scanStats)
 
-            //maybe length of intensities needed
+            // maybe length of intensities needed
             let peaks = 
 
                 let tmp = array2D [|segmentedScan.Positions; segmentedScan.Intensities|]
 
                 new ThermoPeaksArray(tmp, segmentedScan.Positions.Length)
 
-            let mutable pa = 
-                new Peak1DArray(
-                    BinaryDataCompressionType.NoCompression, BinaryDataType.Float32, 
-                    BinaryDataType.Float32, peaks)
-            pa
-
-            //int peakArraySize = 0;
-            //double controidPeakWith = 0;
-            //object massList = null;
-            //object peakFlags = null;
-
-            //rawFile.GetMassListFromScanNum(
-                //ref scanNo,
-                //null, 1, 0, 0, 0,
-                //ref controidPeakWith,
-                //ref massList,
-                //ref peakFlags,
-                //ref peakArraySize);
-
-            //Peak1DArray pa = new Peak1DArray(
-                    //BinaryDataCompressionType.NoCompression,
-                    //BinaryDataType.Float32,
-                    //BinaryDataType.Float32);
-
-            ////pa.Peaks = MzLiteArray.ToMzLiteArray(peaks);
-
-            //pa.Peaks = new ThermoPeaksArray(peakData, peakArraySize);
-
-            //return pa;
+            new Peak1DArray( BinaryDataCompressionType.NoCompression, BinaryDataType.Float32, BinaryDataType.Float32, peaks)
 
         with
-            | :? Exception as ex ->
+            | ex ->
                 raise (new MzIOIOException(ex.Message, ex))
 
-//        #region IMzLiteDataReader Members
-
+    // #region IMzLiteDataReader Members
     interface IMzIODataReader with
 
+        /// Read mass spectrum of RAW file.
         member this.ReadMassSpectrum(spectrumID:string) =
-
+            
+            // Gets scanNumber associacted with spectrumID.
             let scanNumber = this.ParseSpectrumId(spectrumID)
             this.ReadMassSpectrum(scanNumber)
 
+        /// Read mass spectra of RAW file.
         member this.ReadMassSpectra(runID:string) =
 
+            // First and last scanNumber are called upon when file is created, so everything between can be generated.
             let scanNumbers = [startScanNo..endScanNo] |> Seq.ofList
             scanNumbers
             |> Seq.map (fun scanNumber -> this.ReadMassSpectrum(scanNumber))
              
+        /// Read peaks of mass spectrum of RAW file.
         member this.ReadSpectrumPeaks(spectrumID:string) =
 
             let scanNo = this.ParseSpectrumId(spectrumID)
             this.ReadSpectrumPeaks(scanNo)
 
+        /// Read mass spectrum of RAW file asynchronously.
         member this.ReadMassSpectrumAsync(spectrumID:string) =
+            let tmp = this :> IMzIODataReader
+            async
+                {
+                    return tmp.ReadMassSpectrum(spectrumID)
+                }
+            //Task<MassSpectrum>.Run(fun () -> (this :> IMzIODataReader).ReadMassSpectrum(spectrumID))
 
-            Task<MassSpectrum>.Run(fun () -> (this :> IMzIODataReader).ReadMassSpectrum(spectrumID))
-
+        /// Read peaks of mass spectrum of RAW file asynchronously.
         member this.ReadSpectrumPeaksAsync(spectrumID:string) =
+            let tmp = this :> IMzIODataReader
+            async
+                {
+                    return tmp.ReadSpectrumPeaks(spectrumID)
+                }
+            //Task<Peak1DArray>.Run(fun () -> (this :> IMzIODataReader).ReadSpectrumPeaks(spectrumID))
 
-            Task<Peak1DArray>.Run(fun () -> (this :> IMzIODataReader).ReadSpectrumPeaks(spectrumID))
-
+        /// Read chromatogram of RAW file.
         member this.ReadChromatogram(chromatogramID:string) =
 
             raise (new NotSupportedException())
 
+        /// Read chromatograms of RAW file.
         member this.ReadChromatograms(runID:string) =
 
             Enumerable.Empty<Chromatogram>()
 
+        /// Read peaks of chromatogram of RAW file.
         member this.ReadChromatogramPeaks(chromatogramID:string) =
 
             raise (new NotSupportedException())        
 
+        /// Read chromatogram of RAW file asynchronously.
         member this.ReadChromatogramAsync(chromatogramID:string) =
 
             raise (new NotSupportedException())
 
+        /// Read peaks of chromatogram of RAW file asynchronously.
         member this.ReadChromatogramPeaksAsync(chromatogramID:string) =
 
             raise (new NotSupportedException())
 
-    member this.ReadMassSpectrum(spectrumID:string) =
+    /// Read all mass spectra of one run of MzSQL.
+    member this.ReadMassSpectra(runID: string) =
+            (this :> IMzIODataReader).ReadMassSpectra(runID)
 
+    /// Read mass spectrum of MzSQL.
+    member this.ReadMassSpectrum(spectrumID: string) =
         (this :> IMzIODataReader).ReadMassSpectrum(spectrumID)
 
-    member this.ReadMassSpectra(runID:string) =
-
-        (this :> IMzIODataReader).ReadMassSpectra(runID)
-
-    member this.ReadSpectrumPeaks(spectrumID:string) =
-
+    /// Read peaks of mass spectrum of MzSQL.
+    member this.ReadSpectrumPeaks(spectrumID: string) =
         (this :> IMzIODataReader).ReadSpectrumPeaks(spectrumID)
 
-    member this.ReadMassSpectrumAsync(spectrumID:string) =
-
+    /// Read mass spectrum of MzSQL asynchronously.
+    member this.ReadMassSpectrumAsync(spectrumID:string) =        
         (this :> IMzIODataReader).ReadMassSpectrumAsync(spectrumID)
 
-    member this.ReadSpectrumPeaksAsync(spectrumID:string) =
-
+    /// Read peaks of mass spectrum of MzSQL asynchronously.
+    member this.ReadSpectrumPeaksAsync(spectrumID:string) =            
         (this :> IMzIODataReader).ReadSpectrumPeaksAsync(spectrumID)
 
-    member this.ReadChromatogram(chromatogramID:string) =
-
-        (this :> IMzIODataReader).ReadChromatogram(chromatogramID)
-
-    member this.ReadChromatograms(runID:string) =
-
+    /// Read all chromatograms of one run of MzSQL.
+    member this.ReadChromatograms(runID: string) =
         (this :> IMzIODataReader).ReadChromatograms(runID)
 
-    member this.ReadChromatogramPeaks(chromatogramID:string) =
+    /// Read chromatogram of MzSQL.
+    member this.ReadChromatogram(chromatogramID: string) =
+        (this :> IMzIODataReader).ReadChromatogram(chromatogramID)
 
+    /// Read peaks of chromatogram of MzSQL.
+    member this.ReadChromatogramPeaks(chromatogramID: string) =
         (this :> IMzIODataReader).ReadChromatogramPeaks(chromatogramID)
 
+    /// Read chromatogram of MzSQL asynchronously.
     member this.ReadChromatogramAsync(chromatogramID:string) =
-
         (this :> IMzIODataReader).ReadChromatogramAsync(chromatogramID)
-
+        
+    /// Read peaks of chromatogram of MzSQL asynchronously.
     member this.ReadChromatogramPeaksAsync(chromatogramID:string) =
-
         (this :> IMzIODataReader).ReadChromatogramPeaksAsync(chromatogramID)
 
     interface IMzIOIO with
 
+        /// Creates MzIOModel based on global metadata in RAW file.
         member this.CreateDefaultModel() =
 
             this.RaiseDisposed()
@@ -430,18 +394,22 @@ type ThermoRawFileReader(rawFilePath:string) =(* : IMzLiteDataReader*)
             let sample      = new Sample("sample_1", sampleName)
             model.Samples.Add(sample.ID, sample)
 
-            let run         = new Run("run_1")
-            run.Sample      = sample |> ignore
-            model.Runs.Add(run.ID, run)
+            let software = new Software(rawFile.GetInstrumentData().SoftwareVersion)
+            let instrument = new Instrument(rawFile.GetInstrumentData().Name, software)
 
+            let run         = new Run("run_1", sampleName, rawFile.GetInstrumentData().Name)
+
+            model.Softwares.Add(software.ID, software)
+            model.Instruments.Add(instrument.ID, instrument)
+            model.Runs.Add(run.ID, run)
             model
 
+        /// Current in memory MzIOModel.
         member this.Model =
-
             this.RaiseDisposed()
-
             this.model        
 
+        /// Saves in memory MzIOModel in the shadow file.
         member this.SaveModel() =
 
             this.RaiseDisposed()
@@ -449,24 +417,27 @@ type ThermoRawFileReader(rawFilePath:string) =(* : IMzLiteDataReader*)
             try
                 MzIOJson.SaveJsonFile(this.model, ThermoRawFileReader.GetModelFilePath(rawFilePath))
             with
-                | :? Exception as ex ->
+                | ex ->
 
                     raise (new MzIOIOException(ex.Message, ex))
 
+        /// Opens connection to RAW file.
         member this.BeginTransaction() =
 
             this.RaiseDisposed()
-
             new ThermoRawTransactionScope() :> ITransactionScope
 
+    /// In memory MzIOModel of ThermoRawFileReader.
     member this.Model =
 
         (this :> IMzIOIO).Model
 
+    //Testing Function, how to get IsolationWindow, target M/Z and so on.
     member this.getIsolationWindow = 
         
         rawFile.ScanEvents
 
+    //Testing Function, how to get IsolationWindow, target M/Z and so on.
     member this.getIsolationWindow2 = 
         
         rawFile.GetFilters()

@@ -8,6 +8,7 @@ module RunTests =
     let main args =
 
         Tests.runTestsWithArgs defaultConfig args Tests.testSimpleTests |> ignore
+        Tests.runTestsWithArgs defaultConfig args NumpressTests.testNumpressEncodeDecodeLin |> ignore
 
         0
 

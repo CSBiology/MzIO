@@ -5,9 +5,8 @@ open System.Collections.Generic
 open MzIO.Model
 open Newtonsoft.Json
 
-/// <summary>
+
 /// Expansible description of a processing software.
-/// </summary>
 [<JsonObject(MemberSerialization.OptIn, IsReference = true)>]
 type Software [<JsonConstructor>] (id:string) =
     
@@ -15,13 +14,10 @@ type Software [<JsonConstructor>] (id:string) =
 
     new() = Software("id")
 
-///// <summary>
-///// The model item container for processing software.
-///// </summary>
+/// The model item container for processing software.
 [<Sealed>]
-type SoftwareList [<JsonConstructor>] internal (dict:Dictionary<string, obj>) =
+[<AllowNullLiteral>]
+type SoftwareList [<JsonConstructor>] () =
 
-    inherit MzIO.Model.ObservableModelItemCollection<Software>(dict)
-
-    new() = new SoftwareList(new Dictionary<string, obj>())
+    inherit MzIO.Model.ObservableModelItemCollection<Software>()
 

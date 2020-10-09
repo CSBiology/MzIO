@@ -35,10 +35,10 @@ module internal helpers =
     /// </remarks>
     
     let encodeInt ((x: int64), (res: byte[]), (resOffset: int)) =
+        // changed mask to int64 from original int32
         let mask: int64 = 0xf0000000L
         let init: int64 = x &&& mask
-        match init with 
-        | 0L ->  
+        if init = 0L then
                 let rec loop i= 
                         match i with
                         | value when value >= 0 && value < 8 ->
@@ -52,7 +52,7 @@ module internal helpers =
                 for i = l to 7 do
                    res.[resOffset + 1 + i - l] <- byte (0xfL &&& (x >>> (4 * (i - l))))
                 1 + 8 - l
-        | mask ->
+        elif init = mask then
                 let rec loop i= 
                     match i with
                     | value when value >= 0 && value < 8 ->
@@ -66,9 +66,13 @@ module internal helpers =
                 for i = l to 7 do
                    res.[resOffset + 1 + i - l] <- byte (0xfL &&& (x >>> (4 * (i - l))))
                 1 + 8 - l
+        else
+            res.[resOffset] <- (0 |> byte)
+            for i = 0 to 7 do
+                res.[resOffset + 1 + i] <- byte (0xfL &&& (x >>> (4 * i)))
+            9
 
-    /// Decodes ints from the half bytes in bytes. Lossless reverse of encodeInt, although not symmetrical in input arguments.
-    
+    /// Decodes ints from the half bytes in bytes. Lossless reverse of encodeInt, although not symmetrical in input arguments.    
     let decodeInt() (bytes: byte[], pos, half)   =
                      let (head, pos2) = 
                         if      not half then
@@ -116,16 +120,14 @@ module internal helpers =
                             loop n res pos2 half2
 
     ///Encodes a given fixed point in the output byte array.
-    ///Used in the function encodeLinear.
-    
+    ///Used in the function encodeLinear.    
     let encodeFixedPoint ((fixedPoint: double), (result: byte[])) =
         let (fp: int64) = BitConverter.DoubleToInt64Bits(fixedPoint)
         for i = 0 to 7 do
             result.[7 - i] <- byte ((fp >>> (8 * i)) &&& 0xffL)
     
     
-    ///Decodes the fixed Point which was encoded in the output byte array from the function encodeLinear.
-    ///Used in the function decodeLinear.
+    ///Decodes the fixed Point which was encoded in the output byte array from the function encodeLinear.    ///Used in the function decodeLinear.
     
     let decodeFixedPoint (data: byte[]) =
         let rec loop i fpv =
@@ -140,13 +142,12 @@ module internal helpers =
 
 module Encode = 
          
-    ///Determines the optimal fixed point for the function encodeLinear depending on the data to encode.
-    
+    ///Determines the optimal fixed point for the function encodeLinear depending on the data to encode.    
     let optimalLinearFixedPoint ((data: double[]), (dataSize:int)) =
         match dataSize with
         | value when value = 0 -> 0.
         | value when value = 1 -> 
-                Math.Floor((0xFFFFFFFFL|> double) / data.[0])
+                Math.Floor((0x7FFFFFFFL|> double) / data.[0])
         | value when value > 1 -> 
                 let rec loop i (maxDoubleV: double) =
                     match i with
@@ -160,9 +161,18 @@ module Encode =
                     | _ ->  failwith "Error in optimalLinearFixedPoint; case: dataSize > 1"
                 loop 2 (Math.Max(data.[0], data.[1]))
         | _ -> failwith "Error in optimalLinearFixedPoint. dataSize has to be the length of the inputarray."
+
+    /// Determines the optimal fixed point for the function encodeLinear depending on the data to encode.
+    /// Not as prone to overflow errors as optimalLinearFixedPoint.
+    let optimalLinearFixedPointSave ((data: double[]), (dataSize:int)) =
+        match dataSize with
+        | 0 -> 0.
+        | 1 -> Math.Floor((0x7FFFFFFFL |> double) / data.[0])
+        | _ ->
+            let maxVal = data |> Array.max
+            Math.Floor((0x7FFFFFFFL |> double) / maxVal)
     
-    ///Determines the optimal fixed point for the function encodeSlof depending on the data to encode.
-    
+    ///Determines the optimal fixed point for the function encodeSlof depending on the data to encode.    
     let optimalSlofFixedPoint ((data: double[]), (dataSize: int)) =
         if dataSize = 0 then 0.
         else
@@ -197,8 +207,7 @@ module Encode =
     ///
     /// This encoding is suitable for typical m/z or retention time binary arrays. 
     /// On a test set, the encoding was empirically show to be accurate to at least 0.002 ppm.
-    /// </remarks>
-        
+    /// </remarks>        
     let encodeLinear ((data: double[]), (dataSize: int), (result: byte[]), (fixedPoint: double)) =
         let ints = Array.init 3 (fun x -> int64 0)
         let halfBytes = Array.init 10 (fun x -> byte(0))
@@ -259,8 +268,7 @@ module Encode =
     /// The handleable range is therefore 0 -> 4294967294.
     /// The resulting binary is maximally dataSize * 5 bytes, but much less if the 
     /// data is close to 0 on average.
-    /// </remarks>
-    
+    /// </remarks>    
     let encodePic ((data: double[]), (dataSize: int), (result: byte[])) =
         let halfBytes = Array.init 10 (fun x -> byte (0))
         let rec loop i halfByteCountV riV=
@@ -303,8 +311,7 @@ module Encode =
     /// unsigned short fp = log(d+1) * fixedPoint + 0.5
     ///
     /// the result vector is exactly |data| * 2 + 8 bytes long
-    /// </remarks>
-    
+    /// </remarks>    
     let encodeSlof ((data: double[]), (dataSize: int), (result: byte[]), (fixedPoint: double)) =
         helpers.encodeFixedPoint (fixedPoint, result)
         let rec loop i riV =
@@ -334,15 +341,13 @@ module Decode =
     /// be corrupt, i.e. that the last encoded int does not use the last byte in the data. In addition 
     /// the last encoded int need to use either the last halfbyte, or the second last followed by a 
     /// 0x0 halfbyte. 
-    /// </remarks>
-    
+    /// </remarks>    
     let decodeLinear ((data: byte[]), (dataSize: int), (result: double[])) =
         let ints = Array.init 3 (fun x -> int64 0)
         match dataSize with
         | value when value = 8 -> 0
         | value when value < 8 -> -1
         | value when value < 12 ->
-            let fixedPoint = helpers.decodeFixedPoint (data)
             -1
         | _ ->
             let fixedPoint = helpers.decodeFixedPoint (data)
@@ -390,8 +395,7 @@ module Decode =
     /// be corrupt, i.e. that the last encoded int does not use the last byte in the data. In addition 
     /// the last encoded int needs to use either the last halfbyte, or the second last followed by a 
     /// 0x0 halfbyte. 
-    /// </remarks>
-    
+    /// </remarks>    
     let decodePic ((data: byte[]), (dataSize: int), (result: double[])) =
         let rec loop ri (pos: int) (half:bool) =
             let (res2, pos2, half2) = helpers.decodeInt() (data, pos, half)
@@ -415,8 +419,7 @@ module Decode =
     /// <remarks>
     /// The result vector will be exactly (|data| - 8) / 2 doubles.
     /// returns the number of doubles read, or -1 if there is a problem decoding.
-    /// </remarks>
-    
+    /// </remarks>    
     let decodeSlof ((data: byte[]), (dataSize: int), (result: double[])) =
         match dataSize with
         | value when value < 8 -> -1

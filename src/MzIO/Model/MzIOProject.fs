@@ -5,6 +5,7 @@ open MzIO.Model
 open Newtonsoft.Json
 
 
+/// Not implemented fully yet.
 [<Sealed>]
 type MzIOProject [<JsonConstructor>] ([<JsonProperty("Name")>] name:string, sourceFiles:SourceFileList, samples:SampleList, runs:ProjectRunList) =
 
@@ -15,8 +16,6 @@ type MzIOProject [<JsonConstructor>] ([<JsonProperty("Name")>] name:string, sour
     let mutable samples'        = samples
 
     let mutable runs'           = runs
-
-    //member this.MzIOProject   = base.Name
 
     [<JsonProperty>]
     member this.SourceFiles     = sourceFiles'

@@ -1,20 +1,28 @@
 ﻿namespace MzIO.Processing
 
+
 open System
 
+
+/// Contains functions to traverse collections and generate indexes for those.
 module Indexer =
 
-    type IndexedItem<'a, 'b when 'a :> IComparable> = { //TODO 'b nicht generic
+    /// Record that contains the key for a item.
+    type IndexedItem<'a, 'b when 'a :> IComparable> = 
+        {
             Key      : 'a
             Item     : 'b
         }
     
+    /// Creates a IndexedItem object.
     let createIndexItemBy key item = {
         Key=key; Item=item }
     
+    /// Returns item of IndexedItem object.
     let getItem (idxedItem: IndexedItem<'a,'b>) = 
         idxedItem.Item
 
+    /// Collection of IndexedItem array.
     type IndexedItemCollection<'a,'b  when 'a :> IComparable> = IndexedItem<'a,'b > []
 
     type IndexedItemGenerator<'a,'b when 'a :> IComparable> = 'b -> IndexedItem<'a,'b>
@@ -51,7 +59,7 @@ module Indexer =
                 data |> Seq.tryFindIndex (fun indexItem -> indexItem.Key >= fst range )     
         walkTill (snd range) startIdx.Value [] data 
     
-    /// 
+    /// Split the IndexedItemCollection within a range that are adjancted.
     let splitByAdjacentRanges f1 (data: IndexedItemCollection<'a,'b>)  (range: ('a*'a) []) =
         let startIdx = Array.findIndex (fun x -> x.Key >= fst range.[0]) data
         let rec splitDataByRangeInnerF f1 rangeCount (dataCount:int) (acc: 'b list list) (data: IndexedItemCollection<'a,'b>) (range: ('a*'a) []) =
@@ -62,7 +70,7 @@ module Indexer =
                  splitDataByRangeInnerF f1 (rangeCount+1) (dataCount+elementsInRange.Length) (elementsInRange::acc) data range
         splitDataByRangeInnerF f1 0 startIdx [] data range
                   
-    ///
+    /// Split the IndexedItemCollection above the given border.
     let splitAdjacentByUpperBorder f1 (data: IndexedItemCollection<'a,'b>)  (upperVal:('a) []) =
         let rec splitDataByRangeInnerF f1 upperValCount (dataCount:int) (acc: 'b list list) (data: IndexedItemCollection<'a,'b>) (upperVal:('a) []) =
             if   upperValCount = upperVal.Length then

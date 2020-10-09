@@ -6,9 +6,7 @@ open MzIO.Model
 open Newtonsoft.Json
 
 
-/// <summary>
 /// Expansible description of a data processing step and use of processing software.
-/// </summary>
 [<Sealed>]
 [<JsonObject(MemberSerialization.OptIn)>]
 type DataProcessingStep [<JsonConstructor>] ([<JsonProperty("Name")>] name: string, software: Software) =
@@ -18,8 +16,6 @@ type DataProcessingStep [<JsonConstructor>] ([<JsonProperty("Name")>] name: stri
     let mutable software' = software
 
     new() = DataProcessingStep("name", new Software())
-
-    //member this.DataProcessingStep([<JsonProperty("Name")>] name:string) = base.Name
 
     [<JsonProperty(NullValueHandling = NullValueHandling.Ignore)>]
     member this.Software
@@ -31,18 +27,14 @@ type DataProcessingStep [<JsonConstructor>] ([<JsonProperty("Name")>] name: stri
                     software' <- value
                     this.NotifyPropertyChanged("Software")
 
-/// <summary>
-/// The container for data processing steps.
-/// </summary>
+/// The named item container for all data processing steps in the current spectrum.
 [<Sealed>]
 type DataProcessingStepList [<JsonConstructor>] () =
 
     inherit ObservableNamedItemCollection<DataProcessingStep>()
 
-/// <summary>
 /// Expansible description of a data processing.
-/// Captures the processing steps applied and the use of data processing software.
-/// </summary>    
+/// Captures the processing steps applied and the use of data processing software.   
 [<Sealed>]
 [<JsonObject(MemberSerialization.OptIn, IsReference = true)>]
 type DataProcessing ([<JsonProperty("ID")>]id: string, processingSteps:DataProcessingStepList) =
@@ -55,18 +47,12 @@ type DataProcessing ([<JsonProperty("ID")>]id: string, processingSteps:DataProce
     new(id) = new DataProcessing(id, new DataProcessingStepList())
     new() = new DataProcessing("id")
 
-    //member this.DataProcessing(id:string) = base.ID
-
     [<JsonProperty>]
     member this.ProcessingSteps = processingSteps
 
-/// <summary>
-/// The model item container for data processings.
-/// </summary>
-
+/// The model item container for all data processings of this experiment.
 [<Sealed>]
-type DataProcessingList [<JsonConstructor>] internal (dict:Dictionary<string, obj>) =
+[<AllowNullLiteral>]
+type DataProcessingList [<JsonConstructor>] () =
     
-    inherit ObservableModelItemCollection<DataProcessing>(dict)
-
-    new() = new DataProcessingList(new Dictionary<string, obj>())
+    inherit ObservableModelItemCollection<DataProcessing>()

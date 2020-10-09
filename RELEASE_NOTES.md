@@ -1,5 +1,63 @@
-#### 0.0.8 - Friday, Oktober 9, 2020
-* Update build chain
+#### 0.0.14 - Monday, October 5, 2020
+* Add Target Framework "netstandard2.0" to the Wiff Filereader
+
+#### 0.0.13 - Tuesday, Mai 12, 2020
+* Replace 'null' in GetRTProfiles with option type
+
+#### 0.0.12 - Wednesday, April 22, 2020
+* Fix an error in the Numpress Linear Encoding
+
+#### 0.0.11 - Sunday, April 12, 2020
+* Improve ThermoRawFileReader
+* Clean dependendies
+* Add Targetframework netstandard2.0 to all combatible projects
+
+#### 0.0.9.10 - Wednesday, February 12, 2020
+* Fix a case where parameters were not saved correctly in the Isolation Window
+
+#### 0.0.9.9 - Tuesday, February 11, 2020
+* Add new functions to the SwathIndexer
+
+#### 0.0.9.8 - Thursday, December 12, 2019
+* Fix BuildRTIndex
+
+#### 0.0.9.7 - Thursday, December 12, 2019
+* Refactoring
+
+#### 0.0.9.6 - Thursday, December 12, 2019
+* Unification of scan time units
+
+#### 0.0.9.5 - Wednesday, December 4, 2019
+* Change clearcore license path to look under AppData/Local/IOMIQS/Clearcore2/Licensing
+for the license
+
+#### 0.0.9.4 - Tuesday, December 3, 2019
+* Add new access to metadata and data for wiff files
+
+#### 0.0.9.3 - Tuesday, October 9, 2019
+* Fixed deserialize SelecteIon CvParams bug
+
+#### 0.0.9.2 - Tuesday, October 9, 2019
+* Fixed get PrecursorMz function
+
+#### 0.0.9.1 - Tuesday, October 9, 2019
+* Fixed bug with casting
+
+#### 0.0.9 - Tuesday, October 9, 2019
+* Changed namings
+
+#### 0.0.8.2.1 - Tuesday, July 9, 2019
+* Fixed getXICs
+
+#### 0.0.8.2 - Tuesday, July 9, 2019
+* Try remove NetStandard 2.0 from MzIO project
+
+#### 0.0.8.1 - Tuesday, July 9, 2019
+* Put SQLite transaction handling outsied the MzSQL class
+
+#### 0.0.8 - Tuesday, July 9, 2019
+* Reduze file size of MzSQL
+* Improve speed of MzSQL accession and writing
 
 #### 0.0.7 - Tuesday, July 9, 2019
 * Add MzMLWriter

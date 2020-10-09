@@ -7,6 +7,7 @@ open System.Runtime.Serialization
 open System.Text
 
 
+/// Contains baf specific exceptions.
 [<Serializable()>] [<Sealed>]
 type Baf2SqlException() =
 
@@ -19,9 +20,8 @@ type Baf2SqlException() =
     new(info:SerializationInfo, context:StreamingContext) = new Baf2SqlException(info, context)
 
 
-/// <summary>
 /// Helper methods to use Bruker's BAF loading C-API DLL.
-/// </summary>
+/// Also checks which cpu is currently used and chooses the right baf2sql_c.dll.
 module Baf2SqlWrapper =
     
     #if WIN32 
@@ -83,26 +83,20 @@ module Baf2SqlWrapper =
 
     #endif
 
-    
+    /// Contains methods to wrapp the c++ dlls up and make them usable with F#.
     type Baf2SqlWrapper =
 
-        /// <summary>
         /// Throw last error string as an exception.
-        /// </summary>
-        static member ThrowLastBaf2SqlError() =
-            
+        static member ThrowLastBaf2SqlError() =            
             let buf = new StringBuilder("")
             let len = baf2sql_get_last_error_string(buf, Convert.ToUInt32(0))
             buf.EnsureCapacity(int len + 1) |> ignore
             baf2sql_get_last_error_string(buf, len) |> ignore
             raise (new Baf2SqlException(buf.ToString()))
 
-        /// <summary>
         /// Find out the file name of the SQL cache corresponding to the specified BAF file.
         /// (If the SQL cache doesn't exist yet, it will be created.) */
-        /// </summary>
-        static member GetSQLiteCacheFilename(baf_filename:string) =
-            
+        static member GetSQLiteCacheFilename(baf_filename:string) =            
             let buf = new StringBuilder("");
             let mutable len = baf2sql_get_sqlite_cache_filename(buf, uint32 0, baf_filename);
             if (len = Convert.ToUInt32(0)) then 
@@ -114,45 +108,36 @@ module Baf2SqlWrapper =
                     raise (Baf2SqlWrapper.ThrowLastBaf2SqlError())
                 else buf.ToString()
 
-        /// <summary>
         /// Given the Id of one spectral component (e.g., a 'ProfileMzId' from the SQL cache),
         /// load the binary data from the BAF (returning a double array).
-        /// </summary>
         static member GetBafDoubleArray(handle:UInt64, id:UInt64) =
-
             let mutable n = (Convert.ToUInt64 0)
             baf2sql_array_get_num_elements(handle, id, & n)
+
             let myArray = Array.zeroCreate<float> (int n)
             let rc = baf2sql_array_read_double(handle, id, myArray)
             if rc = 0 then 
                 raise (Baf2SqlWrapper.ThrowLastBaf2SqlError())
             else myArray
 
-        static member test(Test:int ref) =
-            Test
-
-        /// <summary>
         /// Return array 'id', converting to float format.
-        /// </summary>
         static member GetBafFloatArray(handle:UInt64, id:UInt64) =
-
             let mutable n = uint64 0
-            baf2sql_array_get_num_elements(handle, id, & n);
+            baf2sql_array_get_num_elements(handle, id, & n)
+
             let myArray = Array.zeroCreate<float> (int n) 
             let rc = baf2sql_array_read_float(handle, id, myArray)
             if rc = 0 then 
                 raise (Baf2SqlWrapper.ThrowLastBaf2SqlError())
             else myArray
 
-        /// <summary>
         /// Return array 'id', converting to UInt32 format.
-        /// </summary>
         static member GetBafUInt32Array(handle:UInt64, id:UInt64) =
             let mutable n = uint64 0
-            baf2sql_array_get_num_elements(handle, id, & n);
+            baf2sql_array_get_num_elements(handle, id, & n)
 
             let myArray = Array.zeroCreate<UInt32> (int n) 
-            let rc = baf2sql_array_read_uint32(handle, id, myArray);
+            let rc = baf2sql_array_read_uint32(handle, id, myArray)
             if rc = 0 then 
                 raise (Baf2SqlWrapper.ThrowLastBaf2SqlError())
             else myArray
