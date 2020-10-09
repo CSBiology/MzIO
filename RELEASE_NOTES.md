@@ -1,3 +1,6 @@
+#### 0.0.8 - Friday, Oktober 9, 2020
+* Update build chain
+
 #### 0.0.7 - Tuesday, July 9, 2019
 * Add MzMLWriter
 * Improve speed of MzMLReader
