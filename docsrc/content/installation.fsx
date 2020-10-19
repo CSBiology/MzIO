@@ -22,7 +22,7 @@ You can either install them from there or build the binaries yourself.
 
 * You have to run the projects in 32 bit mode for the Wiff-Reader to work properly.
 * You need a Clearcore2 license for the Clearcore2 dlls used in this project.
-    * A dummy file for the license which can be replaced is already located at the correct position in the project.
+    * A dummy file for the license which can be replaced is already located at `..\src\MzIO.Wiff\License`.
 
 ####Bruker-Reader
 
