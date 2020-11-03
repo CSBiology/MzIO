@@ -109,7 +109,6 @@ type MzSQL(path) =
     member this.SelectChromatograms     = MzSQL.prepareSelectChromatograms(this.cn)
 
     member this.SelectPeak2DArray       = MzSQL.prepareSelectPeak2DArray(this.cn)
-
     //member this.Commit() = 
     //    MzSQL.RaiseConnectionState(cn)
     //    MzSQL.RaiseTransactionState(cn)
@@ -455,7 +454,7 @@ type MzSQL(path) =
     /// Read all mass spectra of one run of MzSQL.
     member this.ReadMassSpectra(runID: string) =
             (this :> IMzIODataReader).ReadMassSpectra(runID)
-
+    
     /// Read mass spectrum of MzSQL.
     member this.ReadMassSpectrum(spectrumID: string) =
         (this :> IMzIODataReader).ReadMassSpectrum(spectrumID)
@@ -530,6 +529,7 @@ type MzSQL(path) =
         member this.Dispose() =
             disposed <- true            
             this.cn.Close()
+            
             //tr.Dispose()
 
     /// Disposes everything and closes connection.

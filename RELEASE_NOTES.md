@@ -1,3 +1,6 @@
+#### 0.0.15 - Friday, Oktober 9, 2020
+* Update build chain
+
 #### 0.0.14 - Monday, October 5, 2020
 * Add Target Framework "netstandard2.0" to the Wiff Filereader
 
