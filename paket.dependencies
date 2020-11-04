@@ -5,7 +5,7 @@ generate_load_scripts: true
 
 source https://nuget.org/api/v2
 
-nuget FSharp.Core >= 4.5.2
+nuget FSharp.Core ~> 4.7
 nuget Argu
 
 nuget Newtonsoft.Json
@@ -16,7 +16,6 @@ nuget Expecto.BenchmarkDotNet
 nuget Expecto.FsCheck
 nuget Expecto.VisualStudio.TestAdapter version_in_path: true
 
-clitool dotnet-fake
 
 group Thermo
 source lib/ThermoFisher
