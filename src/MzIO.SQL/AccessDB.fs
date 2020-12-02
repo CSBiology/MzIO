@@ -34,8 +34,8 @@ module MassSpectrum =
     let insertMSSpectraBy insertSpectrumF (db:MzSQL) runID (reader:IMzIODataReader) (tr:SQLiteTransaction) (compress: BinaryDataCompressionType) (spectra: seq<MassSpectrum>) = 
         //let db = getConnection outFilepath
         //let selectModel = db.SelectModel()
-        let model = MzSQL.updateModel(db.SelectModel(), reader.Model)
-        db.UpdateRunIDOfMzIOModel runID model
+        //let model = MzSQL.updateModel(db.SelectModel(), reader.Model)
+        //db.UpdateRunIDOfMzIOModel runID model
         
         let bulkInsert spectra = 
             spectra
