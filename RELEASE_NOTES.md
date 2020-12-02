@@ -1,3 +1,6 @@
+#### 0.0.16 - Friday, Oktober 9, 2020
+* Changed statement preparation, long running tasks now consume less Ram.  
+
 #### 0.0.15 - Friday, Oktober 9, 2020
 * Update build chain
 
