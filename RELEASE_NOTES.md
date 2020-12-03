@@ -1,4 +1,7 @@
-#### 0.0.16 - Friday, Oktober 9, 2020
+#### 0.0.17 - Thursday, December 3, 2020
+* Update lowest netframework verison to net47 
+
+#### 0.0.16 - Wednesday, December 2, 2020
 * Changed statement preparation, long running tasks now consume less Ram.  
 
 #### 0.0.15 - Friday, Oktober 9, 2020

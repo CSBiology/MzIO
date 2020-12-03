@@ -5,7 +5,7 @@ generate_load_scripts: true
 
 source https://nuget.org/api/v2
 
-nuget FSharp.Core ~> 4.7
+nuget FSharp.Core >= 4.7
 nuget Argu
 
 nuget Newtonsoft.Json
