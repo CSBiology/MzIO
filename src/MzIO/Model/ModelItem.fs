@@ -51,7 +51,7 @@ type ModelItem(id:string)  =
                 if value = id then ()
                 else
                     this.NotifyPropertyChaning("ID")
-                    this.ID <- value
+                    id <- value
                     this.NotifyPropertyChanged("ID")
     
     override this.GetHashCode() =
@@ -84,7 +84,7 @@ type NamedModelItem(id:string, name:string) =
                 if value = name then ()
                 else
                     this.NotifyPropertyChaning("Name")
-                    this.Name <- value
+                    name <- value
                     this.NotifyPropertyChanged("Name")
     
 /// A class of an observable collection of model items that can be accessed by their embedded ids and which inherits the dynamic object class.     
