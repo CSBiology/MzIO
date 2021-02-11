@@ -49,7 +49,7 @@ type NamedItem(name:string) =
                 if value = name then ()
                 else
                     this.NotifyPropertyChaning("Name")
-                    this.Name <- value
+                    name <- value
                     this.NotifyPropertyChanged("Name")
     
     override this.Equals(obj:Object) =
