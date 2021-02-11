@@ -391,11 +391,13 @@ type ThermoRawFileReader(rawFilePath:string) =
             let model       = new MzIOModel(modelName)
 
             let sampleName  = Path.GetFileNameWithoutExtension(rawFilePath)
-            let sample      = new Sample("sample_1", sampleName)
+            // TODO: This is a temporary fix to the reference problem due to different JSON deserializers in the deserialize function
+            // When the values "sampleName" and "software" are taken instead of a new one a reference is written in the JSON file
+            let sample      = new Sample("sample_1", Path.GetFileNameWithoutExtension(rawFilePath))
             model.Samples.Add(sample.ID, sample)
 
             let software = new Software(rawFile.GetInstrumentData().SoftwareVersion)
-            let instrument = new Instrument(rawFile.GetInstrumentData().Name, software)
+            let instrument = new Instrument(rawFile.GetInstrumentData().Name, new Software(rawFile.GetInstrumentData().SoftwareVersion))
 
             let run         = new Run("run_1", sampleName, rawFile.GetInstrumentData().Name)
 
