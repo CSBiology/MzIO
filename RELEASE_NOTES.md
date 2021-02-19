@@ -1,3 +1,6 @@
+#### 0.0.18 - Friday, February 19, 2021
+* Fix errors in MzIO model
+
 #### 0.0.17 - Thursday, December 3, 2020
 * Update lowest netframework verison to net47 
 
