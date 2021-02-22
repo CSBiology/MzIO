@@ -90,6 +90,8 @@ module ProjectInfo =
 
     let mutable isPrerelease = false
 
+    let testProject = "tests/YourNameHere.Tests/YourNameHere.Tests.fsproj"
+
 /// Barebones, minimal build tasks
 module BasicTasks = 
 
@@ -124,6 +126,22 @@ module BasicTasks =
         for i in targets do printfn "%A" i
         targets
         |>  Seq.iter (fun (fromDir, toDir) -> Shell.copyDir toDir fromDir (fun _ -> true))
+    }
+
+/// Test executing build tasks
+module TestTasks = 
+
+    open ProjectInfo
+    open BasicTasks
+
+    let runTests = BuildTask.create "RunTests" [clean; build; copyBinaries] {
+        let standardParams = Fake.DotNet.MSBuild.CliArguments.Create ()
+        Fake.DotNet.DotNet.test(fun testParams ->
+            {
+                testParams with
+                    Logger = Some "console;verbosity=detailed"
+            }
+        ) testProject
     }
 
 open BasicTasks
