@@ -17,5 +17,7 @@
   <ItemGroup>
     <ProjectReference Include="..\MzIO\MzIO.fsproj"></ProjectReference>
   </ItemGroup>
-  <Import Project="..\..\.paket\Paket.Restore.targets" />
+  <ItemGroup>
+    <PackageReference Include="Argu" Version="6.1.1" />
+  </ItemGroup>
 </Project>

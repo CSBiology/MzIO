@@ -55,8 +55,8 @@
     <Compile Include="JSON\MzIOJson.fs" />
     <Compile Include="JSON\ConvertibleConverter.fs" />
     <Compile Include="AssemblyInfo.fs" />
-    <None Include="paket.references" />
-    <None Include="paket.template" />
   </ItemGroup>
-  <Import Project="..\..\.paket\Paket.Restore.targets" />
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+  </ItemGroup>
 </Project>
