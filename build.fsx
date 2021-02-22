@@ -90,7 +90,7 @@ module ProjectInfo =
 
     let mutable isPrerelease = false
 
-    let testProject = "tests/YourNameHere.Tests/YourNameHere.Tests.fsproj"
+    let testProject = "tests/MzIO.Tests/MzIO.Tests.fsproj"
 
 /// Barebones, minimal build tasks
 module BasicTasks = 

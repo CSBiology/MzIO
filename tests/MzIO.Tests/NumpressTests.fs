@@ -1,8 +1,6 @@
-namespace MzIO.Tests
+module Tests
 
 open Expecto
-open FsCheck
-open GeneratorsCode
 
 module NumpressTests =
 
