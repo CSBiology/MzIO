@@ -14,6 +14,21 @@
     <!-- Optional: Include PDB in the built .nupkg -->
     <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
     <Configurations>Debug;Release</Configurations>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+  </PropertyGroup>
+  <PropertyGroup>
+    <Authors>Patrick Blume, Jonathan Ott, David Zimmer, Timo Muehlhaus</Authors>
+    <Description>Generic data model to unify various readers and writers for different formats used in protein mass spectrometry</Description>
+    <Summary>Generic data model to unify various readers and writers for different formats used in protein mass spectrometry</Summary>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/CSBiology/MzIO/</PackageProjectUrl>
+    <!--<PackageIconUrl>https://fslab.org/docs-template/img/logo.png</PackageIconUrl>-->
+    <PackageTags>F# MassSpectrometry FSharp MzIO MzMl BigData</PackageTags>
+    <RepositoryUrl>https://github.com/CSBiology/MzIO</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <FsDocsLicenseLink>https://github.com/CSBiology/MzIO/blob/developer/LICENSE</FsDocsLicenseLink>
+    <FsDocsReleaseNotesLink>https://github.com/CSBiology/MzIO/blob/developer/RELEASE_NOTES.md</FsDocsReleaseNotesLink>
   </PropertyGroup>
   <ItemGroup>
     <EmbeddedResource Remove="IO\MzMLReader\**" />

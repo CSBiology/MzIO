@@ -3,4 +3,4 @@ open Expecto
 
 [<EntryPoint>]
 let main argv =
-    Tests.runTestsInAüssembly defaultConfig argv
+    Tests.runTestsInAssembly defaultConfig argv
