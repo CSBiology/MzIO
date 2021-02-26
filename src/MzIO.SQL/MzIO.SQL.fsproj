@@ -23,7 +23,7 @@
     <Summary>MzIO.SQLite Data Reader</Summary>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/CSBiology/MzIO/</PackageProjectUrl>
-    <PackageIconUrl>https://fslab.org/docs-template/img/logo.png</PackageIconUrl>
+    <!--<PackageIconUrl>https://fslab.org/docs-template/img/logo.png</PackageIconUrl>-->
     <PackageTags>F# MassSpectrometry FSharp MzIO MzMl BigData</PackageTags>
     <RepositoryUrl>https://github.com/CSBiology/MzIO</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
