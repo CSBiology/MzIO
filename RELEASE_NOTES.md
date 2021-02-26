@@ -1,6 +1,8 @@
 #### 0.1.0 - Friday, February 25, 2021
-* Fix errors in MzIO model
-* 
+* update buildchain
+* unify dependency management
+* create nuget prerelease
+
 #### 0.0.18 - Friday, February 19, 2021
 * Fix errors in MzIO model
 
