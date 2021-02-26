@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0</TargetFrameworks>
+    <TargetFrameworks>netstandard2.1</TargetFrameworks>
     <RootNamespace>MzIO</RootNamespace>
     <AssemblyName>MzIO.Wiff</AssemblyName>
     <Name>MzIO.Wiff</Name>
@@ -45,89 +45,10 @@
     <ProjectReference Include="..\MzIO.Processing\MzIO.Processing.fsproj" />
     <ProjectReference Include="..\MzIO\MzIO.fsproj" />
   </ItemGroup>
-  <ItemGroup>
-    <Reference Include="Clearcore2.Compression">
-      <HintPath>ClearCore2Lib\Clearcore2.Compression.dll</HintPath>
-    </Reference>
-    <Reference Include="Clearcore2.Data">
-      <HintPath>ClearCore2Lib\Clearcore2.Data.dll</HintPath>
-    </Reference>
-    <Reference Include="Clearcore2.Data.AnalystDataProvider">
-      <HintPath>ClearCore2Lib\Clearcore2.Data.AnalystDataProvider.dll</HintPath>
-    </Reference>
-    <Reference Include="Clearcore2.Data.CommonInterfaces">
-      <HintPath>ClearCore2Lib\Clearcore2.Data.CommonInterfaces.dll</HintPath>
-    </Reference>
-    <Reference Include="Clearcore2.Data.WiffReader">
-      <HintPath>ClearCore2Lib\Clearcore2.Data.WiffReader.dll</HintPath>
-    </Reference>
-    <Reference Include="Clearcore2.InternalRawXYProcessing">
-      <HintPath>ClearCore2Lib\Clearcore2.InternalRawXYProcessing.dll</HintPath>
-    </Reference>
-    <Reference Include="Clearcore2.Muni" Pack="true">
-      <HintPath>ClearCore2Lib\Clearcore2.Muni.dll</HintPath>
-    </Reference>
-    <Reference Include="Clearcore2.ProjectUtilities">
-      <HintPath>ClearCore2Lib\Clearcore2.ProjectUtilities.dll</HintPath>
-    </Reference>
-    <Reference Include="Clearcore2.RawXYProcessing">
-      <HintPath>ClearCore2Lib\Clearcore2.RawXYProcessing.dll</HintPath>
-    </Reference>
-    <Reference Include="Clearcore2.StructuredStorage">
-      <HintPath>ClearCore2Lib\Clearcore2.StructuredStorage.dll</HintPath>
-    </Reference>
-    <Reference Include="Clearcore2.Utility">
-      <HintPath>ClearCore2Lib\Clearcore2.Utility.dll</HintPath>
-    </Reference>
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="$(OutputPath)\netstandard2.0\Clearcore2.Compression.dll">
-      <Pack>true</Pack>
-      <PackagePath>lib\netstandard2.0</PackagePath>
-    </Content>
-    <Content Include="$(OutputPath)\$(TargetFrameworks)\Clearcore2.Data.dll">
-      <Pack>true</Pack>
-      <PackagePath>lib\$(TargetFrameworks)</PackagePath>
-    </Content>
-      <Content Include="$(OutputPath)\$(TargetFrameworks)\Clearcore2.Data.AnalystDataProvider.dll">
-      <Pack>true</Pack>
-      <PackagePath>lib\$(TargetFrameworks)</PackagePath>
-    </Content>
-      <Content Include="$(OutputPath)\$(TargetFrameworks)\Clearcore2.Data.CommonInterfaces.dll">
-      <Pack>true</Pack>
-      <PackagePath>lib\$(TargetFrameworks)</PackagePath>
-    </Content>
-          <Content Include="$(OutputPath)\$(TargetFrameworks)\Clearcore2.Data.WiffReader.dll">
-      <Pack>true</Pack>
-      <PackagePath>lib\$(TargetFrameworks)</PackagePath>
-    </Content>
-    <Content Include="$(OutputPath)\$(TargetFrameworks)\Clearcore2.InternalRawXYProcessing.dll">
-      <Pack>true</Pack>
-      <PackagePath>lib\$(TargetFrameworks)</PackagePath>
-    </Content>
-    <Content Include="$(OutputPath)\$(TargetFrameworks)\Clearcore2.Muni.dll">
-      <Pack>true</Pack>
-      <PackagePath>lib\$(TargetFrameworks)</PackagePath>
-    </Content>
-    <Content Include="$(OutputPath)\$(TargetFrameworks)\Clearcore2.ProjectUtilities.dll">
-      <Pack>true</Pack>
-      <PackagePath>lib\$(TargetFrameworks)</PackagePath>
-    </Content>
-    <Content Include="$(OutputPath)\$(TargetFrameworks)\Clearcore2.RawXYProcessing.dll">
-      <Pack>true</Pack>
-      <PackagePath>lib\$(TargetFrameworks)</PackagePath>
-    </Content>
-    <Content Include="$(OutputPath)\$(TargetFrameworks)\Clearcore2.StructuredStorage.dll">
-      <Pack>true</Pack>
-      <PackagePath>lib\$(TargetFrameworks)</PackagePath>
-    </Content>
-    <Content Include="$(OutputPath)\$(TargetFrameworks)\Clearcore2.Utility.dll">
-      <Pack>true</Pack>
-      <PackagePath>lib\$(TargetFrameworks)</PackagePath>
-    </Content>
-  </ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All"/>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All" />
+    <PackageReference Include="Clearcore2" Version="0.0.3-beta" />
   </ItemGroup>
 </Project>
