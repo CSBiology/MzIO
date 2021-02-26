@@ -41,11 +41,8 @@
     <ProjectReference Include="..\MzIO\MzIO.fsproj" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="ThermoRaw" Version="0.0.3-beta" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
-    <PackageReference Include="ThermoFisher.CommonCore.BackgroundSubtraction" Version="4.0.107" />
-    <PackageReference Include="ThermoFisher.CommonCore.Data" Version="4.0.107" />
-    <PackageReference Include="ThermoFisher.CommonCore.MassPrecisionEstimator" Version="4.0.107" />
-    <PackageReference Include="ThermoFisher.CommonCore.RawFileReader" Version="4.0.107" />
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All"/>
   </ItemGroup>
 </Project>
