@@ -1,3 +1,6 @@
+#### 0.1.0 - Friday, February 25, 2021
+* Fix errors in MzIO model
+* 
 #### 0.0.18 - Friday, February 19, 2021
 * Fix errors in MzIO model
 
