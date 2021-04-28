@@ -56,7 +56,15 @@ type private MzMLReaderTransactionScope() =
 /// Contains methods to access spectrum and peak information of mzml files.
 type MzMLReader(filePath: string) =
 
-    let mutable reader = XmlReader.Create(filePath)
+    let mutable reader = 
+        let tmp = XmlReader.Create(filePath)
+        tmp.MoveToContent() |> ignore
+        if tmp.Name = "indexedmzML" then
+            tmp.ReadToDescendant("mzML")
+        else
+            false
+        |> ignore
+        tmp
 
     /// Tries to return attribute element from XML element as string.
     member private this.tryGetAttribute (name:string, ?xmlReader: XmlReader) =
@@ -103,6 +111,21 @@ type MzMLReader(filePath: string) =
         match potValue with
         | Some value -> UserParam<string>((this.getAttribute ("name", xmlReader)), value)
         | None -> UserParam<string>((this.getAttribute ("name", xmlReader)))
+
+    /// Moves to content of mzML and checks if it is an indexed mzML or not. When it is an indexedmzML it moves to the mzML Element.
+    // Additional Information: https://csharp.hotexamples.com/examples/-/MzML_Version/-/php-mzml_version-class-examples.html
+    static member private accessMzMLElement (reader: XmlReader) =
+        reader.MoveToContent() |> ignore
+        if reader.Name = "indexedmzML" then
+            reader.ReadToDescendant("mzML")
+        else
+            false
+    
+    /// Check for mzML Schema
+    static member private checkSchema (reader: XmlReader) =
+        let schemaName = reader.GetAttribute("xsi:schemaLocation")
+        if (schemaName.Contains("mzML1.0.0.xsd")) then
+            failwith "mzML1.0.0 is not supported"
 
     /// Gets kind of binary array elements (intensity; m/z) based on cvParam elements.
     static member private getArrayTypeOfP1D (peakArray:Peak1DArray) (arrayType:BinaryDataType) (keys:seq<string>) =
@@ -1648,6 +1671,8 @@ type MzMLReader(filePath: string) =
     /// Creates MzIOModel based on all elements until and including run element. Also resets reader automatically to the beginning.
     member private this.getMzIOModel() =
         reader <- XmlReader.Create(filePath)
+        MzMLReader.accessMzMLElement reader |> ignore
+        MzMLReader.checkSchema reader
         let rec outerLoop acc =
             if reader.Name = "mzML" then
                 let readSubtree = reader.ReadSubtree()
@@ -1744,6 +1769,8 @@ type MzMLReader(filePath: string) =
     /// Resets reader to beginning before starting to iterate.
     member private this.getSpectra(runID) =
         reader <- XmlReader.Create(filePath)
+        MzMLReader.accessMzMLElement reader |> ignore
+        MzMLReader.checkSchema reader
         let rec outerLoop acc =
             if reader.Name = "run" then
                 let readSubtree = reader.ReadSubtree()
@@ -1821,6 +1848,8 @@ type MzMLReader(filePath: string) =
     /// with a corresponding ID attribute to runID.
     member private this.getAllPeak1DArrays(runID) =
         reader <- XmlReader.Create(filePath)
+        MzMLReader.accessMzMLElement reader |> ignore
+        MzMLReader.checkSchema reader
         let rec outerLoop acc =
             if reader.Name = "run" then
                 let readSubtree = reader.ReadSubtree()
