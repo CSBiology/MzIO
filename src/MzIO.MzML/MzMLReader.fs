@@ -627,16 +627,22 @@ type MzMLReader(filePath: string) =
                 | "userParam"                   ->  loop dbProcRef (peakArray.AddUserParam(this.getUserParam readSubtree)) peaks (readOp() |> ignore)
                 | "binary"                      ->  loop dbProcRef cvParams ((this.getBinary readSubtree)::peaks) read
                 | _                             ->  loop dbProcRef cvParams peaks (readOp() |> ignore)
+            elif readSubtree.NodeType= XmlNodeType.EndElement && readSubtree.Name="binaryDataArray" then
+                match dbProcRef with
+                | Some ref  ->  MzMLReader.addCompressionTypeToPeak1DArray peakArray |> ignore
+                | None      ->  MzMLReader.addCompressionTypeToPeak1DArray peakArray |> ignore
+                loop dbProcRef cvParams peaks (readOp() |> ignore)
             else
-                if readOp()=true then loop dbProcRef cvParams peaks read
+                if readOp()=true then 
+                    loop dbProcRef cvParams peaks read
                 else
                     match dbProcRef with
-                    | Some ref  ->  MzMLReader.addCompressionTypeToPeak1DArray peakArray
-                                    |> MzMLReader.get1DPeaks peaks
-                                    peakArray
-                    | None      ->  MzMLReader.addCompressionTypeToPeak1DArray peakArray
-                                    |> MzMLReader.get1DPeaks peaks
-                                    peakArray
+                    | Some ref  ->  
+                        MzMLReader.get1DPeaks peaks peakArray
+                        peakArray
+                    | None      ->  
+                        MzMLReader.get1DPeaks peaks peakArray
+                        peakArray
         loop None () [] ()
 
     /// Creates Peak2DArray based on chromatogram, BinaryArrayList and cvParam elements.
