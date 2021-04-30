@@ -76,7 +76,7 @@ module MassSpectrum =
     let createScanTimeIdxedMS (massSpectrum: MassSpectrum) =
         createIndexItemBy (getScanTime massSpectrum) massSpectrum  
 
-    /// Returns PrecursorMZ of MS2 spectrum
+    /// Returns PrecursorMZ of MS2 spectrum. If no PrecursorMz is present but IonMz is found, IonMz is given instead.
     let getPrecursorMZ (massSpectrum: MzIO.Model.MassSpectrum) =
         let precursors =  
             massSpectrum.Precursors.GetProperties false 
@@ -87,7 +87,13 @@ module MassSpectrum =
                 |> Seq.collect (fun precursor -> 
                     precursor.SelectedIons.GetProperties false
                     |> Seq.map (fun selectedIon -> 
-                        (selectedIon.Value :?> SelectedIon).TryGetValue(PSIMS_Precursor.SelectedPrecursorMz)))
+                        let selectedPrecursorMz = (selectedIon.Value :?> SelectedIon).TryGetValue(PSIMS_Precursor.SelectedPrecursorMz)
+                        let selectedIonMz = (selectedIon.Value :?> SelectedIon).TryGetValue(PSIMS_Precursor.SelectedIonMz)
+                        match selectedPrecursorMz,selectedIonMz with
+                        | Some precMz, _ -> Some precMz
+                        | None, Some ionMz -> Some ionMz
+                        | None, None -> None
+                    ))
                 |> Seq.choose (fun param -> param)
             if Seq.isEmpty tmp2 then None
             else Seq.head tmp2 |> fun item -> Some item
