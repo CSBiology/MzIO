@@ -236,7 +236,7 @@ type ThermoRawFileReader(rawFilePath:string) =
             precursor.IsolationWindow.SetIsolationWindowLowerOffset(isoWidth)   |> ignore
 
             let selectedIon = new SelectedIon()
-            selectedIon.SetSelectedIonMz(precursorMz)   |> ignore
+            selectedIon.SetSelectedPrecursorMz(precursorMz)   |> ignore
             selectedIon.SetChargeState(chargeState)     |> ignore
 
             precursor.SelectedIons.Add(Guid.NewGuid().ToString(), selectedIon)

@@ -379,7 +379,7 @@ type WiffFileReader(dataProvider:AnalystWiffDataProvider, disposed:Boolean, wiff
                 precursor.IsolationWindow.SetIsolationWindowUpperOffset(isoWidth)   |> ignore
                 precursor.IsolationWindow.SetIsolationWindowLowerOffset(isoWidth)   |> ignore
             let selectedIon = new SelectedIon()
-            selectedIon.SetSelectedIonMz(wiffSpectrum.ParentMZ)                     |> ignore
+            selectedIon.SetSelectedPrecursorMz(wiffSpectrum.ParentMZ)                     |> ignore
             selectedIon.SetChargeState(wiffSpectrum.ParentChargeState)              |> ignore
             precursor.SelectedIons.Add(Guid.NewGuid().ToString(), selectedIon)
             precursor.Activation.SetCollisionEnergy(wiffSpectrum.CollisionEnergy)   |> ignore
@@ -407,7 +407,7 @@ type WiffFileReader(dataProvider:AnalystWiffDataProvider, disposed:Boolean, wiff
                 precursor.IsolationWindow.SetIsolationWindowUpperOffset(isoWidth)   |> ignore
                 precursor.IsolationWindow.SetIsolationWindowLowerOffset(isoWidth)   |> ignore
             let selectedIon = new SelectedIon()
-            selectedIon.SetSelectedIonMz(wiffSpectrum.ParentMZ)                     |> ignore
+            selectedIon.SetSelectedPrecursorMz(wiffSpectrum.ParentMZ)                     |> ignore
             selectedIon.SetChargeState(wiffSpectrum.ParentChargeState)              |> ignore
             precursor.SelectedIons.Add(Guid.NewGuid().ToString(), selectedIon)
             precursor.Activation.SetCollisionEnergy(wiffSpectrum.CollisionEnergy)   |> ignore

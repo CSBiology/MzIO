@@ -87,7 +87,7 @@ module MassSpectrum =
                 |> Seq.collect (fun precursor -> 
                     precursor.SelectedIons.GetProperties false
                     |> Seq.map (fun selectedIon -> 
-                        (selectedIon.Value :?> SelectedIon).TryGetValue(PSIMS_Precursor.SelectedIonMz)))
+                        (selectedIon.Value :?> SelectedIon).TryGetValue(PSIMS_Precursor.SelectedPrecursorMz)))
                 |> Seq.choose (fun param -> param)
             if Seq.isEmpty tmp2 then None
             else Seq.head tmp2 |> fun item -> Some item
