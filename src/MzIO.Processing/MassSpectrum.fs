@@ -57,7 +57,13 @@ module MassSpectrum =
 
     /// Returns the ScanTime (formerly: RetentionTime) of the MassSpectrum
     let getScanTime (massSpectrum: MassSpectrum) =  
-        let scans =  massSpectrum.Scans.GetProperties false |> Seq.map (fun scan -> scan.Value :?> Scan)
+        let scans =  
+            massSpectrum.Scans.GetProperties false
+            |> Seq.choose (fun scan -> 
+                try Some (scan.Value :?> Scan)
+                with
+                | _ -> None
+            )
         let tmp =
             let tmp2 =
                 scans
