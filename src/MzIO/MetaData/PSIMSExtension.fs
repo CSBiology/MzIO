@@ -175,6 +175,7 @@ module PSIMSExtension =
     type PSIMS_Precursor =
 
         static member SelectedPrecursorMz = "MS:1002234"
+        static member SelectedIonMz = "MS:1000744"
         static member ChargeState = "MS:1000041"
         static member CollisionEnergy = "MS:1000045"
 
@@ -189,10 +190,29 @@ module PSIMSExtension =
             this
 
         /// Mass-to-charge ratio of a precursor ion selected for fragmentation. [PSI:PI]
-        member this.TryGetSelectedIonMz(mz: byref<double>) =
+        member this.SetSelectedIonMz(mz: double) =
+            if mz < 0. then
+                raise (ArgumentOutOfRangeException("mz"))
+            this.SetCvParam(PSIMS_Precursor.SelectedIonMz, mz).PSIMS_Mz() |> ignore
+            this
+
+        /// Mass-to-charge ratio of a precursor ion selected for fragmentation. [PSI:PI]
+        member this.TryGetSelectedPrecursorMz(mz: byref<double>) =
             if this.TryGetParam(PSIMS_Precursor.SelectedPrecursorMz) then
                 let tmp =
                     this.TryGetTypedValue<IParamBase<IConvertible>>(PSIMS_Precursor.SelectedPrecursorMz).Value
+                    |> tryGetValue
+                mz <- Convert.ToDouble (tmp.Value)
+                true
+            else
+                mz <- Unchecked.defaultof<double>
+                false
+
+        /// Mass-to-charge ratio of a precursor ion selected for fragmentation. [PSI:PI]
+        member this.TryGetSelectedIonMz(mz: byref<double>) =
+            if this.TryGetParam(PSIMS_Precursor.SelectedPrecursorMz) then
+                let tmp =
+                    this.TryGetTypedValue<IParamBase<IConvertible>>(PSIMS_Precursor.SelectedIonMz).Value
                     |> tryGetValue
                 mz <- Convert.ToDouble (tmp.Value)
                 true
