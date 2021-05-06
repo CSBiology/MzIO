@@ -1886,6 +1886,48 @@ type MzMLReader(filePath: string) =
                 outerLoop (reader.Read())
         outerLoop false
 
+    /// Creates collection of Peak1DArray and their spectrum ID objects based on spectrum, binaryArrayList and cvParam elements which are children of the run 
+    /// with a corresponding ID attribute to runID.
+    member this.getAllPeak1DArraysWithID(runID, ?peakCompression) =
+        let peakCompression = defaultArg peakCompression BinaryDataCompressionType.ZLib
+        let encoder = new BinaryDataEncoder()
+        reader <- XmlReader.Create(filePath)
+        MzMLReader.accessMzMLElement reader |> ignore
+        MzMLReader.checkSchema reader
+        let rec outerLoop acc =
+            if reader.Name = "run" then
+                let readSubtree = reader.ReadSubtree()
+                let readOp = readSubtree.Read
+                let rec loop (acc:seq<string*Peak1DArray>) =
+                    seq
+                        {
+                            if readSubtree.NodeType=XmlNodeType.Element then
+                                match readSubtree.Name with
+                                | "run"         ->
+                                    if (this.getAttribute ("id", readSubtree)) = runID then
+                                        (readOp()) |> ignore
+                                        yield! loop acc
+                                    else
+                                        (readOp()) |> ignore
+                                        yield! loop acc
+                                | "spectrum"    ->  yield (this.getAttribute ("id", readSubtree)) ,this.GetPeak1DArray readSubtree
+                                                    (readOp()) |> ignore
+                                                    yield! loop acc
+                                |   _           ->  (readOp()) |> ignore
+                                                    yield! loop acc
+                            else
+                                if readOp()=true then yield! loop acc
+                                else yield! acc
+                        }
+                loop Seq.empty
+            else
+                outerLoop (reader.Read())
+        outerLoop false
+        |> Seq.map (fun (id,p1d) ->
+            p1d.CompressionType <- peakCompression
+            id, encoder.Encode p1d
+        )
+
     /// Creates Peak1DArray object based on spectrum, binaryArrayList and cvParam elements.
     member private this.getSpecificPeak1DArray(spectrumID:string) =
         let rec outerLoop acc =
