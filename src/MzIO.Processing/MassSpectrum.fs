@@ -60,8 +60,8 @@ module MassSpectrum =
         let scans =  
             massSpectrum.Scans.GetProperties false
             |> Seq.choose (fun scan -> 
-                try Some (scan.Value :?> Scan)
-                with
+                match scan.Value with
+                | :? Scan -> Some (scan.Value :?> Scan)
                 | _ -> None
             )
         let tmp =
