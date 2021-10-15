@@ -1808,12 +1808,13 @@ type MzMLReader(filePath: string) =
         outerLoop false
 
     /// Tries to create Peak1DArray object based on spectrum with same ID attribute as spectrumID, binaryArrayList and cvParam elements.
-    member private this.tryGetPeak1DArray(spectrumID: string) =
+    member private this.tryGetPeak1DArray(spectrumID: string, ?xmlReader: XmlReader) =
+        let xmlReader = defaultArg xmlReader reader
         let readSubtree =
             let rec loop acc =
-                if reader.NodeType=XmlNodeType.Element && reader.Name="spectrum" then
-                    reader.ReadSubtree()
-                else loop (reader.Read())
+                if xmlReader.NodeType=XmlNodeType.Element && xmlReader.Name="spectrum" then
+                    xmlReader.ReadSubtree()
+                else loop (xmlReader.Read())
             loop false
         let readOp = readSubtree.Read
         let rec loop read =
