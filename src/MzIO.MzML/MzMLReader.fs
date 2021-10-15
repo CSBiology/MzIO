@@ -1687,7 +1687,7 @@ type MzMLReader(filePath: string) =
 
     /// Creates MzIOModel based on all elements until and including run element. Also resets reader automatically to the beginning.
     member private this.getMzIOModel() =
-        reader <- XmlReader.Create(filePath)
+        this.ResetReader()
         MzMLReader.accessMzMLElement reader |> ignore
         MzMLReader.checkSchema reader
         let rec outerLoop acc =
@@ -1785,7 +1785,7 @@ type MzMLReader(filePath: string) =
     /// Creates collection of MassSpectrum objects based on all spectrum elements of run element with same ID attribute as runID.
     /// Resets reader to beginning before starting to iterate.
     member private this.getSpectra(runID) =
-        reader <- XmlReader.Create(filePath)
+        this.ResetReader()
         MzMLReader.accessMzMLElement reader |> ignore
         MzMLReader.checkSchema reader
         let rec outerLoop acc =
@@ -1865,7 +1865,7 @@ type MzMLReader(filePath: string) =
     /// Creates collection of Peak1DArray objects based on spectrum, binaryArrayList and cvParam elements which are children of the run 
     /// with a corresponding ID attribute to runID.
     member private this.getAllPeak1DArrays(runID) =
-        reader <- XmlReader.Create(filePath)
+        this.ResetReader()
         MzMLReader.accessMzMLElement reader |> ignore
         MzMLReader.checkSchema reader
         let rec outerLoop acc =
@@ -1903,7 +1903,7 @@ type MzMLReader(filePath: string) =
     member this.getAllPeak1DArraysWithID(runID, ?peakCompression) =
         let peakCompression = defaultArg peakCompression BinaryDataCompressionType.ZLib
         let encoder = new BinaryDataEncoder()
-        reader <- XmlReader.Create(filePath)
+        this.ResetReader()
         MzMLReader.accessMzMLElement reader |> ignore
         MzMLReader.checkSchema reader
         let rec outerLoop acc =
@@ -2218,15 +2218,15 @@ type MzMLReader(filePath: string) =
     interface IMzIODataReader with
     
         member this.ReadMassSpectra(runID: string) =
-            reader <- XmlReader.Create(filePath)
+            this.ResetReader()
             this.getSpectra(runID)
 
         member this. ReadMassSpectrum(spectrumID: string) =
-            reader <- XmlReader.Create(filePath)
+            this.ResetReader()
             this.getSpectrum(spectrumID)
 
         member this.ReadSpectrumPeaks(spectrumID: string) =
-            reader <- XmlReader.Create(filePath)
+            this.ResetReader()
             this.getSpecificPeak1DArray(spectrumID)
 
         member this.ReadMassSpectrumAsync(spectrumID: string) =
@@ -2321,7 +2321,7 @@ type MzMLReader(filePath: string) =
     /// Create Peak2DArray based on range of retention time and m/z.
     member this.RtProfile(rtIndex: IMzIOArray<RtIndexEntry>, rtRange: RangeQuery, mzRange: RangeQuery) =
 
-        reader <- XmlReader.Create(filePath)
+        this.ResetReader()
         let entries = RtIndexEntry.Search(rtIndex, rtRange).ToArray()
         let profile = Array.zeroCreate<Peak2D> entries.Length
         let rtIdxs = [0..entries.Length-1]
