@@ -1955,6 +1955,34 @@ type MzMLReader(filePath: string) =
                 outerLoop (reader.Read())
         outerLoop false
 
+    /// Creates Peak1DArray object based on spectrum, binaryArrayList and cvParam elements.
+    /// Leaves the reader in a state that allows sequential reading of spectra.
+    member this.getSpecificPeak1DArraySequential(spectrumID:string) =
+        match reader.Name with
+        | "spectrum" -> ()
+        | _ -> 
+            if not (reader.ReadToFollowing("spectrumList")) then
+                failwith "No spectrum list found in mzML file"
+            reader.ReadSubtree() |> ignore
+            reader.ReadToFollowing("spectrum") |> ignore
+        let rec read peak1DArrayOption =
+            match peak1DArrayOption with
+            | Some peak1DArray ->
+                peak1DArray
+            | None ->
+                if reader.EOF then
+                    failwithf "ID: %s not present in the file" spectrumID
+                // Takes a snapshot of the spectrum where the reader currently points to and advances the reader to the next node
+                let outerXml = reader.ReadOuterXml()
+                // Advances the reader to the next spectrum
+                reader.ReadToFollowing("spectrum") |> ignore
+                // Creates a new reader based on the snapshot
+                let nodeReader = XmlReader.Create (new StringReader(outerXml))
+                let peak1DArrayOption' = this.tryGetPeak1DArray (spectrumID, nodeReader)
+                nodeReader.Close()
+                read peak1DArrayOption'
+        read None
+
     /// Creates collection of Chomatogram objects based on chromatogram, binaryArrayList and cvParam elements which are children of the run 
     /// with a corresponding ID attribute to runID.
     /// Does not work properly yet.
