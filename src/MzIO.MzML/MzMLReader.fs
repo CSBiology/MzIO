@@ -66,6 +66,17 @@ type MzMLReader(filePath: string) =
         |> ignore
         tmp
 
+    member this.ResetReader() = 
+        reader <-
+            let tmp = XmlReader.Create(filePath)
+            tmp.MoveToContent() |> ignore
+            if tmp.Name = "indexedmzML" then
+                tmp.ReadToDescendant("mzML")
+            else
+                false
+            |> ignore
+            tmp
+
     /// Tries to return attribute element from XML element as string.
     member private this.tryGetAttribute (name:string, ?xmlReader: XmlReader) =
         let xmlReader = defaultArg xmlReader reader
