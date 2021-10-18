@@ -43,7 +43,7 @@ type private MzSQLTransactionScope(tr:SQLiteTransaction) =
     
 
 /// Contains methods and procedures to create, insert and access MzSQL files.
-type MzSQL(path) =
+type MzSQL(path, cacheSize) =
 
     let mutable disposed = false
 
@@ -66,7 +66,7 @@ type MzSQL(path) =
                 path
 
     let cn = 
-        let cn' = new SQLiteConnection(sprintf "Data Source=%s;Version=3" sqlitePath)
+        let cn' = new SQLiteConnection(sprintf "Data Source=%s;Version=3;Cache Size=%i" sqlitePath cacheSize)
         //if File.Exists(sqlitePath) then 
         //    cn'
         //else
@@ -316,6 +316,8 @@ type MzSQL(path) =
     //let selectChromatogram      = prepareSelectChromatogram(cn)
     //let selectChromatograms     = prepareSelectChromatograms(cn)
     let selectPeak2DArray       = prepareSelectPeak2DArray(cn)
+
+    new(path) = new MzSQL(path,-2000)
 
     member this.Connection = cn
 
