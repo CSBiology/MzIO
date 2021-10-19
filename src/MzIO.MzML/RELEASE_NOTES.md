@@ -1,3 +1,6 @@
+#### 0.1.3 - Tuesday, October 19, 2021
+* Fix Dependency Versions
+
 #### 0.1.2 - Tuesday, October 19, 2021
 * Add option to read spectra sequentially in MzMLReader, improving speed
 
