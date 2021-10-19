@@ -1,3 +1,6 @@
+#### 0.1.2 - Tuesday, October 19, 2021
+* Add cache size option to MzIO.SQL Reader
+
 #### 0.1.1 - Thursday, May 6, 2021
 * fix encoding errors in MzMLReader
 * add MzMLReader function to retrieve Peaks with corresponding spectrum ID
