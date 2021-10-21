@@ -169,7 +169,7 @@ module TestTasks =
     open ProjectInfo
     open BasicTasks
 
-    let runTests = BuildTask.create "RunTests" [clean; build; copyBinaries] {
+    let runTests = BuildTask.create "RunTests" [] {
         let standardParams = Fake.DotNet.MSBuild.CliArguments.Create ()
         Fake.DotNet.DotNet.test(fun testParams ->
             {

@@ -7,6 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="MzMLReaderTests.fs" />
     <Compile Include="NumpressTests.fs" />
     <Compile Include="Main.fs" />
   </ItemGroup>
@@ -20,5 +21,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\MzIO\MzIO.fsproj" />
+    <ProjectReference Include="..\..\src\MzIO.MzML\MzIO.MzML.fsproj" />
+    <ProjectReference Include="..\..\src\MzIO.Processing\MzIO.Processing.fsproj" />
   </ItemGroup>
 </Project>
