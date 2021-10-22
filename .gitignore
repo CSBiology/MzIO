@@ -183,16 +183,9 @@ release.sh
 localpackages/
 paket-files
 *.orig
-docsrc/content/license.md
-docsrc/content/release-notes.md
 .fake
-docsrc/tools/FSharp.Formatting.svclog
 temp
 /.paket/load
-/lib/ThermoFisher/ThermoFisher.CommonCore.BackgroundSubtraction.4.0.107.nupkg
-/lib/ThermoFisher/ThermoFisher.CommonCore.Data.4.0.107.nupkg
-/lib/ThermoFisher/ThermoFisher.CommonCore.MassPrecisionEstimator.4.0.107.nupkg
-/lib/ThermoFisher/ThermoFisher.CommonCore.RawFileReader.4.0.107.nupkg
 /pkg
 /tmp/watch
 /.fsdocs
