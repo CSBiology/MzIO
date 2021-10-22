@@ -38,9 +38,7 @@
     <Compile Include="AccessDB.fs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\MzIO\MzIO.fsproj" />
-  </ItemGroup>
-  <ItemGroup>
+    <PackageReference Include="MzIO" Version="0.1.1" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
     <PackageReference Include="System.Data.SQLite.Core" Version="1.0.113.7" />
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All"/>

@@ -38,9 +38,7 @@
     <Compile Include="ThermoRawFileReader.fs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\MzIO\MzIO.fsproj" />
-  </ItemGroup>
-  <ItemGroup>
+    <PackageReference Include="MzIO" Version="0.1.1" />
     <PackageReference Include="ThermoRaw" Version="0.0.3-beta" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All"/>
