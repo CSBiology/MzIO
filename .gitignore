@@ -194,3 +194,5 @@ temp
 /lib/ThermoFisher/ThermoFisher.CommonCore.MassPrecisionEstimator.4.0.107.nupkg
 /lib/ThermoFisher/ThermoFisher.CommonCore.RawFileReader.4.0.107.nupkg
 /pkg
+/tmp/watch
+/.fsdocs
