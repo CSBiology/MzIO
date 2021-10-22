@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>IMzIODataReader</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="author" content="">
+    <link rel="shortcut icon" type="image/x-icon" href="/MzIO//img/favicon.ico">
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <!-- <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-MML-AM_CHTML"></script> -->
+
+    <link type="text/css" rel="stylesheet" href="/MzIO/content/fsdocs-default.css" />
+    <link type="text/css" rel="stylesheet" href="/MzIO/content/fsdocs-custom.css" />
+    <script type="text/javascript" src="/MzIO/content/fsdocs-tips.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@creativebulma/bulma-collapsible@1.0.4/dist/js/bulma-collapsible.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@creativebulma/bulma-collapsible@1.0.4/dist/css/bulma-collapsible.min.css">
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <!-- BEGIN SEARCH BOX: this adds support for the search box -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/JavaScript-autoComplete/1.0.4/auto-complete.css" />
+    <!-- END SEARCH BOX: this adds support for the search box -->
+    
+</head> 
+
+<body>
+    <div class="columns is-fullheight m-0">
+        <div id="fsdocs-menu" class="column is-2 is-paddingless">
+            <aside class="menu">
+                <div class="container is-paddingless is-marginless has-background-dark">
+                    <a href="/MzIO/">
+                        <figure class="image is-128x128 container">
+                            <img src="/MzIO/img/logo.png">
+                        </figure>
+                    </a>
+                    <h2 class="title has-text-centered has-text-white pb-4">MzIO</h2>
+                </div>
+                <div class="content">
+                    <!-- BEGIN SEARCH BOX: this adds support for the search box -->
+                    <div id="header">
+                        <div class="field">
+                            <div class="control has-icons-left has-icons-right searchbox" id="fsdocs-searchbox">
+                                <input data-search-input="" id="search-by" type="search" placeholder="Search..." class="input"/>
+                                <span class="icon is-small is-left">
+                                    <i class="fas fa-search"></i>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- END SEARCH BOX: this adds support for the search box -->
+                    <ul class="navbar-nav">
+                        <li class="nav-header">
+  Documentation
+</li>             
+<li class="nav-item">
+  <a class="nav-link" href="/MzIO/tools/IMzIODataWriter.html">
+    IMzIODataWriter
+  </a>
+</li>             
+<li class="nav-item">
+  <a class="nav-link" href="/MzIO/tools/IMzIODataReader.html">
+    IMzIODataReader
+  </a>
+</li>             
+<li class="nav-item">
+  <a class="nav-link" href="/MzIO/tools/installation.html">
+    Installation Guide
+
+  </a>
+</li>             
+<li class="nav-item">
+  <a class="nav-link" href="/MzIO/tools/ProcessingFunctions.html">
+    ProcessingFunctions
+  </a>
+</li>
+                    </ul>
+                </div>
+            </aside>
+        </div>
+        <div class="column is-10 is-paddingless">
+            <div class="section pt-4">
+                <div class="container" id="fsdocs-content">
+                    <p>All readers in this project implement the interface of the IMzIODataReader. It contains abstract members
+to interact with the data. Thus all readers can be used with the same processing functions.</p>
+<h3><a name="ReadMassSpectrum" class="anchor" href="#ReadMassSpectrum">ReadMassSpectrum</a></h3>
+<p>Uses a spectrum ID to get a specific spectrum contained by the model.</p>
+<pre class="fssnip highlighted"><code lang="fsharp"><span onmouseout="hideTip(event, 'fs1', 2)" onmouseover="showTip(event, 'fs1', 2)" class="id">reader</span><span class="pn">.</span><span class="id">ReadMassSpectrum</span> <span class="s">&quot;spectrumID&quot;</span>
+</code></pre>
+<p>Returns a MassSpectrum which ID is equal to spectrumID or fails if no MassSpectrum has a fitting ID. This MassSpectrum does not contain intensity or m/z values but
+information about precusors, products and meta data information of the measured spectrum.</p>
+<h3><a name="ReadMassSpectra" class="anchor" href="#ReadMassSpectra">ReadMassSpectra</a></h3>
+<p>Uses a run ID to get all spectra contained by the model.</p>
+<pre class="fssnip highlighted"><code lang="fsharp"><span onmouseout="hideTip(event, 'fs1', 3)" onmouseover="showTip(event, 'fs1', 3)" class="id">reader</span><span class="pn">.</span><span class="id">ReadMassSpectra</span> <span class="s">&quot;runID&quot;</span>
+</code></pre>
+<p>This function call returns a sequence of all spectra that are part of the same run. This doesn't include any intensity and m/z values but the metadata associated
+with the spectra measurments.</p>
+<h3><a name="ReadSpectrumPeaks" class="anchor" href="#ReadSpectrumPeaks">ReadSpectrumPeaks</a></h3>
+<p>Uses a spectrum ID to get a Peak1DArray associated with a specific spectrum contained by the model.</p>
+<pre class="fssnip highlighted"><code lang="fsharp"><span onmouseout="hideTip(event, 'fs1', 4)" onmouseover="showTip(event, 'fs1', 4)" class="id">reader</span><span class="pn">.</span><span class="id">ReadSpectrumPeaks</span> <span class="s">&quot;spectrumID&quot;</span>
+</code></pre>
+<p>This function call returns a Peak1DArray of the MassSpectrum. This class contains the intensity and m/z values and additional information, like the compression mode and data format
+of the values. By changing the compression mode the compression mode of the values will be altered when they get inserted into the SQLite database.</p>
+<h3><a name="ReadMassSpectrumAsync" class="anchor" href="#ReadMassSpectrumAsync">ReadMassSpectrumAsync</a></h3>
+<p>Uses a spectrum ID to get a specific spectrum contained by the model. This function is executed multiple times in parallel.</p>
+<pre class="fssnip highlighted"><code lang="fsharp"><span onmouseout="hideTip(event, 'fs1', 5)" onmouseover="showTip(event, 'fs1', 5)" class="id">reader</span><span class="pn">.</span><span class="id">ReadMassSpectrumAsync</span> <span class="s">&quot;spectrumID&quot;</span>
+</code></pre>
+<p>Returns a MassSpectrum which ID is equal to spectrumID or fails if no MassSpectrum has a fitting ID. This MassSpectrum does not contain intensity or m/z values but
+information about precusors, products and meta data information of the measured spectrum. The operation is executed in parellel to increase the speed.</p>
+<h3><a name="ReadSpectrumPeaksAsync" class="anchor" href="#ReadSpectrumPeaksAsync">ReadSpectrumPeaksAsync</a></h3>
+<p>Uses a spectrum ID to get a Peak1DArray associated with a specific spectrum contained by the model. This function is executed multiple times in parallel.</p>
+<pre class="fssnip highlighted"><code lang="fsharp"><span onmouseout="hideTip(event, 'fs1', 6)" onmouseover="showTip(event, 'fs1', 6)" class="id">reader</span><span class="pn">.</span><span class="id">ReadSpectrumPeaksAsync</span> <span class="s">&quot;spectrumID&quot;</span>
+</code></pre>
+<p>This function call returns a Peak1DArray of the MassSpectrum. This class contains the intensity and m/z values and additional information, like the compression mode and data format
+of the values. By changing the compression mode the compression mode of the values will be altered when they get inserted into the SQLite database.
+The operation is executed in parellel to increase the speed.</p>
+<h3><a name="ReadChromatogram" class="anchor" href="#ReadChromatogram">ReadChromatogram</a></h3>
+<p>The functions which are required to read a Chromatogram are not implemented yet.</p>
+<pre class="fssnip highlighted"><code lang="fsharp"><span onmouseout="hideTip(event, 'fs1', 7)" onmouseover="showTip(event, 'fs1', 7)" class="id">reader</span><span class="pn">.</span><span class="id">ReadChromatograms</span>            <span class="s">&quot;runID&quot;</span>
+<span onmouseout="hideTip(event, 'fs1', 8)" onmouseover="showTip(event, 'fs1', 8)" class="id">reader</span><span class="pn">.</span><span class="id">ReadChromatogram</span>             <span class="s">&quot;chromatogramID&quot;</span>
+<span onmouseout="hideTip(event, 'fs1', 9)" onmouseover="showTip(event, 'fs1', 9)" class="id">reader</span><span class="pn">.</span><span class="id">ReadChromatogramPeaks</span>        <span class="s">&quot;chromatogramID&quot;</span>
+<span onmouseout="hideTip(event, 'fs1', 10)" onmouseover="showTip(event, 'fs1', 10)" class="id">reader</span><span class="pn">.</span><span class="id">ReadChromatogramAsync</span>        <span class="s">&quot;chromatogramID&quot;</span>
+<span onmouseout="hideTip(event, 'fs1', 11)" onmouseover="showTip(event, 'fs1', 11)" class="id">reader</span><span class="pn">.</span><span class="id">ReadChromatogramPeaksAsync</span>   <span class="s">&quot;chromatogramID&quot;</span>
+</code></pre>
+
+                </div>
+            </div>
+        </div>
+        <div class="fsdocs-tip" id="fs1">val reader : obj</div>
+
+    </div>
+
+    <!-- BEGIN SEARCH BOX: this adds support for the search box -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/JavaScript-autoComplete/1.0.4/auto-complete.css" />
+    <script type="text/javascript">var fsdocs_search_baseurl = '/MzIO/'</script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/lunr.js/2.3.8/lunr.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/JavaScript-autoComplete/1.0.4/auto-complete.min.js"></script>
+    <script type="text/javascript" src="/MzIO/content/fsdocs-search.js"></script>
+    <!-- END SEARCH BOX: this adds support for the search box -->
+</body>
+<footer>
+    <script>
+        bulmaCollapsible.attach('.is-collapsible');
+    </script>
+</footer>
+</html>
