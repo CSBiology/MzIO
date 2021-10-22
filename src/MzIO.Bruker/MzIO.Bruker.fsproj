@@ -37,12 +37,10 @@
     <Compile Include="BafFileReader.fs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\MzIO\MzIO.fsproj" />
-  </ItemGroup>
-  <ItemGroup>
     <Reference Include="System.Data.Linq" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="MzIO" Version="0.1.1" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
     <PackageReference Include="System.Data.SQLite.Core" Version="1.0.113.7" />
     <PackageReference Include="BafWrapper" Version="0.0.3-beta" />
