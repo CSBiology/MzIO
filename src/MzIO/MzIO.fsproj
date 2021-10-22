@@ -16,7 +16,6 @@
     <Configurations>Debug;Release</Configurations>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-    <PackageVersion>0.1.1</PackageVersion>
   </PropertyGroup>
   <PropertyGroup>
     <Authors>Patrick Blume, Jonathan Ott, David Zimmer, Timo Muehlhaus</Authors>
