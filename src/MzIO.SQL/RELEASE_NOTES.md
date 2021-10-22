@@ -1,3 +1,6 @@
+#### 0.1.4 - Friday, October 22, 2021
+* Reference MzIO as nuget package
+
 #### 0.1.3 - Tuesday, October 19, 2021
 * Fix Dependency Versions
 

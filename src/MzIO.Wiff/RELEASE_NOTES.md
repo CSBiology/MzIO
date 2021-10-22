@@ -1,3 +1,6 @@
+#### 0.1.2 - Friday, October 22, 2021
+* Reference MzIO and MzIO.Processing as nuget package
+
 #### 0.1.1 - Thursday, May 6, 2021
 * fix encoding errors in MzMLReader
 * add MzMLReader function to retrieve Peaks with corresponding spectrum ID
