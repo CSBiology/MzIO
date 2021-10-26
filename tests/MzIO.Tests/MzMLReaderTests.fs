@@ -24,8 +24,6 @@ let unzipIMzliteArray (a:IMzIOArray<Peak1D>) =
 
 let mzmlPath = relToDirectory "../../../data/MzMLReader/test.mzml"
 
-let mzmlReader = new MzMLReader(mzmlPath)
-
 [<Tests>]
 let mzmlReaderTests =
     testList "MzML Reader" [
