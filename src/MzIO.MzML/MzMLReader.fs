@@ -2024,7 +2024,9 @@ type MzMLReader(filePath: string) =
     member  this.getSpecificPeak1DArrayByID(spectrumID:string, index: Map<string,int64>) =
         this.SetReaderPosition(index.[spectrumID])
         let p1D = this.tryGetPeak1DArray (spectrumID, reader)
-        p1D
+        match p1D with
+        | Some x -> x
+        | None -> failwith "spectrum id not present in the index"
 
     /// Creates collection of Chomatogram objects based on chromatogram, binaryArrayList and cvParam elements which are children of the run 
     /// with a corresponding ID attribute to runID.
