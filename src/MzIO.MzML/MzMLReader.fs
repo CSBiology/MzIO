@@ -56,8 +56,10 @@ type private MzMLReaderTransactionScope() =
 /// Contains methods to access spectrum and peak information of mzml files.
 type MzMLReader(filePath: string) =
 
+    let mutable streamReader = new StreamReader(filePath)
+
     let mutable reader = 
-        let tmp = XmlReader.Create(filePath)
+        let tmp = XmlReader.Create(streamReader)
         tmp.MoveToContent() |> ignore
         if tmp.Name = "indexedmzML" then
             tmp.ReadToDescendant("mzML")
@@ -66,9 +68,10 @@ type MzMLReader(filePath: string) =
         |> ignore
         tmp
 
-    member this.ResetReader() = 
+    member this.ResetReader() =
+        streamReader <- new StreamReader(filePath)
         reader <-
-            let tmp = XmlReader.Create(filePath)
+            let tmp = XmlReader.Create(streamReader)
             tmp.MoveToContent() |> ignore
             if tmp.Name = "indexedmzML" then
                 tmp.ReadToDescendant("mzML")
@@ -76,6 +79,11 @@ type MzMLReader(filePath: string) =
                 false
             |> ignore
             tmp
+
+    member this.SetReaderPosition(index:int64) =
+        streamReader.BaseStream.Position <- index
+        streamReader.DiscardBufferedData()
+        reader <- XmlReader.Create(streamReader)
     
     /// Reads the Index from an indexed mzML file
     member this.readIndex() =
