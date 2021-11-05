@@ -76,6 +76,24 @@ type MzMLReader(filePath: string) =
                 false
             |> ignore
             tmp
+    
+    /// Reads the Index from an indexed mzML file
+    member this.readIndex() =
+        if not (reader.ReadToFollowing("indexList")) then
+            failwith "This is not an indexed mzML file or the reader is not at the starting position"
+        reader.ReadSubtree() |> ignore
+        let rec loop () =
+            reader.ReadToFollowing("index") |> ignore
+            match reader.GetAttribute("name") with
+            | "spectrum" -> reader.ReadOuterXml()
+            | _ -> loop ()
+        let indexStr = loop ()
+        let indexReader = XmlReader.Create (new StringReader(indexStr))
+        [|
+            while indexReader.ReadToFollowing("offset") do
+                yield indexReader.GetAttribute("idRef"), indexReader.ReadInnerXml() |> System.Convert.ToInt64
+        |]
+        |> Map.ofArray
 
     /// Tries to return attribute element from XML element as string.
     member private this.tryGetAttribute (name:string, ?xmlReader: XmlReader) =
