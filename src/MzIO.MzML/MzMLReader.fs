@@ -2020,6 +2020,12 @@ type MzMLReader(filePath: string) =
                 read peak1DArrayOption'
         read None
 
+    /// Creates Peak1DArray object based on position on file according to spectrumID, binaryArrayList and cvParam elements.
+    member  this.getSpecificPeak1DArrayByID(spectrumID:string, index: Map<string,int64>) =
+        this.SetReaderPosition(index.[spectrumID])
+        let p1D = this.tryGetPeak1DArray (spectrumID, reader)
+        p1D
+
     /// Creates collection of Chomatogram objects based on chromatogram, binaryArrayList and cvParam elements which are children of the run 
     /// with a corresponding ID attribute to runID.
     /// Does not work properly yet.
