@@ -2,6 +2,23 @@
 open MzIO.MzSQL
 open MzIO.IO.MzML
 
+let args = System.Environment.GetCommandLineArgs()
+
+let instrumentOutput = if args[0] = "-i" then args.[1] else failwith "first specifier must be -o"
+let output_path = if args[2] = "-o" then args.[3] else failwith "second specifier must be -i"
+let fix_file = if args.Length = 5 then args[4] = "-f" else false
+
+printfn $"provided args:"
+printfn $"instrumentOutput: {instrumentOutput}"
+printfn $"output_path: {output_path}"
+printfn $"fix_file: {fix_file}"
+
+open System.IO
+
+if fix_file then
+    let tmp = File.ReadAllText instrumentOutput
+    File.WriteAllText(instrumentOutput, tmp.Replace("&quot;", ""))
+
 module Binning =
     
     let binBy (projection: 'a -> float) bandwidth (data: seq<'a>) =
@@ -26,17 +43,15 @@ module Binning =
 let sw = new System.Diagnostics.Stopwatch()
 sw.Start()
 
-let instrumentOutput2 = @"C:\Users\schne\source\repos\kMutagene\proteomiqon-tdf\testfile_combined.mzML"
-
 let getDefaultRunID (mzReader:IMzIODataReader) = 
     match mzReader with
     | _ -> "sample=0"
 
-let inReaderMS = new MzMLReaderMIRIM(instrumentOutput2)
+let inReaderMS = new MzMLReaderMIRIM(instrumentOutput)
 let inRunID  = getDefaultRunID inReaderMS
 let inTrMS = inReaderMS.BeginTransaction()
 
-printfn $"{sw.Elapsed}: reading spectra"
+printfn $"{sw.Elapsed}: reading spectra from {instrumentOutput}"
 
 let spectra = inReaderMS.ReadMassSpectra(inRunID) |> Array.ofSeq
 inReaderMS.ResetReader()
@@ -172,7 +187,7 @@ open Newtonsoft.Json
 //)
 
 printfn $"{sw.Elapsed}: creating spectrum map"
-let spectrumMap = createSpectraMap @"C:\Users\schne\source\repos\kMutagene\proteomiqon-tdf\src\IonMobilityBinning\test_output" spectra
+let spectrumMap = createSpectraMap output_path spectra
 printfn $"done creating spectrum map after {sw.Elapsed}"
 
 printfn $"{sw.Elapsed}: starting writing binned mzlize files"
