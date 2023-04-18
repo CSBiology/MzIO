@@ -142,9 +142,9 @@ type MzIOJson =
     /// Serializes object to JSON string.
     static member MassSpectrumToJson(obj:MassSpectrum) =
         
-        if obj.Precursors.Count()   = 0 then obj.Precursors <- null
-        if obj.Products.Count()     = 0 then obj.Products   <- null
-        if obj.Scans.Count()        = 0 then obj.Scans      <- null
+        if not (isNull(obj.Precursors)) && obj.Precursors.Count()   = 0 then obj.Precursors <- null
+        if not (isNull(obj.Products))   && obj.Products.Count()     = 0 then obj.Products   <- null
+        if not (isNull(obj.Scans))      && obj.Scans.Count()        = 0 then obj.Scans      <- null
 
         JsonConvert.SerializeObject(obj, MzIOJson.jsonSettings)
 
