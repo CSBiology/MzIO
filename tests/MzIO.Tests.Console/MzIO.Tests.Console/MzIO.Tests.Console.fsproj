@@ -12,7 +12,9 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\src\MzIO.MzML\MzIO.MzML.fsproj" />
     <ProjectReference Include="..\..\..\src\MzIO.SQL\MzIO.SQL.fsproj" />
+	<ProjectReference Include="..\..\..\src\MzIO.Processing\MzIO.Processing.fsproj" />
     <ProjectReference Include="..\..\..\src\MzIO\MzIO.fsproj" />
+	<PackageReference Include="ProteomIQon" Version="0.0.8" />
   </ItemGroup>
 
 </Project>

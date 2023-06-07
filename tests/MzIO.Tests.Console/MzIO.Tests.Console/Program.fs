@@ -1,24 +1,36 @@
 ﻿open MzIO.IO
 open MzIO.MzSQL
 open MzIO.IO.MzML
+open MzIO.Processing
+open MzIO.Model
+open MzIO.Binary
+open MzIO.Commons.Arrays
+open ProteomIQon
+open MzIO.MetaData.PSIMSExtension
+open MzIO.Model.CvParam
+open System
+open System.IO
 
 let args = System.Environment.GetCommandLineArgs()
 
-let instrumentOutput = if args[0] = "-i" then args.[1] else failwith "first specifier must be -o"
-let output_path = if args[2] = "-o" then args.[3] else failwith "second specifier must be -i"
-let fix_file = if args.Length = 5 then args[4] = "-f" else false
+let instrumentOutput = if args[1] = "-i" then args.[2] else failwith $"first specifier must be -i but is {args[0]}"
+let output_path = if args[3] = "-o" then args.[4] else failwith $"second specifier must be -o but is {args[2]}"
+let fix_file = if args.Length = 6 then args[5] = "-f" else false
 
 printfn $"provided args:"
 printfn $"instrumentOutput: {instrumentOutput}"
 printfn $"output_path: {output_path}"
 printfn $"fix_file: {fix_file}"
 
+let sw = new System.Diagnostics.Stopwatch()
+sw.Start()
+
 open System.IO
 
 if fix_file then
     let tmp = File.ReadAllText instrumentOutput
     File.WriteAllText(instrumentOutput, tmp.Replace("&quot;", ""))
-
+    
 module Binning =
     
     let binBy (projection: 'a -> float) bandwidth (data: seq<'a>) =
@@ -39,9 +51,6 @@ module Binning =
         |> Map.ofSeq
 
 // check mirim distribution 
-
-let sw = new System.Diagnostics.Stopwatch()
-sw.Start()
 
 let getDefaultRunID (mzReader:IMzIODataReader) = 
     match mzReader with
@@ -111,44 +120,44 @@ open System.IO
 
 open System.Collections.Generic
 
-let insertBinnedSpectra (outputDirectory:string) (model: MzIO.Model.MzIOModel) (spectrumMetadata: MzIO.Model.MassSpectrum) (binnedData: Map<float,MzIO.Binary.Peak1DArray>) =
+//let insertBinnedSpectra (outputDirectory:string) (model: MzIO.Model.MzIOModel) (spectrumMetadata: MzIO.Model.MassSpectrum) (binnedData: Map<float,MzIO.Binary.Peak1DArray>) =
 
-    let spectrumMetadata = fixSpectrum spectrumMetadata
+//    let spectrumMetadata = fixSpectrum spectrumMetadata
 
-    binnedData
-    |> Map.iter (fun bin peaks -> 
-        let outFile = Path.Combine(outputDirectory, $"binned_spectra_%.3f{bin}.mzlite")
-        //printfn $"creating/writing to file {outFile}"
+//    binnedData
+//    |> Map.iter (fun bin peaks -> 
+//        let outFile = Path.Combine(outputDirectory, $"binned_spectra_%.3f{bin}.mzlite")
+//        //printfn $"creating/writing to file {outFile}"
 
-        let fileExisted = File.Exists(outFile)
+//        let fileExisted = File.Exists(outFile)
 
-        let outReader = new MzSQL(outFile)
+//        let outReader = new MzSQL(outFile)
 
-        //printfn "beginning transaction"
+//        //printfn "beginning transaction"
 
-        let outRunID  = "sample=0" //Core.MzIO.Reader.getDefaultRunID outReader
-        let _ = outReader.Open()
-        let outTr = outReader.BeginTransaction()
+//        let outRunID  = "sample=0" //Core.MzIO.Reader.getDefaultRunID outReader
+//        let _ = outReader.Open()
+//        let outTr = outReader.BeginTransaction()
 
-        if not fileExisted then 
-            printfn "Try inserting Model."
-            try
-                outReader.InsertModel model
-                printfn "Model inserted."
-            with
-            | ex -> printfn $"Inserting model failed: {ex}"
+//        if not fileExisted then 
+//            printfn "Try inserting Model."
+//            try
+//                outReader.InsertModel model
+//                printfn "Model inserted."
+//            with
+//            | ex -> printfn $"Inserting model failed: {ex}"
 
-        //printfn "Try inserting spectrum."
-        try 
-            outReader.Insert(outRunID, spectrumMetadata, peaks)
-        with
-        | ex -> 
-            printfn $"Inserting model failed: {ex}"
+//        //printfn "Try inserting spectrum."
+//        try 
+//            outReader.Insert(outRunID, spectrumMetadata, peaks)
+//        with
+//        | ex -> 
+//            printfn $"Inserting model failed: {ex}"
 
-        outTr.Commit()
-        outTr.Dispose()
-        //printfn "Done."
-    )
+//        outTr.Commit()
+//        outTr.Dispose()
+//        //printfn "Done."
+//    )
 
 let createSpectraMap (outputDirectory:string) (spectra: MzIO.Model.MassSpectrum array) =
     let spectrumMap = new Dictionary<string,ResizeArray<MzIO.Model.MassSpectrum * MzIO.Binary.Peak1DArray>>()
@@ -186,6 +195,7 @@ open Newtonsoft.Json
 //        binResult
 //)
 
+
 printfn $"{sw.Elapsed}: creating spectrum map"
 let spectrumMap = createSpectraMap output_path spectra
 printfn $"done creating spectrum map after {sw.Elapsed}"
@@ -208,8 +218,13 @@ for x in spectrumMap do
     with
     | ex -> printfn $"Inserting model failed: {ex}"
     for (spectrumMetadata, peaks) in spectra do
-        outReader.Insert(outRunID, spectrumMetadata, peaks)
-    printfn $"done after {sw.Elapsed}"
+        let newPeak1D =
+            let mzData, intensityData =
+                peaks.Peaks
+                |> Core.MzIO.Peaks.unzipIMzliteArray
+            PeakArray.createPeak1DArray BinaryDataCompressionType.NoCompression BinaryDataType.Float64 BinaryDataType.Float64 mzData intensityData
+        outReader.Insert(outRunID, (MassSpectrum.changeScanTimeToMinutes spectrumMetadata), newPeak1D)
+    printfn $"done after {sw.Elapsed} with new version"
     counter <- counter + 1
     outTr.Commit()
     outTr.Dispose()
