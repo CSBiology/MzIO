@@ -1,3 +1,6 @@
+#### 0.1.5 - Tuesday, June 13, 2023
+* Add MzML MIRIM Reader
+
 #### 0.1.4 - Friday, October 22, 2021
 * Reference MzIO and MzIO.Processing as nuget package
 
