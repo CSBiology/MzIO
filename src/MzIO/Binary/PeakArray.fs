@@ -29,7 +29,7 @@ type Peak1D(intensity:float, mz:float) =
     override this.ToString() =
         String.Format("intensity={0}, mz={1}", this.Intensity, this.Mz)
 
-/// Contains the three dimensional information of a peak, consisting of one intensity and the corresponding m/z amd retention time value.
+/// Contains the three dimensional information of a peak, consisting of one intensity and the corresponding m/z a´nd retention time value.
 type Peak2D(intensity:float, mz:float, rt:float) =
 
     inherit Peak1D(intensity, mz)
@@ -41,6 +41,19 @@ type Peak2D(intensity:float, mz:float, rt:float) =
 
     override this.ToString() =
         String.Format("intensity={0}, mz={1}, rt={2}", this.Intensity, this.Mz, this.Rt)
+
+/// Contains the three dimensional information of a peak, consisting of one intensity and the corresponding m/z and ion mobility value.
+type Peak2DIonMobility(intensity:float, mz:float, im:float) =
+
+    inherit Peak1D(intensity, mz)
+
+    new () = Peak2DIonMobility(0., 0., 0.)
+    
+    member this.IonMobility
+        with get() = im
+
+    override this.ToString() =
+        String.Format("intensity={0}, mz={1}, ion mobility={2}", this.Intensity, this.Mz, this.IonMobility)
 
 /// Contains information about the different types for intensity, m/z and retention time values that can be used to store them in the mzSQL data base.
 type BinaryDataType =
@@ -73,7 +86,7 @@ type PeakArray<'TPeak when 'TPeak :> Peak>() =
     [<JsonIgnore>]
     abstract member Peaks : IMzIOArray<'TPeak> with get, set
 
-/// Contains an array of 1D peaks and how to encode/decode those wehen writeing/reading into/from MzSQL.
+/// Contains an array of 1D peaks and how to encode/decode those wehen writing/reading into/from MzSQL.
 [<Sealed>]
 [<JsonObject(MemberSerialization.OptIn)>]
 type Peak1DArray(compressionDataType:BinaryDataCompressionType, intensityDataType:BinaryDataType, mzDataType:BinaryDataType, peaks:IMzIOArray<Peak1D>) =
@@ -112,7 +125,7 @@ type Peak1DArray(compressionDataType:BinaryDataCompressionType, intensityDataTyp
         with get() = peaks
         and set(value) = peaks <- value
 
-/// Contains an array of 2D peaks and how to encode/decode those wehen writeing/reading into/from MzSQL.
+/// Contains an array of 2D peaks and how to encode/decode those wehen writing/reading into/from MzSQL.
 [<Sealed>]
 [<JsonObject(MemberSerialization.OptIn)>]
 type Peak2DArray(compressionDataType:BinaryDataCompressionType, intensityDataType:BinaryDataType, mzDataType:BinaryDataType, rtDataType:BinaryDataType, peaks:IMzIOArray<Peak2D>) =
@@ -152,6 +165,52 @@ type Peak2DArray(compressionDataType:BinaryDataCompressionType, intensityDataTyp
     member this.RtDataType
         with get() = rtDataType
         and set(value) = rtDataType <- value
+
+    [<JsonIgnore>]
+    override this.Peaks
+        with get() = peaks
+        and set(value) = peaks <- value
+
+/// Contains an array of 2D ion mobility peaks and how to encode/decode those wehen writing/reading into/from MzSQL.
+[<Sealed>]
+[<JsonObject(MemberSerialization.OptIn)>]
+type Peak2DIonMobilityArray(compressionDataType:BinaryDataCompressionType, intensityDataType:BinaryDataType, mzDataType:BinaryDataType, imDataType:BinaryDataType, peaks:IMzIOArray<Peak2DIonMobility>) =
+
+    inherit PeakArray<Peak2DIonMobility>()
+
+    let mutable peaks               = peaks
+
+    let mutable compressionDataType = compressionDataType
+
+    let mutable intensityDataType   = intensityDataType
+
+    let mutable mzDataType          = mzDataType
+
+    let mutable imDataType          = imDataType
+
+    new(compressionDataType, intensityDataType, mzDataType, rtDataType) = Peak2DIonMobilityArray(compressionDataType, intensityDataType, mzDataType, rtDataType, ArrayWrapper<Peak2DIonMobility>([||]))
+
+    new () = Peak2DIonMobilityArray(BinaryDataCompressionType.NoCompression, BinaryDataType.Float64, BinaryDataType.Float64, BinaryDataType.Float64, ArrayWrapper<Peak2DIonMobility>([||]))
+
+    [<JsonProperty(Required = Required.Always)>]
+    override this.CompressionType
+        with get() = compressionDataType
+        and set(value) = compressionDataType <- value
+
+    [<JsonProperty(Required = Required.Always)>]
+    override this.IntensityDataType
+        with get() = intensityDataType
+        and set(value) = intensityDataType <- value
+
+    [<JsonProperty(Required = Required.Always)>]
+    member this.MzDataType
+        with get() = mzDataType
+        and set(value) = mzDataType <- value
+
+    [<JsonProperty(Required = Required.Always)>]
+    member this.RtDataType
+        with get() = imDataType
+        and set(value) = imDataType <- value
 
     [<JsonIgnore>]
     override this.Peaks
