@@ -1,0 +1,44 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>net47</TargetFrameworks>
+    <RootNamespace>MzIO</RootNamespace>
+    <AssemblyName>MzIO.BrukerTIMs</AssemblyName>
+    <Name>MzIO.BrukerTIMs</Name>
+    <OutputType>Library</OutputType>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <!-- Optional: Declare that the Repository URL can be published to NuSpec -->
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <!-- Optional: Embed source files that are not tracked by the source control manager to the PDB -->
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <!-- Optional: Include PDB in the built .nupkg -->
+    <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
+    <Configurations>Debug;Release</Configurations>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+  </PropertyGroup>
+  <PropertyGroup>
+    <Authors>Jonathan Ott, David Zimmer, Timo Muehlhaus</Authors>
+    <Description>Bruker TIMs Data Reader</Description>
+    <Summary>Bruker TIMs Data Reader</Summary>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/CSBiology/MzIO/</PackageProjectUrl>
+    <!--<PackageIconUrl>https://fslab.org/docs-template/img/logo.png</PackageIconUrl>-->
+    <PackageTags>F# MassSpectrometry FSharp MzIO MzMl BigData TIMs IonMobility</PackageTags>
+    <RepositoryUrl>https://github.com/CSBiology/MzIO</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <FsDocsLicenseLink>https://github.com/CSBiology/MzIO/blob/developer/LICENSE</FsDocsLicenseLink>
+    <FsDocsReleaseNotesLink>https://github.com/CSBiology/MzIO/blob/developer/RELEASE_NOTES.md</FsDocsReleaseNotesLink>
+  </PropertyGroup>
+  <ItemGroup>
+    <EmbeddedResource Remove="Scripts\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="TIMsWrapper.fs" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="MzIO" Version="0.1.1" />
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+    <PackageReference Include="System.Data.SQLite" Version="1.0.118" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All" />
+  </ItemGroup>
+</Project>
