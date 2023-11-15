@@ -241,6 +241,8 @@ module PSIMSExtension =
         static member ScanStartTime = "MS:1000016"
 
         static member FilterString = "MS:1000512"
+        
+        static member InverseReducedIonMobility = "MS:1002815"
 
     //Add new methods to the pre defined Scan.
     type Scan with
@@ -248,6 +250,10 @@ module PSIMSExtension =
         /// The time that an analyzer started a scan, relative to the start of the MS run. [PSI:MS]
         member this.SetScanStartTime(value:double) =
             this.SetCvParam(PSIMS_Scan.ScanStartTime, value)
+            
+        /// Set the Inverse Reduced Ion Mobility (MIRIM) for the MS scan. [PSI:MS]
+        member this.SetInverseReducedIonMobility (value: double) =
+            this.SetCvParam(PSIMS_Scan.InverseReducedIonMobility, value)
 
         /// The time that an analyzer started a scan, relative to the start of the MS run. [PSI:MS]
         member this.TryGetScanStartTime(rt:byref<double>) =
