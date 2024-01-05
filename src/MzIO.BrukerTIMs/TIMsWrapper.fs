@@ -17,6 +17,29 @@ module TIMsWrapper =
         val mutable ook0_min : float
         val mutable ook0_max : float
 
+    [<Struct>]
+    type MSMS_SPECTRUM_FUNCTOR_RESULT =
+        {
+            mutable precursorId: int64
+            mutable numPeaks: uint32
+            mutable mzValues: float array
+            mutable areaValues: float array
+        }
+
+    [<UnmanagedFunctionPointer(CallingConvention.Cdecl)>]
+    type MSMS_SPECTRUM_FUNCTOR = delegate of MSMS_SPECTRUM_FUNCTOR_RESULT -> unit
+
+    [<Struct>]
+    type MSMS_PROFILE_SPECTRUM_FUNCTOR_RESULT =
+        {
+            mutable precursorId: int64
+            mutable numPoints: uint32
+            mutable intensityValues: float array
+        }
+
+    [<UnmanagedFunctionPointer(CallingConvention.Cdecl)>]
+    type MSMS_PROFILE_SPECTRUM_FUNCTOR = delegate of MSMS_PROFILE_SPECTRUM_FUNCTOR_RESULT -> unit
+
     [<UnmanagedFunctionPointer(CallingConvention.Cdecl)>]
     type MSMS_SPECTRUM_FUNCTOR = delegate of int64 * uint32 * float[] * float[] -> unit
     
