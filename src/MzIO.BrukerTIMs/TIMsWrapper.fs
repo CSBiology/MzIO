@@ -40,11 +40,11 @@ module TIMsWrapper =
     [<UnmanagedFunctionPointer(CallingConvention.Cdecl)>]
     type MSMS_PROFILE_SPECTRUM_FUNCTOR = delegate of MSMS_PROFILE_SPECTRUM_FUNCTOR_RESULT -> unit
 
-    [<UnmanagedFunctionPointer(CallingConvention.Cdecl)>]
-    type MSMS_SPECTRUM_FUNCTOR = delegate of int64 * uint32 * float[] * float[] -> unit
+    //[<UnmanagedFunctionPointer(CallingConvention.Cdecl)>]
+    //type MSMS_SPECTRUM_FUNCTOR = delegate of int64 * uint32 * float[] * float[] -> unit
     
-    [<UnmanagedFunctionPointer(CallingConvention.Cdecl)>]
-    type MSMS_PROFILE_SPECTRUM_FUNCTOR = delegate of int64 * uint32 * int32[] -> unit
+    //[<UnmanagedFunctionPointer(CallingConvention.Cdecl)>]
+    //type MSMS_PROFILE_SPECTRUM_FUNCTOR = delegate of int64 * uint32 * int32[] -> unit
 
     [<UnmanagedFunctionPointer(CallingConvention.Cdecl)>]
     type CHROMATOGRAM_JOB_GENERATOR = delegate of ChromatogramJob[] * IntPtr -> uint32

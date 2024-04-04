@@ -35,6 +35,7 @@
   <ItemGroup>
     <Compile Include="TIMsWrapper.fs" />
     <Compile Include="TIMsData.fs" />
+    <Compile Include="TIMsFileReader.fs" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="MzIO" Version="0.1.1" />

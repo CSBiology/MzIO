@@ -64,6 +64,52 @@ module SQLite =
         | 8 -> 2
         | _ -> failwithf "Unknown MS Level for Frame %i" frameID
 
+    let getRetentionTime(connection: SQLiteConnection, frameID: int) = 
+        executeSQLiteQueryFloat(connection, sprintf "SELECT Time FROM Frames WHERE Id=%i" frameID)
+        |> List.head
+
+    let getScanNumBegin(connection: SQLiteConnection, frameID: int, precursorID: int) =
+        executeSQLiteQueryInt(connection, sprintf "SELECT ScanNumBegin FROM PasefFrameMsMsInfo WHERE Frame=%i AND Precursor=%i" frameID precursorID)
+        |> List.head
+
+    let getScanNumEnd(connection: SQLiteConnection, frameID: int, precursorID: int) =
+        executeSQLiteQueryInt(connection, sprintf "SELECT ScanNumEnd FROM PasefFrameMsMsInfo WHERE Frame=%i AND Precursor=%i" frameID precursorID)
+        |> List.head
+
+    let getIsolationMz(connection: SQLiteConnection, frameID: int, precursorID: int) =
+        executeSQLiteQueryFloat(connection, sprintf "SELECT IsolationMz FROM PasefFrameMsMsInfo WHERE Frame=%i AND Precursor=%i" frameID precursorID)
+        |> List.head
+
+    let getIsolationWidth(connection: SQLiteConnection, frameID: int, precursorID: int) =
+        executeSQLiteQueryFloat(connection, sprintf "SELECT IsolationWidth FROM PasefFrameMsMsInfo WHERE Frame=%i AND Precursor=%i" frameID precursorID)
+        |> List.head
+
+    let getCollisionEnergy(connection: SQLiteConnection, frameID: int, precursorID: int) =
+        executeSQLiteQueryFloat(connection, sprintf "SELECT CollisionEnergy FROM PasefFrameMsMsInfo WHERE Frame=%i AND Precursor=%i" frameID precursorID)
+        |> List.head
+
+    let getPrecursor(connection: SQLiteConnection, frameID: int) =
+        executeSQLiteQueryInt(connection, sprintf "SELECT Precursor FROM PasefFrameMsMsInfo WHERE Frame=%i" frameID)
+
+    let getPrecursorChargeState(connection: SQLiteConnection, precursorID: int) =
+        executeSQLiteQueryInt(connection, sprintf "SELECT Charge FROM Precursors WHERE Id=%i" precursorID)
+        |> List.head
+
+    let getPrecursorMonoIsoMass(connection: SQLiteConnection, precursorID: int) =
+        executeSQLiteQueryFloat(connection, sprintf "SELECT MonoisotopicMz FROM Precursors WHERE Id=%i" precursorID)
+        |> List.head
+
+    let getPrecursorScanNumber(connection: SQLiteConnection, precursorID: int) =
+        executeSQLiteQueryFloat(connection, sprintf "SELECT ScanNumber FROM Precursors WHERE Id=%i" precursorID)
+        |> List.head
+
+    let getPrecursorParentFrame(connection: SQLiteConnection, precursorID: int) =
+        executeSQLiteQueryInt(connection, sprintf "SELECT Parent FROM Precursors WHERE Id=%i" precursorID)
+        |> List.head
+
+    let getPrecursorFromScanRange (connection: SQLiteConnection, frameID, scanNumBegin, scanNumEnd) =
+        executeSQLiteQueryInt (connection, sprintf "SELECT Precursor FROM PasefFrameMsMsInfo WHERE (ScanNumBegin <= %i OR ScanNumEnd <= %i) AND Frame = %i" scanNumBegin scanNumEnd frameID)
+
 module Helper =
     
     type PressureCompensationStrategy =
@@ -209,21 +255,6 @@ module TIMs =
 
             result |> List.rev
             |> List.toArray
-
-        member this.ReadScans (frameId: int64, scanBegin: uint32, scanEnd: uint32): (uint32[]*uint32[])[]  =
-            let buf = this.ReadScansDllBuffer(frameId, scanBegin, scanEnd)
-            let mutable result = []
-            let mutable d = int (scanEnd - scanBegin)
-            for i in [(int scanBegin) .. (int scanEnd) - 1] do
-                let nPeaks = buf.[i - int scanBegin]
-                let indices = Array.sub buf d (int nPeaks)
-                d <- d + int nPeaks
-                let intensities = Array.sub buf d (int nPeaks)
-                d <- d + int nPeaks
-                result <- (indices, intensities) :: result
-            result |> List.rev
-            |> List.toArray
-
 
         member this.ReadPasefMsMs (precursorList: int64 array) =
             let precursorsForDll = copyToUnmanagedArrayInt64 precursorList
