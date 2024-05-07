@@ -17,7 +17,7 @@
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
   <PropertyGroup>
-    <Authors>Patrick Blume, Jonathan Ott, David Zimmer, Timo Muehlhaus</Authors>
+    <Authors>Patrick Blume, Caroline Ott, David Zimmer, Timo Muehlhaus</Authors>
     <Description>Sciex Data Reader</Description>
     <Summary>Sciex Data Reader</Summary>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>

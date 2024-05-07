@@ -32,7 +32,7 @@ type TIMsFileReader(analysisDirectory: string) =
     member this.ReadMassSpectrum(frameID: int, ?scanStart: int, ?scanEnd: int) =
 
         let scanStart = defaultArg scanStart 0
-        let scanEnd = defaultArg scanEnd (getScanCount(td.Conn, frameID))
+        let scanEnd = defaultArg scanEnd ((getScanCount(td.Conn, frameID)) |> int)
     
         let ms = new MassSpectrum(sprintf "Frame=%i"frameID)
 

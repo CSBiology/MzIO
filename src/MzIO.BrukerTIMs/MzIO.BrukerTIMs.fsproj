@@ -17,7 +17,7 @@
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
   <PropertyGroup>
-    <Authors>Jonathan Ott, David Zimmer, Timo Muehlhaus</Authors>
+    <Authors>Caroline Ott, David Zimmer, Timo Muehlhaus</Authors>
     <Description>Bruker TIMs Data Reader</Description>
     <Summary>Bruker TIMs Data Reader</Summary>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
