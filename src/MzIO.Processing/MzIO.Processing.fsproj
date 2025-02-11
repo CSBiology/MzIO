@@ -17,7 +17,7 @@
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
   <PropertyGroup>
-    <Authors>Patrick Blume, Jonathan Ott, David Zimmer, Timo Muehlhaus</Authors>
+    <Authors>Patrick Blume, Caroline Ott, David Zimmer, Timo Muehlhaus</Authors>
     <Description>Functionality to query data in the mzio model</Description>
     <Summary>Functionality to query data in the mzio model</Summary>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
@@ -44,7 +44,7 @@
     <Compile Include="PeakArray.fs" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="MzIO" Version="[0.1.2]" />
+    <PackageReference Include="MzIO" Version="[0.1.3]" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All"/>
   </ItemGroup>
