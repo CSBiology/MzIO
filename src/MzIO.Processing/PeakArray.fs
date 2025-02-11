@@ -22,6 +22,12 @@ module PeakArray =
         peak1DArray.Peaks 
         |> Seq.map (fun peak -> peak.Intensity)
         |> Array.ofSeq
+
+    /// Returns a intensityData Array of a peak1DArray
+    let ionMobilityDataOf (peak1DArray: Peak1DArray) =
+        peak1DArray.Peaks 
+        |> Seq.map (fun peak -> peak.IonMobility.Value)
+        |> Array.ofSeq
         
     /// Returns tuple of a mzData Array and intensityData Array of a peak1DArray
     let mzIntensityArrayOf (peak1DArray: Peak1DArray) =
@@ -29,6 +35,13 @@ module PeakArray =
          |> Seq.map (fun peak -> peak.Mz, peak.Intensity) //TODO  mutable Ansatz
          |> Array.ofSeq
          |> Array.unzip
+
+    /// Returns tuple of a mzData Array and intensityData Array of a peak1DArray
+    let mzIntensityIonMobilityArrayOf (peak1DArray: Peak1DArray) =
+         peak1DArray.Peaks
+         |> Seq.map (fun peak -> peak.Mz, peak.Intensity, peak.IonMobility.Value) //TODO  mutable Ansatz
+         |> Array.ofSeq
+         |> Array.unzip3
     
     /// Creates Peak1DArray of mzData array and intensityData Array
     let createPeak1DArray compression mzBinaryDataType intensityBinaryDataType (mzData:float []) (intensityData:float []) =

@@ -1,3 +1,6 @@
+#### 0.1.5 - Tuesday, February 11, 2025
+* Add Ion Mobility functions
+
 #### 0.1.4 - Friday, October 22, 2021
 * Reference MzIO as nuget package
 
