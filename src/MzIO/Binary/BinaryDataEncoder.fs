@@ -55,6 +55,8 @@ type BinaryDataEncoder(?initialBufferSize: int) =
         for pk in peakArray.Peaks do
             BinaryDataEncoder.WriteValue(writer, peakArray.IntensityDataType, pk.Intensity)
             BinaryDataEncoder.WriteValue(writer, peakArray.MzDataType, pk.Mz)
+            if pk.IonMobility.IsSome then
+                BinaryDataEncoder.WriteValue(writer, peakArray.IonMobilityDataType.Value, pk.IonMobility.Value)
 
     /// Convert Peak2DArray directly to bytes because it musn't be compressed.
     static member private NoCompression(memoryStream:Stream, peakArray:Peak2DArray) =
@@ -69,6 +71,8 @@ type BinaryDataEncoder(?initialBufferSize: int) =
             BinaryDataEncoder.WriteValue(writer, peakArray.IntensityDataType, pk.Intensity)
             BinaryDataEncoder.WriteValue(writer, peakArray.MzDataType, pk.Mz)
             BinaryDataEncoder.WriteValue(writer, peakArray.RtDataType, pk.Rt)
+            if pk.IonMobility.IsSome then
+                BinaryDataEncoder.WriteValue(writer, peakArray.IonMobilityDataType.Value, pk.IonMobility.Value)
 
     /// Compress byte array based on zlib compression method.
     static member private DeflateStreamCompress (data: byte[]) =
@@ -139,6 +143,10 @@ type BinaryDataEncoder(?initialBufferSize: int) =
 
         BinaryDataEncoder.NumpressLinCompression(memoryStream, mzs)
 
+        if peakArray.IonMobilityDataType.IsSome then
+            let ionMobilities = peakArray.Peaks |> Seq.map (fun peak -> peak.IonMobility.Value) |> Array.ofSeq
+            BinaryDataEncoder.NumpressLinCompression(memoryStream, ionMobilities)
+
     /// Compress intensity values with numpress pic, m/z and retention time values with numpress lin compression method.
     static member private Numpress(memoryStream:Stream, peakArray:Peak2DArray) =
         
@@ -154,6 +162,10 @@ type BinaryDataEncoder(?initialBufferSize: int) =
 
         BinaryDataEncoder.NumpressLinCompression(memoryStream, rts)
 
+        if peakArray.IonMobilityDataType.IsSome then
+            let ionMobilities = peakArray.Peaks |> Seq.map (fun peak -> peak.IonMobility.Value) |> Array.ofSeq
+            BinaryDataEncoder.NumpressLinCompression(memoryStream, ionMobilities)
+
     /// Compress intensity values with numpress pic and m/z values with numpress lin and afterwards both with zlib compression method.
     static member private NumpressDeflate(memoryStream:Stream, peakArray:Peak1DArray) =
         
@@ -164,6 +176,10 @@ type BinaryDataEncoder(?initialBufferSize: int) =
         BinaryDataEncoder.NumpressPicAndDeflateCompression(memoryStream, intensities)
 
         BinaryDataEncoder.NumpressLinAndDeflateCompression(memoryStream, mzs)
+
+        if peakArray.IonMobilityDataType.IsSome then
+            let ionMobilities = peakArray.Peaks |> Seq.map (fun peak -> peak.IonMobility.Value) |> Array.ofSeq
+            BinaryDataEncoder.NumpressLinAndDeflateCompression(memoryStream, ionMobilities)
 
     /// Compress intensity values with numpress pic, m/z and retention time values with numpress lin and afterwards all three with zlib compression method.
     static member private NumpressDeflate(memoryStream:Stream, peakArray:Peak2DArray) =
@@ -179,6 +195,10 @@ type BinaryDataEncoder(?initialBufferSize: int) =
         BinaryDataEncoder.NumpressLinAndDeflateCompression(memoryStream, mzs)
 
         BinaryDataEncoder.NumpressLinAndDeflateCompression(memoryStream, rts)
+
+        if peakArray.IonMobilityDataType.IsSome then
+            let ionMobilities = peakArray.Peaks |> Seq.map (fun peak -> peak.IonMobility.Value) |> Array.ofSeq
+            BinaryDataEncoder.NumpressLinAndDeflateCompression(memoryStream, ionMobilities)
 
     /// Compress double array with zlib compression method.
     static member private ZLib(memoryStream:Stream, binaryDataType:BinaryDataType, values:double[]) =
@@ -218,6 +238,11 @@ type BinaryDataEncoder(?initialBufferSize: int) =
         writer.Write(intDeflate)
         writer.Write(mzDeflate.Length)
         writer.Write(mzDeflate)
+        if peakArray.IonMobilityDataType.IsSome then
+            let ionMobilities = BinaryDataEncoder.FloatToByteArray (peakArray.Peaks |> Seq.map (fun peak -> peak.IonMobility.Value) |> Array.ofSeq)
+            let ionDeflate = BinaryDataEncoder.DeflateStreamCompress ionMobilities
+            writer.Write(ionDeflate.Length)
+            writer.Write(ionDeflate)
 
     /// Compress and encode Peak1DArray based on the encoded methods.
     member this.Encode(peakArray:Peak1DArray) =       
