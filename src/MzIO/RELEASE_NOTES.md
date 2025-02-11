@@ -1,3 +1,6 @@
+#### 0.1.2 - Thursday, May 6, 2021
+* Add optional Ion Mobility to Peak1D and Peak2D
+
 #### 0.1.1 - Thursday, May 6, 2021
 * fix encoding errors in MzMLReader
 * add MzMLReader function to retrieve Peaks with corresponding spectrum ID
