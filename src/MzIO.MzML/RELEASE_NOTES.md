@@ -1,3 +1,6 @@
+#### 0.1.3 - Tuesday, February 11, 2025
+* Update MzIO
+
 #### 0.1.5 - Tuesday, June 13, 2023
 * Add MzML MIRIM Reader
 
