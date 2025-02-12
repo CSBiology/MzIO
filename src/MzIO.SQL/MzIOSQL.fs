@@ -15,6 +15,7 @@ open MzIO.IO
 open Newtonsoft.Json
 open Newtonsoft.Json.Linq
 open System.Runtime.InteropServices
+open MzIO.Commons.Arrays
 
 
 type private MzSQLTransactionScope(tr:SQLiteTransaction) =
@@ -278,7 +279,7 @@ type MzSQL(path, ?cacheSize) =
         |> (fun spectra -> spectra :> IEnumerable<MassSpectrum>)
 
     /// Prepare function to select elements of PeakArray and PeakData tables of MzSQL.
-    let prepareSelectPeak1DArray(cn:SQLiteConnection) =
+    let prepareSelectPeak1DArray(cn:SQLiteConnection, ionMobility: bool) =
         let decoder = new BinaryDataDecoder()
         let queryString = "SELECT PeakArray, PeakData FROM Spectrum WHERE SpectrumID = @spectrumID"
         let cmd = new SQLiteCommand(queryString, cn)
@@ -289,11 +290,14 @@ type MzSQL(path, ?cacheSize) =
             | false -> peaks 
         fun (id:string) ->
         cmd.Parameters.["@spectrumID"].Value <- id            
-        use reader = cmd.ExecuteReader()       
-        loop reader (new Peak1DArray())
+        use reader = cmd.ExecuteReader()
+        if ionMobility then
+            loop reader (new Peak1DArray(BinaryDataCompressionType.NoCompression, BinaryDataType.Float64, BinaryDataType.Float64, ArrayWrapper<Peak1D>([||]), BinaryDataType.Float64))
+        else
+            loop reader (new Peak1DArray())
 
     /// Prepare function to select elements of PeakArray and PeakData tables of MzSQL.
-    let prepareSelectPeak2DArray(cn:SQLiteConnection) =
+    let prepareSelectPeak2DArray(cn:SQLiteConnection, ionMobility: bool) =
         let decoder = new BinaryDataDecoder()
         let queryString = "SELECT PeakArray, PeakData FROM Chromatogram WHERE ChromatogramID = @chromatogramID"
         let cmd = new SQLiteCommand(queryString, cn)
@@ -304,8 +308,11 @@ type MzSQL(path, ?cacheSize) =
             | false -> peaks 
         fun (id:string) ->
         cmd.Parameters.["@chromatogramID"].Value <- id            
-        use reader = cmd.ExecuteReader()            
-        loop reader (new Peak2DArray())
+        use reader = cmd.ExecuteReader()
+        if ionMobility then
+            loop reader (new Peak2DArray(BinaryDataCompressionType.NoCompression, BinaryDataType.Float64, BinaryDataType.Float64, BinaryDataType.Float64, ArrayWrapper<Peak2D>([||]), BinaryDataType.Float64))
+        else
+            loop reader (new Peak2DArray())
 
     /// Initialization of all prePareFunctions for the current connection.
     let insertModel             = prepareInsertModel(cn)
@@ -314,11 +321,11 @@ type MzSQL(path, ?cacheSize) =
     let insertMassSpectrum      = prepareInsertMassSpectrum(cn)
     let selectMassSpectrum      = prepareSelectMassSpectrum(cn)
     let selectMassSpectra       = prepareSelectMassSpectra(cn)
-    let selectPeak1DArray       = prepareSelectPeak1DArray(cn)
+    let selectPeak1DArray ionMobility = prepareSelectPeak1DArray(cn, ionMobility)
     //let insertChromatogram      = prepareInsertChromatogram(cn)
     //let selectChromatogram      = prepareSelectChromatogram(cn)
     //let selectChromatograms     = prepareSelectChromatograms(cn)
-    let selectPeak2DArray       = prepareSelectPeak2DArray(cn)
+    let selectPeak2DArray ionMobility = prepareSelectPeak2DArray(cn, ionMobility)
 
     member this.Connection = cn
 
@@ -333,11 +340,17 @@ type MzSQL(path, ?cacheSize) =
     member _.InsertMassSpectrum      = insertMassSpectrum     
     member _.SelectMassSpectrum      = selectMassSpectrum     
     member _.SelectMassSpectra       = selectMassSpectra      
-    member _.SelectPeak1DArray       = selectPeak1DArray      
+    member _.SelectPeak1DArray (spectrumID: string, ?ionMobility) =
+        match ionMobility with
+        | Some ionMobility -> selectPeak1DArray ionMobility spectrumID
+        | None -> selectPeak1DArray false spectrumID
     //member _.InsertChromatogram      = insertChromatogram     
     //member _.SelectChromatogram      = selectChromatogram     
     //member _.SelectChromatograms     = selectChromatograms    
-    member _.SelectPeak2DArray       = selectPeak2DArray      
+    member _.SelectPeak2DArray (spectrumID: string, ?ionMobility) = 
+        match ionMobility with
+        | Some ionMobility -> selectPeak2DArray ionMobility spectrumID
+        | None -> selectPeak2DArray false spectrumID
 
 
     member this.model =

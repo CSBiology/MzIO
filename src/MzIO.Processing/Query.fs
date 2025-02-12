@@ -17,11 +17,19 @@ module Query =
 
     /// Calculate XIC of retention time index entries and m/z range.
     let getXIC (reader:IMzIODataReader) (rtIdx:Commons.Arrays.IMzIOArray<MzIOLinq.RtIndexEntry>) (rtQuery:RangeQuery) (mzQuery:RangeQuery) = 
-        reader.RtProfile(rtIdx, rtQuery, mzQuery) 
+        reader.RtProfile(rtIdx, rtQuery, mzQuery)
+
+    /// Calculate XIC of retention time index entries and m/z range.
+    let getIonMobilityXIC (reader:IMzIODataReader) (rtIdx:Commons.Arrays.IMzIOArray<MzIOLinq.RtIndexEntry>) (rtQuery:RangeQuery) (mzQuery:RangeQuery) (ionMobilityQuery: RangeQuery) = 
+        reader.RtProfile(rtIdx, rtQuery, mzQuery, ionMobilityQuery) 
 
     /// Calculate XICs of retention time index entries and m/z ranges.
     let getXICs (reader:IMzIODataReader) (rtIdx:Commons.Arrays.IMzIOArray<MzIOLinq.RtIndexEntry>) (rtQuery:RangeQuery) (mzQueries:RangeQuery []) = 
-        reader.RtProfiles(rtIdx, rtQuery, mzQueries) 
+        reader.RtProfiles(rtIdx, rtQuery, mzQueries)
+
+    /// Calculate XICs of retention time index entries and m/z ranges.
+    let geIonMobilitytXICs (reader:IMzIODataReader) (rtIdx:Commons.Arrays.IMzIOArray<MzIOLinq.RtIndexEntry>) (rtQuery:RangeQuery) (mzQueries:RangeQuery []) (ionMobilityQueries: RangeQuery []) = 
+        reader.RtProfiles(rtIdx, rtQuery, mzQueries, ionMobilityQueries) 
        
     /// Creates a swath query.
     let createSwathQuery targetMz rtQuery ms2MzQueries =

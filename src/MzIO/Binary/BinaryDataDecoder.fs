@@ -21,19 +21,27 @@ type BinaryDataDecoder() =
         | BinaryDataType.Float64    ->  float (reader.ReadDouble())
         | _     -> failwith (sprintf "%s%s" "BinaryDataType not supported: " (binaryDataType.ToString()))
 
-    /// Converts bytes directly into Peak1DArray because they musn't be decompromissed.
+    /// Converts bytes directly into Peak1DArray because they musn't be decompressed.
     static member private NoCompression(stream:Stream, peakArray:Peak1DArray) =
         let reader = new BinaryReader(stream, System.Text.Encoding.UTF8, true)
         let len = reader.ReadInt32()
-        let peaks = Array.init len (fun i -> Peak1D(BinaryDataDecoder.ReadValue(reader, peakArray.IntensityDataType), BinaryDataDecoder.ReadValue(reader, peakArray.MzDataType)))
+        let peaks = 
+            if peakArray.IonMobilityDataType.IsSome then
+                Array.init len (fun i -> Peak1D(BinaryDataDecoder.ReadValue(reader, peakArray.IntensityDataType), BinaryDataDecoder.ReadValue(reader, peakArray.MzDataType), BinaryDataDecoder.ReadValue(reader, peakArray.IonMobilityDataType.Value)))
+            else
+                Array.init len (fun i -> Peak1D(BinaryDataDecoder.ReadValue(reader, peakArray.IntensityDataType), BinaryDataDecoder.ReadValue(reader, peakArray.MzDataType)))
         peakArray.Peaks <- MzIOArray.ToMzIOArray<Peak1D>(peaks)
         peakArray
 
-    /// Converts bytes directly into Peak2DArray because they musn't be decompromissed.
+    /// Converts bytes directly into Peak2DArray because they musn't be decompressed.
     static member private NoCompression(stream:Stream, peakArray:Peak2DArray) =
         let reader = new BinaryReader(stream, System.Text.Encoding.UTF8, true)
         let len = reader.ReadInt32()
-        let peaks = Array.init len (fun i -> Peak2D(BinaryDataDecoder.ReadValue(reader, peakArray.IntensityDataType), BinaryDataDecoder.ReadValue(reader, peakArray.MzDataType), BinaryDataDecoder.ReadValue(reader, peakArray.RtDataType)))
+        let peaks = 
+            if peakArray.IonMobilityDataType.IsSome then
+                Array.init len (fun i -> Peak2D(BinaryDataDecoder.ReadValue(reader, peakArray.IntensityDataType), BinaryDataDecoder.ReadValue(reader, peakArray.MzDataType), BinaryDataDecoder.ReadValue(reader, peakArray.RtDataType), BinaryDataDecoder.ReadValue(reader, peakArray.IonMobilityDataType.Value)))
+            else
+                Array.init len (fun i -> Peak2D(BinaryDataDecoder.ReadValue(reader, peakArray.IntensityDataType), BinaryDataDecoder.ReadValue(reader, peakArray.MzDataType), BinaryDataDecoder.ReadValue(reader, peakArray.RtDataType)))
         peakArray.Peaks <- MzIOArray.ToMzIOArray<Peak2D>(peaks)
         peakArray
 
@@ -74,8 +82,15 @@ type BinaryDataDecoder() =
         let mz                      = reader.ReadBytes(mzLength)
         let intensityArray          = BinaryDataDecoder.ByteToFloatArray (BinaryDataDecoder.DeflateStreamDecompress intensities)
         let mzArray                 = BinaryDataDecoder.ByteToFloatArray (BinaryDataDecoder.DeflateStreamDecompress mz)
-        Array.map2 (fun int mz -> new Peak1D(int, mz)) intensityArray mzArray
-        |> fun peak1Ds -> peakArray.Peaks <- MzIOArray.ToMzIOArray<Peak1D>(peak1Ds)
+        if peakArray.IonMobilityDataType.IsSome then
+            let ionMobilityLength   = reader.ReadInt32()
+            let ionMobility         = reader.ReadBytes(ionMobilityLength)
+            let ionMobilityArray    = BinaryDataDecoder.ByteToFloatArray (BinaryDataDecoder.DeflateStreamDecompress ionMobility)
+            Array.map3 (fun int mz ionMobility -> new Peak1D(int, mz, ionMobility)) intensityArray mzArray ionMobilityArray
+            |> fun peak1Ds -> peakArray.Peaks <- MzIOArray.ToMzIOArray<Peak1D>(peak1Ds)
+        else
+            Array.map2 (fun int mz -> new Peak1D(int, mz)) intensityArray mzArray
+            |> fun peak1Ds -> peakArray.Peaks <- MzIOArray.ToMzIOArray<Peak1D>(peak1Ds)
         peakArray
 
     /// Decompress bytes based on numpress decompression method and convert to Peak1DArray.
@@ -91,9 +106,16 @@ type BinaryDataDecoder() =
         let byteArrayMz             = reader.ReadBytes(numberEncodedBytesMz + 5)
         let intensityArray          = NumpressDecodingHelpers.decodePIC (byteArrayInt, numberEncodedBytesInt, originalDataLengthInt)
         let mzArray                 = NumpressDecodingHelpers.decodeLin (byteArrayMz, numberEncodedBytesMz, originalDataLengthMz)
-
-        Array.map2 (fun int mz -> new Peak1D(int, mz)) intensityArray mzArray
-        |> fun peak1Ds -> peakArray.Peaks <- MzIOArray.ToMzIOArray<Peak1D>(peak1Ds)
+        if peakArray.IonMobilityDataType.IsSome then
+            let numberEncodedBytesIonMobility = reader.ReadInt32()
+            let originalDataLengthIonMobility = reader.ReadInt32()
+            let byteArrayIonMobility          = reader.ReadBytes(numberEncodedBytesIonMobility + 5)
+            let ionMobilityArray              = NumpressDecodingHelpers.decodeLin (byteArrayIonMobility, numberEncodedBytesIonMobility, originalDataLengthIonMobility)
+            Array.map3 (fun int mz ionMobility -> new Peak1D(int, mz, ionMobility)) intensityArray mzArray ionMobilityArray
+            |> fun peak1Ds -> peakArray.Peaks <- MzIOArray.ToMzIOArray<Peak1D>(peak1Ds)
+        else
+            Array.map2 (fun int mz -> new Peak1D(int, mz)) intensityArray mzArray
+            |> fun peak1Ds -> peakArray.Peaks <- MzIOArray.ToMzIOArray<Peak1D>(peak1Ds)
         peakArray
 
     /// Decompress bytes based on numpress decompression method and convert to Peak2DArray.
@@ -115,8 +137,16 @@ type BinaryDataDecoder() =
         let mzArray                 = NumpressDecodingHelpers.decodeLin (byteArrayMz, numberEncodedBytesMz, originalDataLengthMz)
         let rtArray                 = NumpressDecodingHelpers.decodeLin (byteArrayRt, numberEncodedBytesRt, originalDataLengthRt)
 
-        Array.map3 (fun int mz rt -> new Peak2D(int, mz, rt)) intensityArray mzArray rtArray
-        |> fun peak2Ds -> peakArray.Peaks <- MzIOArray.ToMzIOArray<Peak2D>(peak2Ds)
+        if peakArray.IonMobilityDataType.IsSome then
+            let numberEncodedBytesIonMobility = reader.ReadInt32()
+            let originalDataLengthIonMobility = reader.ReadInt32()
+            let byteArrayIonMobility          = reader.ReadBytes(numberEncodedBytesIonMobility + 5)
+            let ionMobilityArray              = NumpressDecodingHelpers.decodeLin (byteArrayIonMobility, numberEncodedBytesIonMobility, originalDataLengthIonMobility)
+            Array.mapi (fun i int -> new Peak2D(int, mzArray.[i], rtArray.[i], ionMobilityArray.[i])) intensityArray
+            |> fun peak2Ds -> peakArray.Peaks <- MzIOArray.ToMzIOArray<Peak2D>(peak2Ds)
+        else
+            Array.map3 (fun int mz rt -> new Peak2D(int, mz, rt)) intensityArray mzArray rtArray
+            |> fun peak2Ds -> peakArray.Peaks <- MzIOArray.ToMzIOArray<Peak2D>(peak2Ds)
         peakArray
 
     /// Decompress bytes based on numpress and zlib decompression method and convert to Peak1DArray.
@@ -138,8 +168,18 @@ type BinaryDataDecoder() =
         let intensityArray          = NumpressDecodingHelpers.decodePIC (byteArrayIntDeflated, numberEncodedBytesInt, originalDataLengthInt)
         let mzArray                 = NumpressDecodingHelpers.decodeLin (byteArrayMzDeflated, numberEncodedBytesMz, originalDataLengthMz)
 
-        Array.map2 (fun int mz -> new Peak1D(int, mz)) intensityArray mzArray
-        |> fun peak1Ds -> peakArray.Peaks <- MzIOArray.ToMzIOArray<Peak1D>(peak1Ds)
+        if peakArray.IonMobilityDataType.IsSome then
+            let numberEncodedBytesIonMobility = reader.ReadInt32()
+            let originalDataLengthIonMobility = reader.ReadInt32()
+            let compressedLengthIonMobility   = reader.ReadInt32()
+            let byteArrayIonMobility          = reader.ReadBytes(compressedLengthIonMobility)
+            let byteArrayIonMobilityDeflated  = BinaryDataDecoder.DeflateStreamDecompress(byteArrayIonMobility)
+            let ionMobilityArray              = NumpressDecodingHelpers.decodeLin (byteArrayIonMobilityDeflated, numberEncodedBytesIonMobility, originalDataLengthIonMobility)
+            Array.map3 (fun int mz ionMobility -> new Peak1D(int, mz, ionMobility)) intensityArray mzArray ionMobilityArray
+            |> fun peak1Ds -> peakArray.Peaks <- MzIOArray.ToMzIOArray<Peak1D>(peak1Ds)
+        else
+            Array.map2 (fun int mz -> new Peak1D(int, mz)) intensityArray mzArray
+            |> fun peak1Ds -> peakArray.Peaks <- MzIOArray.ToMzIOArray<Peak1D>(peak1Ds)
         peakArray
 
     /// Decompress bytes based on numpress and zlib decompression method and convert to Peak2DArray.
@@ -167,8 +207,18 @@ type BinaryDataDecoder() =
         let mzArray                 = NumpressDecodingHelpers.decodeLin (byteArrayMzDeflated, numberEncodedBytesMz, originalDataLengthMz)
         let rtArray                 = NumpressDecodingHelpers.decodeLin (byteArrayRtDeflated, numberEncodedBytesRt, originalDataLengthRt)
 
-        Array.map3 (fun int mz rt -> new Peak2D(int, mz, rt)) intensityArray mzArray rtArray
-        |> fun peak2Ds -> peakArray.Peaks <- MzIOArray.ToMzIOArray<Peak2D>(peak2Ds)
+        if peakArray.IonMobilityDataType.IsSome then
+            let numberEncodedBytesIonMobility = reader.ReadInt32()
+            let originalDataLengthIonMobility = reader.ReadInt32()
+            let compressedLengthIonMobility   = reader.ReadInt32()
+            let byteArrayIonMobility          = reader.ReadBytes(compressedLengthIonMobility)
+            let byteArrayIonMobilityDeflated  = BinaryDataDecoder.DeflateStreamDecompress(byteArrayIonMobility)
+            let ionMobilityArray              = NumpressDecodingHelpers.decodeLin (byteArrayIonMobilityDeflated, numberEncodedBytesIonMobility, originalDataLengthIonMobility)
+            Array.mapi (fun i int -> new Peak2D(int, mzArray.[i], rtArray.[i], ionMobilityArray.[i])) intensityArray
+            |> fun peak2Ds -> peakArray.Peaks <- MzIOArray.ToMzIOArray<Peak2D>(peak2Ds)
+        else
+            Array.map3 (fun int mz rt -> new Peak2D(int, mz, rt)) intensityArray mzArray rtArray
+            |> fun peak2Ds -> peakArray.Peaks <- MzIOArray.ToMzIOArray<Peak2D>(peak2Ds)
         peakArray
 
     /// Convert stream to peaks and add to Peak1DArray.

@@ -107,6 +107,13 @@ module MzIOLinq =
             elif p.Mz > mzRange.HighValue then 1
             else 0
 
+        /// Checks whether ion mobility lies within range of the query.
+        static member IonMobilitySearchCompare<'TPeak when 'TPeak :> Peak1D>(p: 'TPeak, ionMobilityRange: RangeQuery) =
+
+            if   p.IonMobility.Value < ionMobilityRange.LowValue  then -1
+            elif p.IonMobility.Value > ionMobilityRange.HighValue then 1
+            else 0
+
         /// Checks whether retention time lies within range of the query.
         static member RtSearchCompare2<'TPeak when 'TPeak :> Peak2D>(p: 'TPeak, rtRange: RangeQuery) =
 
@@ -126,9 +133,17 @@ module MzIOLinq =
         static member MzSearch(peaks: IMzIOArray<'TPeak>, mzRange: RangeQuery) =
             BinarySearch.Search(peaks, mzRange, RtIndexEntry.MzSearchCompare)
 
+        /// Get all peaks by ion mobility range.
+        static member IonMobilitySearch(peaks: IMzIOArray<'TPeak>, ionMobilityRange: RangeQuery) =
+            BinarySearch.Search(peaks, ionMobilityRange, RtIndexEntry.IonMobilitySearchCompare)
+
         /// Gets the peak closest to lock mz.
         static member ClosestMz<'TPeak when 'TPeak :> Peak1D>(peaks: IEnumerable<'TPeak>, lockMz: double) =
             peaks.ItemAtMin(fun x -> Math.Abs(x.Mz - lockMz))
+
+        /// Gets the peak closest to lock mz.
+        static member ClosestIonMobility<'TPeak when 'TPeak :> Peak1D>(peaks: IEnumerable<'TPeak>, lockIonMobility: double) =
+            peaks.ItemAtMin(fun x -> Math.Abs(x.IonMobility.Value - lockIonMobility))
 
         /// Gets the peak closest to lock rt.
         static member ClosestRt<'TPeak when 'TPeak :> Peak2D>(peaks: IEnumerable<'TPeak>, lockRt: double) =
@@ -140,7 +155,9 @@ module MzIOLinq =
 
         /// Create Peak2D based on Peak1D and a retention time.
         static member AsPeak2D(p: Peak1D, rt: double) =
-            new Peak2D(p.Intensity, p.Mz, rt)
+            match p.IonMobility with
+            | None -> new Peak2D(p.Intensity, p.Mz, rt)
+            | Some ionMobility -> new Peak2D(p.Intensity, p.Mz, rt, ionMobility)
 
     /// Type that has the rules for sorting retention time index entries.
     type private RtIndexEntrySorting() =
@@ -182,7 +199,7 @@ module MzIOLinq =
         /// Mz range peak aggregation is closest lock mz.
         /// Profile matrix with first index corresponds to continous mass spectra over rt range
         /// and second index corresponds to mz ranges given.
-        member this.RtProfiles(rtIndex: IMzIOArray<RtIndexEntry>, rtRange: RangeQuery, mzRanges: RangeQuery[]) =
+        member this.RtProfiles(rtIndex: IMzIOArray<RtIndexEntry>, rtRange: RangeQuery, mzRanges: RangeQuery[], ?ionMobilityRanges: RangeQuery[]) =
 
             let entries = RtIndexEntry.Search(rtIndex, rtRange).ToArray()
             let profile = Array2D.zeroCreate<Peak2D> entries.Length mzRanges.Length
@@ -190,17 +207,30 @@ module MzIOLinq =
                 let entry = entries.[rtIdx]
                 let peaks = this.ReadSpectrumPeaks(entry).Peaks
                 for mzIdx = 0 to mzRanges.Length-1 do
-                    let mzRange = mzRanges.[mzIdx]
-                    let p = (RtIndexEntry.MzSearch (peaks, mzRange)).DefaultIfEmpty(new Peak1D(0., mzRange.LockValue))
+                    if ionMobilityRanges.IsSome then
+                        let mzRange = mzRanges.[mzIdx]
+                        let ionMobilityRange = ionMobilityRanges.Value.[mzIdx]
+                        let p = 
+                            (RtIndexEntry.MzSearch (peaks, mzRange)).DefaultIfEmpty(new Peak1D(0., mzRange.LockValue, ionMobilityRange.LockValue))
+                            |> fun x -> 
+                                (RtIndexEntry.IonMobilitySearch (MzIOArray.ToMzIOArray (x |> Seq.toArray), ionMobilityRange))
+                                    .DefaultIfEmpty(new Peak1D(0., mzRange.LockValue, ionMobilityRange.LockValue))
                             |> fun x -> RtIndexEntry.ClosestMz (x, mzRange.LockValue)
                             |> fun x -> RtIndexEntry.AsPeak2D (x, entry.Rt)
-                    profile.[rtIdx, mzIdx] <- p
+                        profile.[rtIdx, mzIdx] <- p
+                    else
+                        let mzRange = mzRanges.[mzIdx]
+                        let p = 
+                            (RtIndexEntry.MzSearch (peaks, mzRange)).DefaultIfEmpty(new Peak1D(0., mzRange.LockValue))
+                            |> fun x -> RtIndexEntry.ClosestMz (x, mzRange.LockValue)
+                            |> fun x -> RtIndexEntry.AsPeak2D (x, entry.Rt)
+                        profile.[rtIdx, mzIdx] <- p
             profile
 
         /// Extract a rt profile for specified target mass and rt range.
         /// Mz range peak aggregation is closest lock mz.
         /// Profile array with index corresponding to continous mass spectra over rt range and mz range given.
-        member this.RtProfile(rtIndex: IMzIOArray<RtIndexEntry>, rtRange: RangeQuery, mzRange: RangeQuery) =
+        member this.RtProfile(rtIndex: IMzIOArray<RtIndexEntry>, rtRange: RangeQuery, mzRange: RangeQuery, ?ionMobilityRange: RangeQuery) =
 
             let entries = RtIndexEntry.Search(rtIndex, rtRange).ToArray()
             //printfn "RtProfile %i" entries.Length
@@ -212,9 +242,20 @@ module MzIOLinq =
 
                 let peaks = this.ReadSpectrumPeaks(entry).Peaks
 
-                let p = (RtIndexEntry.MzSearch (peaks, mzRange)).DefaultIfEmpty(new Peak1D(0., mzRange.LockValue))
+                if ionMobilityRange.IsSome then
+                    let p = 
+                            (RtIndexEntry.MzSearch (peaks, mzRange)).DefaultIfEmpty(new Peak1D(0., mzRange.LockValue, ionMobilityRange.Value.LockValue))
+                            |> fun x -> 
+                                (RtIndexEntry.IonMobilitySearch (MzIOArray.ToMzIOArray (x |> Seq.toArray), ionMobilityRange.Value))
+                                    .DefaultIfEmpty(new Peak1D(0., mzRange.LockValue, ionMobilityRange.Value.LockValue))
+                            |> fun x -> RtIndexEntry.ClosestMz (x, mzRange.LockValue)
+                            |> fun x -> RtIndexEntry.AsPeak2D (x, entry.Rt)
+                    profile.[rtIdx] <- p
+                else
+                    let p = 
+                        (RtIndexEntry.MzSearch (peaks, mzRange)).DefaultIfEmpty(new Peak1D(0., mzRange.LockValue))
                         |> fun x -> RtIndexEntry.ClosestMz (x, mzRange.LockValue)
                         |> fun x -> RtIndexEntry.AsPeak2D (x, entry.Rt)
-                profile.[rtIdx] <- p
+                    profile.[rtIdx] <- p
 
             profile

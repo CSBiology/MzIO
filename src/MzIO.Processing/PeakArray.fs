@@ -22,6 +22,12 @@ module PeakArray =
         peak1DArray.Peaks 
         |> Seq.map (fun peak -> peak.Intensity)
         |> Array.ofSeq
+
+    /// Returns a intensityData Array of a peak1DArray
+    let ionMobilityDataOf (peak1DArray: Peak1DArray) =
+        peak1DArray.Peaks 
+        |> Seq.map (fun peak -> peak.IonMobility.Value)
+        |> Array.ofSeq
         
     /// Returns tuple of a mzData Array and intensityData Array of a peak1DArray
     let mzIntensityArrayOf (peak1DArray: Peak1DArray) =
@@ -29,6 +35,13 @@ module PeakArray =
          |> Seq.map (fun peak -> peak.Mz, peak.Intensity) //TODO  mutable Ansatz
          |> Array.ofSeq
          |> Array.unzip
+
+    /// Returns tuple of a mzData Array and intensityData Array of a peak1DArray
+    let mzIntensityIonMobilityArrayOf (peak1DArray: Peak1DArray) =
+         peak1DArray.Peaks
+         |> Seq.map (fun peak -> peak.Mz, peak.Intensity, peak.IonMobility.Value) //TODO  mutable Ansatz
+         |> Array.ofSeq
+         |> Array.unzip3
     
     /// Creates Peak1DArray of mzData array and intensityData Array
     let createPeak1DArray compression mzBinaryDataType intensityBinaryDataType (mzData:float []) (intensityData:float []) =
@@ -36,5 +49,12 @@ module PeakArray =
         let zipedData = Array.map2 (fun mz intz -> Peak1D(intz,mz)) mzData intensityData 
         let newPeakA = Arrays.MzIOArray.ToMzIOArray zipedData
         peak1DArray.Peaks <- newPeakA
+        peak1DArray
+
+    /// Creates Peak1DArray of mzData array and intensityData Array
+    let createPeak1DArrayIonMobility compression mzBinaryDataType intensityBinaryDataType ionMobilityDataType (mzData:float []) (intensityData:float []) (ionMobilityData:float []) =
+        let zipedData = Array.map3 (fun mz intz im -> Peak1D(intz,mz,im)) mzData intensityData ionMobilityData
+        let newPeakA = Arrays.MzIOArray.ToMzIOArray zipedData
+        let peak1DArray = new Peak1DArray(compression,intensityBinaryDataType, mzBinaryDataType,newPeakA, ionMobilityDataType)
         peak1DArray
 

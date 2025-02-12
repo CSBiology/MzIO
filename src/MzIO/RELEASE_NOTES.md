@@ -1,3 +1,12 @@
+#### 0.1.4 - Tuesday, February 11, 2025
+* Upgrade FSharp.Core to 6.0
+
+#### 0.1.3 - Tuesday, February 11, 2025
+* Downgrade FSharp.Core back to 5.0
+
+#### 0.1.2 - Tuesday, February 11, 2025
+* Add optional Ion Mobility to Peak1D and Peak2D
+
 #### 0.1.1 - Thursday, May 6, 2021
 * fix encoding errors in MzMLReader
 * add MzMLReader function to retrieve Peaks with corresponding spectrum ID
