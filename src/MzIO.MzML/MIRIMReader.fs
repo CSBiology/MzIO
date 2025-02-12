@@ -2497,21 +2497,21 @@ type MzMLReaderMIRIM(filePath: string) =
         if convertedPeaks.Length = 3 && (peakArray.GetDynamicMemberNames() |> Seq.contains "MirimDataType") then
             let mzs = 
                 match peakArray.MzDataType with
-                | BinaryDataType.Float32 -> MzMLReaderMIRIM.convert_mz_float32_peak peakArray.CompressionType convertedPeaks[2]
-                | BinaryDataType.Float64 -> MzMLReaderMIRIM.convert_mz_float64_peak peakArray.CompressionType convertedPeaks[2]
+                | BinaryDataType.Float32 -> MzMLReaderMIRIM.convert_mz_float32_peak peakArray.CompressionType convertedPeaks.[2]
+                | BinaryDataType.Float64 -> MzMLReaderMIRIM.convert_mz_float64_peak peakArray.CompressionType convertedPeaks.[2]
                 | _ -> failwith "No compelement Type"
 
             let intensities =
                 match peakArray.IntensityDataType with
-                | BinaryDataType.Float32 -> MzMLReaderMIRIM.convert_intensity_float32_peak peakArray.CompressionType convertedPeaks[1]
-                | BinaryDataType.Float64 -> MzMLReaderMIRIM.convert_intensity_float64_peak peakArray.CompressionType convertedPeaks[1]
+                | BinaryDataType.Float32 -> MzMLReaderMIRIM.convert_intensity_float32_peak peakArray.CompressionType convertedPeaks.[1]
+                | BinaryDataType.Float64 -> MzMLReaderMIRIM.convert_intensity_float64_peak peakArray.CompressionType convertedPeaks.[1]
                 | _ -> failwith "No compelement Type"
 
             let ionMobilities = 
                 // ill just assume that the encoding precision is the same as mz here.
                 match (peakArray?MirimDataType |> unbox<BinaryDataType>) with
-                | BinaryDataType.Float32 -> MzMLReaderMIRIM.convert_mz_float32_peak peakArray.CompressionType convertedPeaks[0]
-                | BinaryDataType.Float64 -> MzMLReaderMIRIM.convert_mz_float64_peak peakArray.CompressionType convertedPeaks[0]
+                | BinaryDataType.Float32 -> MzMLReaderMIRIM.convert_mz_float32_peak peakArray.CompressionType convertedPeaks.[0]
+                | BinaryDataType.Float64 -> MzMLReaderMIRIM.convert_mz_float64_peak peakArray.CompressionType convertedPeaks.[0]
                 | _ -> failwith "No compelement Type"
             let peaks = Array.map2 (fun mz int -> new Peak1D(int, float mz)) mzs intensities
             peakArray.Peaks <- ArrayWrapper(peaks)

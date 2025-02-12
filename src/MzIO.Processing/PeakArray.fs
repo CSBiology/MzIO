@@ -51,3 +51,10 @@ module PeakArray =
         peak1DArray.Peaks <- newPeakA
         peak1DArray
 
+    /// Creates Peak1DArray of mzData array and intensityData Array
+    let createPeak1DArrayIonMobility compression mzBinaryDataType intensityBinaryDataType ionMobilityDataType (mzData:float []) (intensityData:float []) (ionMobilityData:float []) =
+        let zipedData = Array.map3 (fun mz intz im -> Peak1D(intz,mz,im)) mzData intensityData ionMobilityData
+        let newPeakA = Arrays.MzIOArray.ToMzIOArray zipedData
+        let peak1DArray = new Peak1DArray(compression,intensityBinaryDataType, mzBinaryDataType,newPeakA, ionMobilityDataType)
+        peak1DArray
+

@@ -1,3 +1,6 @@
+#### 0.1.6 - Wednesday, February 12, 2025
+* Upgrade to .NET SDK 6.0
+
 #### 0.1.5 - Tuesday, February 11, 2025
 * Add Ion Mobility functions
 

@@ -18,7 +18,7 @@
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
   <PropertyGroup>
-    <Authors>Patrick Blume, Jonathan Ott, David Zimmer, Timo Muehlhaus</Authors>
+    <Authors>Patrick Blume, Caroline Ott, David Zimmer, Timo Muehlhaus</Authors>
     <Description>MzML Data Reader</Description>
     <Summary>MzML Data Reader</Summary>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
@@ -39,8 +39,8 @@
     <Compile Include="MzMLWriter.fs" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="MzIO.Processing" Version="0.1.2" />
-    <PackageReference Include="MzIO" Version="[0.1.2]" />
+    <PackageReference Include="MzIO.Processing" Version="[0.1.4]" />
+    <PackageReference Include="MzIO" Version="[0.1.4]" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All" />
   </ItemGroup>

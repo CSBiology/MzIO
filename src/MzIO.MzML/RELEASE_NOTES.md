@@ -1,5 +1,8 @@
-#### 0.1.3 - Tuesday, February 11, 2025
-* Update MzIO
+#### 0.1.7 - Wednesday, February 12, 2025
+* Upgrade .NET SDK to 6.0
+
+#### 0.1.6 - Tuesday, June 13, 2023
+* Change FSharp.Core version back to 5.0.0
 
 #### 0.1.5 - Tuesday, June 13, 2023
 * Add MzML MIRIM Reader

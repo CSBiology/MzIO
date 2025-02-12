@@ -1,3 +1,6 @@
+#### 0.1.4 - Tuesday, February 11, 2025
+* Upgrade FSharp.Core to 6.0
+
 #### 0.1.3 - Tuesday, February 11, 2025
 * Downgrade FSharp.Core back to 5.0
 
