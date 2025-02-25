@@ -1,3 +1,6 @@
+#### 0.1.5 - Tuesday, February 25, 2025
+* Change Json culture to Invariant
+
 #### 0.1.4 - Tuesday, February 11, 2025
 * Upgrade FSharp.Core to 6.0
 

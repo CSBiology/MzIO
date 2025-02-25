@@ -26,7 +26,7 @@ type MzIOJson =
         //end of new method
         //tmp.ReferenceLoopHandling       <- Newtonsoft.Json.ReferenceLoopHandling.Ignore
         tmp.ContractResolver            <- new DefaultContractResolver()
-        tmp.Culture <- new CultureInfo("en-US")    
+        tmp.Culture <- System.Globalization.CultureInfo.InvariantCulture
         tmp
 
     /// Creates or overwrites existing JSON file at location.
