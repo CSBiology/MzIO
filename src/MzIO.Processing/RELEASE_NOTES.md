@@ -1,3 +1,6 @@
+#### 0.1.5 - Tuesday, February 25, 2025
+* Update MzIO version
+
 #### 0.1.4 - Wednesday, February 12, 2025
 * Upgrade .NET SDK to 6.0
 
