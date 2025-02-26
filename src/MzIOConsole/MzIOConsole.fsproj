@@ -15,7 +15,7 @@
     <Compile Include="Program.fs" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="MzIO" Version="0.1.1" />
+    <PackageReference Include="MzIO" Version="[0.1.4]" />
     <PackageReference Include="Argu" Version="6.1.1" />
   </ItemGroup>
 </Project>

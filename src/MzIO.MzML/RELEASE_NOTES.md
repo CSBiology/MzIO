@@ -1,3 +1,9 @@
+#### 0.1.10 - Wednesday, February 26, 2025
+* Update MzIO and MzIO.Processing versions for null value handling
+
+#### 0.1.9 - Wednesday, February 26, 2025
+* Update MzIO and MzIO.Processing versions
+
 #### 0.1.8 - Tuesday, February 25, 2025
 * Update MzIO version
 

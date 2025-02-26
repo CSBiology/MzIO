@@ -17,7 +17,7 @@
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
   <PropertyGroup>
-    <Authors>Patrick Blume, Jonathan Ott, David Zimmer, Timo Muehlhaus</Authors>
+    <Authors>Patrick Blume, Caroline Ott, David Zimmer, Timo Muehlhaus</Authors>
     <Description>Sciex Data Reader</Description>
     <Summary>Sciex Data Reader</Summary>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
@@ -43,8 +43,8 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="MzIO.Processing" Version="0.1.2" />
-    <PackageReference Include="MzIO" Version="0.1.1" />
-    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+    <PackageReference Include="MzIO" Version="[0.1.4]" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All" />
     <PackageReference Include="Clearcore2" Version="0.0.3-beta2" />
   </ItemGroup>

@@ -118,7 +118,7 @@ type Peak1DArray(compressionDataType:BinaryDataCompressionType, intensityDataTyp
         with get() = mzDataType
         and set(value) = mzDataType <- value
 
-    [<JsonProperty(Required = Required.Always)>]
+    [<JsonProperty(Required = Required.AllowNull)>]
     member this.IonMobilityDataType
         with get() = ionMobilityDataType
         and set(value) = ionMobilityDataType <- value
@@ -166,7 +166,7 @@ type Peak2DArray(compressionDataType:BinaryDataCompressionType, intensityDataTyp
         with get() = mzDataType
         and set(value) = mzDataType <- value
 
-    [<JsonProperty(Required = Required.Always)>]
+    [<JsonProperty(Required = Required.AllowNull)>]
     member this.IonMobilityDataType
         with get() = ionMobilityDataType
         and set(value) = ionMobilityDataType <- value
